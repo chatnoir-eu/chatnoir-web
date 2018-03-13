@@ -39,6 +39,13 @@ h2 {
     margin-top: 4rem;
 }
 
+.errorlist {
+    margin-left: 18rem;
+    padding-left: 0;
+    list-style: none;
+    color: #c04223;
+}
+
 .key-req-tos {
     margin-left: 18rem;
 }
