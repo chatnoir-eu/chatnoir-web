@@ -46,6 +46,10 @@ h2 {
     color: #c04223;
 }
 
+.buttons .errorlist {
+    margin-left: 0;
+}
+
 .key-req-tos {
     margin-left: 18rem;
 }
@@ -57,6 +61,21 @@ h2 {
 .key-req-submit {
     text-align: right;
     margin-top: 4rem;
+}
+
+#ApiKeyReqContents > div {
+    margin-left: 11rem;
+}
+
+.req-success, .req-error {
+    float: left;
+    display: block;
+    font-size: 8rem;
+    color: #7bc00d;
+}
+
+.req-error {
+    color: #c04223;
 }
 
 @media screen and (max-width: 767px) {

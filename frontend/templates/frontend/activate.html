@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChatNoir API Keys</title>
+
+    {% load static %}
+    {%  include 'frontend/header.html' %}
+</head>
+<body class="search-page">
+    <div id="Main" class="container">
+        {% include 'frontend/search-header.html' %}
+
+        <section id="ApiKeyReqContents">
+            {% if api_key %}
+                <i class="fa fa-check req-success" aria-hidden="true"></i>
+                <div>
+                    <h1>API key activated!</h1>
+                    <p>Congratulations! You have successfully verified your email address.</p>
+                    <p>This is your new API key:</p>
+                    <pre><code>{{ api_key }}</code></pre>
+                    <p>To get started with how to use our API, check out our <a href="https://www.chatnoir.eu/doc/"
+                    >API documentation</a>.</p>
+                    <p>Please don't forget to cite our paper and provide a link to <a href="https://www.chatnoir.eu/"
+                    >www.chatnoir.eu</a> when you use ChatNoir for your own projects.</p>
+                </div>
+            {% else %}
+                <i class="fa fa-times req-error" aria-hidden="true"></i>
+                <div>
+                    <h1>Error!</h1>
+                    <p>The provided activation code is invalid or has expired.</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+
+    {% include 'frontend/footer.html' %}
+</body>
+</html>

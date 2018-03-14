@@ -4,5 +4,6 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('request_key/', views.request_key, name='request_key')
+    path('request_sent', views.request_sent, name='request_sent'),
+    path('activate/<slug:activation_code>', views.activate, name='activate/')
 ]
