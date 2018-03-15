@@ -3,7 +3,7 @@ from .models import PendingUser, User
 
 from django.core.mail import EmailMultiAlternatives
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.template.loader import get_template
 from django.utils.crypto import get_random_string
 

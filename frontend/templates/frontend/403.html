@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oops! Error: 403 Forbidden - ChatNoir</title>
+
+    {% load static %}
+    {%  include 'frontend/header.html' %}
+</head>
+<body class="search-page">
+    <div id="Main" class="container error">
+        <section id="Error">
+            <object id="Logo" type="image/svg+xml" data="{% static 'frontend/img/chatnoir-cat-only.svg' %}">
+                ChatNoir Logo
+            </object>
+            <div class="message">
+                <h1>Not so fast!</h1>
+                <p>You are not allowed to access this URL.</p>
+                <p>(Error: 403 – Forbidden)</p>
+
+                <p><a href="{{contextPath}}/">Back to search…</a></p>
+            </div>
+        </section>
+    </div>
+
+    {% include 'frontend/footer.html' %}
+</body>
+</html>

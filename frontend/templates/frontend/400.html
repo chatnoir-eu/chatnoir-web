@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oops! Error: 400 Bad Request - ChatNoir</title>
+
+    {% load static %}
+    {%  include 'frontend/header.html' %}
+</head>
+<body class="search-page">
+    <div id="Main" class="container error">
+        <section id="Error">
+            <object id="Logo" type="image/svg+xml" data="{% static 'frontend/img/chatnoir-cat-only.svg' %}">
+                ChatNoir Logo
+            </object>
+            <div class="message">
+                <h1>Sorry…</h1>
+                <p>…we couldn't understand your request.</p>
+                <p>(Error: 400 – Bad Request)</p>
+
+                <p><a href="{{contextPath}}/">Back to search…</a></p>
+            </div>
+        </section>
+    </div>
+
+    {% include 'frontend/footer.html' %}
+</body>
+</html>

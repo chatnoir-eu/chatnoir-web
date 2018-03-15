@@ -10,7 +10,7 @@ from .local_settings import *
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,7 +40,7 @@ ROOT_URLCONF = 'chatnoir2_apikey_frontend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'frontend/templates/frontend')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

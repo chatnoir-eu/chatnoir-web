@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oops! Error: 404 Not Found - ChatNoir</title>
+
+    {% load static %}
+    {%  include 'frontend/header.html' %}
+</head>
+<body class="search-page">
+    <div id="Main" class="container error">
+        <section id="Error">
+            <object id="Logo" type="image/svg+xml" data="{% static 'frontend/img/chatnoir-cat-only.svg' %}">
+                ChatNoir Logo
+            </object>
+            <div class="message">
+                <h1>Quo vadis?</h1>
+                <p>The requested URL could not be found on the server.</p>
+                <p>(Error: 404 – Not Found)</p>
+
+                <p><a href="https://www.chatnoir.eu/">Back to search…</a></p>
+            </div>
+        </section>
+    </div>
+
+    {% include 'frontend/footer.html' %}
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oops! Error: 500 Internal Server Error - ChatNoir</title>
+
+    {% load static %}
+    {%  include 'frontend/header.html' %}
+</head>
+<body class="search-page">
+    <div id="Main" class="container error">
+        <section id="Error">
+            <object id="Logo" type="image/svg+xml" data="{% static 'frontend/img/chatnoir-cat-only.svg' %}">
+                ChatNoir Logo
+            </object>
+            <div class="message">
+                <h1>Oops! This shouldn't happen!</h1>
+                <p>We experienced an internal error. Our server monkeys have been notified
+                    and are working hard to fix it. Please try again later.</p>
+                <p>(Error: 500 – Internal Server Error)</p>
+            </div>
+        </section>
+    </div>
+
+    {% include 'frontend/footer.html' %}
+</body>
+</html>
