@@ -40,6 +40,8 @@ class ApiRequest:
             req.add_header('Content-Type', 'application/json')
 
             content = request.urlopen(req).read()
+            if type(content) is bytes:
+                content = content.decode('utf-8')
             return json.loads(content)
         except error.HTTPError as e:
             self._error = e
