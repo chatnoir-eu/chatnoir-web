@@ -10,6 +10,7 @@ class KeyRequestForm(forms.ModelForm):
         fields = [
             'commonname',
             'email',
+            'organization',
             'address',
             'zip_code',
             'state',
@@ -20,6 +21,7 @@ class KeyRequestForm(forms.ModelForm):
         widgets = {
             'commonname': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'organization': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
             'zip_code': forms.TextInput(attrs={'class': 'form-control'}),
             'state': forms.TextInput(attrs={'class': 'form-control'}),

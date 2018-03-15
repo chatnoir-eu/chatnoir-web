@@ -35,7 +35,7 @@ h2 {
     padding: .5rem;
 }
 
-.main-fields .key-req-address, .main-fields .key-req-passcode, .main-fields .buttons {
+.main-fields .key-req-org, .main-fields .key-req-passcode, .main-fields .buttons {
     margin-top: 4rem;
 }
 

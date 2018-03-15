@@ -35,7 +35,7 @@ def index(request):
                 [instance.email]
             )
             mail.attach_alternative(mail_content_html, 'text/html')
-            print(mail.send())
+            mail.send()
 
             return HttpResponseRedirect('/request_sent')
         else:
@@ -53,10 +53,19 @@ def request_sent(request):
 def activate(request, activation_code):
     context = {}
 
-    instance = PendingUser.get_by_activation_code(activation_code)
-    if instance:
-        # PendingUser.issue_new_key(instance)
-        # user = User(passcode=)
-        context['api_key'] = 'abc'
+    api_key, email = User.issue_api_key(activation_code)
+    if api_key:
+        context['api_key'] = api_key
+
+        mail_content_plain = get_template('frontend/apikey_email.txt').render(context, request)
+        mail_content_html = get_template('frontend/apikey_email.html').render(context, request)
+        mail = EmailMultiAlternatives(
+            'Your ChatNoir API key',
+            mail_content_plain,
+            'no-reply@chatnoir.eu',
+            [email]
+        )
+        mail.attach_alternative(mail_content_html, 'text/html')
+        mail.send()
 
     return render(request, 'frontend/activate.html', context)

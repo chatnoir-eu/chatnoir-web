@@ -1,0 +1,14 @@
+This is your new ChatNoir API key:
+
+    {{ api_key }}
+
+To get started with how to use our API, check out our API
+documentation: https://www.chatnoir.eu/doc/
+
+If you have any further questions regarding the service, feel
+free to contact us.
+
+Please don't forget to cite our paper and provide a link to
+https://www.chatnoir.eu/ if you are using ChatNoir for your
+own work. We are looking forward to seeing what people will do
+with our service.

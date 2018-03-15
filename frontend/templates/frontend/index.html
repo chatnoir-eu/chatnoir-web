@@ -24,13 +24,18 @@
                 <div class="main-fields">
                     <div class="key-req-name">
                         {{ form.commonname.errors }}
-                        <label for="{{ form.commonname.id_for_label }}">Name or organization: *</label>
+                        <label for="{{ form.commonname.id_for_label }}">Name: *</label>
                         {{ form.commonname }}
                     </div>
                     <div class="key-req-email">
                         {{ form.email.errors }}
                         <label for="{{ form.email.id_for_label }}">Email address: *</label>
                         {{ form.email }}
+                    </div>
+                    <div class="key-req-org">
+                        {{ form.organization.errors }}
+                        <label for="{{ form.organization.id_for_label }}">Organization:</label>
+                        {{ form.organization }}
                     </div>
                     <div class="key-req-address">
                         {{ form.address.errors }}
