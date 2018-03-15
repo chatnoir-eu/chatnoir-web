@@ -2,9 +2,9 @@ from .forms import KeyRequestForm
 from .models import PendingUser, User
 
 from django.core.mail import EmailMultiAlternatives
-from django.http import HttpResponseRedirect
-from django.shortcuts import render, render_to_response
+from django.shortcuts import redirect, render
 from django.template.loader import get_template
+from django.urls import reverse
 from django.utils.crypto import get_random_string
 
 from concurrent.futures import ThreadPoolExecutor
@@ -41,7 +41,7 @@ def index(request):
             mail.attach_alternative(mail_content_html, 'text/html')
             send_mail_executor.submit(mail.send)
 
-            return HttpResponseRedirect('/request_sent')
+            return redirect(request_sent)
         else:
             return render(request, 'frontend/index.html', {'form': form})
     else:
