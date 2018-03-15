@@ -1,11 +1,15 @@
+from .forms import KeyRequestForm
+from .models import PendingUser, User
+
 from django.core.mail import EmailMultiAlternatives
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.template.loader import get_template
 from django.utils.crypto import get_random_string
 
-from .forms import KeyRequestForm
-from .models import Passcode, PendingUser, User
+from concurrent.futures import ThreadPoolExecutor
+
+send_mail_executor = ThreadPoolExecutor(max_workers=20)
 
 
 def index(request):
@@ -35,7 +39,7 @@ def index(request):
                 [instance.email]
             )
             mail.attach_alternative(mail_content_html, 'text/html')
-            mail.send()
+            send_mail_executor.submit(mail.send)
 
             return HttpResponseRedirect('/request_sent')
         else:
@@ -66,6 +70,6 @@ def activate(request, activation_code):
             [email]
         )
         mail.attach_alternative(mail_content_html, 'text/html')
-        mail.send()
+        send_mail_executor.submit(mail.send)
 
     return render(request, 'frontend/activate.html', context)
