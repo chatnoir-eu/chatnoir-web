@@ -4,7 +4,6 @@ from .models import PendingUser, User
 from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
-from django.urls import reverse
 from django.utils.crypto import get_random_string
 
 from concurrent.futures import ThreadPoolExecutor
