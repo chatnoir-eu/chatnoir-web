@@ -12,3 +12,5 @@ Please don't forget to cite our paper and provide a link to
 https://www.chatnoir.eu/ if you are using ChatNoir for your
 own work. We are looking forward to seeing what people will do
 with our service.
+
+https://www.uni-weimar.de/medien/webis/publications/papers/stein_2018a.pdf
