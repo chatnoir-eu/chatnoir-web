@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chatnoir-apikey-web-pvc
+  labels:
+    app: chatnoir-apikey-web
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: ceph-rbd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatnoir-apikey-web
+  labels:
+    app: chatnoir-apikey-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatnoir-apikey-web
+  strategy:
+      type: Recreate
+  template:
+    metadata:
+      labels:
+        app: chatnoir-apikey-web
+
+    spec:
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: chatnoir-apikey-web-pvc
+        - name: local-config
+          configMap:
+            name: chatnoir-apikey-config
+      securityContext:
+        fsGroup: 3000
+
+      containers:
+        - name: chatnoir-apikey-web
+          image: webis/chatnoir-apikey-web:latest
+          ports:
+            - name: django
+              containerPort: 8081
+              protocol: TCP
+          volumeMounts:
+            # Requires pre-deployed config map with sub path local_settings.py
+            - mountPath: /opt/apikey-frontend/chatnoir2_apikey_frontend/local_settings.py
+              name: local-config
+              subPath: local_settings.py
+            - mountPath: /opt/apikey-frontend/data
+              name: data-volume
