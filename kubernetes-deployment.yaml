@@ -38,6 +38,9 @@ spec:
         - name: local-config
           configMap:
             name: chatnoir-apikey-config
+        - name: django-secret
+          secret:
+            secretName: chatnoir-apikey-frontend-secret
       securityContext:
         fsGroup: 3000
 
@@ -55,3 +58,6 @@ spec:
               subPath: local_settings.py
             - mountPath: /opt/apikey-frontend/data
               name: data-volume
+            - mountPath: /opt/apikey-frontend/chatnoir2_apikey_frontend/secret.py
+              name: django-secret
+              subPath: secret.py
