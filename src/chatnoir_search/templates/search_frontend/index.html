@@ -1,18 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ChatNoir API Keys</title>
+    <meta charset="utf-8">
+    <title>ChatNoir</title>
 
     {% load static %}
     {% include 'header.html' %}
 </head>
-<body class="search-page">
-    <div id="Main" class="container">
-        {% include 'search-header.html' %}
-
-        Stub
+<body class="index-page">
+<div id="Main" class="container">
+    <div id="LogoWrapper">
+        <a rel="home" href="{{ contextPath }}/" title="ChatNoir">
+            <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir.svg' %}">
+                ChatNoir Logo
+            </object>
+        </a>
     </div>
+    <form role="search" action="{% url 'search:index' %}">
+        {% include 'search-field.html' %}
+    </form>
+</div>
 
-    {% include 'footer.html' %}
+{% include 'footer.html' %}
 </body>
 </html>

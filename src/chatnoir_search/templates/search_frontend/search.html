@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% if search_query %}{{ search_query }} - {% endif %}ChatNoir</title>
+
+    {% load static %}
+    {% include 'header.html' %}
+    <link href="{% static 'apikey_frontend/style.css' %}" rel="stylesheet" />
+</head>
+<body class="search-page">
+    {% include 'maintenance.html' %}
+    <div id="Main" class="container">
+        {% include 'search-header.html' %}
+
+        <div class="search-info">
+            {% if pagination_info.num_results %}<div class="num-results">Total results: {{ pagination_info.num_results }} (retrieved in {{ query_time }})</div>{% endif %}
+            <h1>Search results {% if results_found %}}{{pagination_info.results_range_start}}-{{pagination_info.results_range_end}} {% endif %}for <em>{{ search_query }}</em></h1>
+        </div>
+
+        <section id="SearchResults">
+            {% for result in search_results %}
+                <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.document_id }}"{% if result.explanation %} data-explanation="{{ result.explanation_string }}"{% endif %}>
+                    <header>
+                        <h2><a href="{%  url 'search:index' %}cache?uuid={{ result.document_id | iriencode }}&index={{ result.index | iriencode }}">{{ result.title | escape }}</a></h2>
+                        <div class="meta">
+                            <a href="{{ result.target_uri }}" class="link">{% if result.target_hostname %}{{ result.target_hostname }}{{ result.target_path }}{% endif %}</a>
+                            <div class="dropdown">
+                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                    <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{ result.target_uri }}">Web Link</a></li>
+                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{%  url 'search:index' %}cache?uuid={{ result.document_id | iriencode }}&amp;index={{ result.index | iriencode }}&amp;plain">Plaintext</a></li>
+                                    <li role="presentation" class="divider"></li>
+                                    <li role="presentation" class="dropdown-header">Index: {% if result.display_index %}{{ result.display_index | escape }}{% else %}{{ result.index | escape }}{% endif %}</li>
+                                    <li role="presentation" class="dropdown-header">Document ID: {{ result.document_id | escape }}</li>
+                                    {% if result.trec_id %}<li role="presentation" class="dropdown-header">TREC ID: {{ result.trec_id | escape }}</li>{% endif %}
+                                    <li role="presentation" class="dropdown-header">Score: {{ result.score_formatted }}</li>
+                                    <li role="presentation" class="dropdown-header">Page Rank: {{ result.page_rank_formatted }}</li>
+                                    <li role="presentation" class="dropdown-header">Spam Rank: {{ result.spam_rank_formatted }}</li>
+                                    <li role="presentation" class="divider"></li>
+                                    <li role="presentation" class="result-explain">
+                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | iriencode }}&p={{ current_page }}&index={{ p.indices | join:',' | iriencode }}{% if is_explain_mode %}&explain{% endif %}#result-{{ result.document_id | iriencode }}">Explain</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </header>
+                    {% if not result.is_grouping_suggested %}{{ snippet | escape }}{% endif %}
+                </article>
+                {% if result.is_more_suggested %}
+                    <div class="more-from-host">
+                        <a href="{%  url 'search:index' %}?q=site:{{ result.target_hostname }}+{{ search_query | iriencode }}">More results from {{ result.target_hostname }}</a>
+                    </div>
+                {% endif %}
+
+            {% empty %}
+                <div class="no-results">No results found… ;-(</div>
+            {% endfor %}
+
+            {% if pagination %}
+            <footer>
+                <ul class="pagination">
+                    {% for p in pagination %}
+                        <li{% if p.active %} class="active"{% endif %}>
+                            <a href="{%  url 'search:index' %}?q={{ search_query | iriencode }}&p={{ page_number }}{% if is_explain_mode %}&explain{% endif %}&index={{ p.indices | join:',' | iriencode }}" {% if p.hidden_label %} title="{{ p.hidden_label }}"{% endif %}>
+                            {{ p.label }}{% if p.aria_hidden_label %} <span aria-hidden="true">{{ p.aria_hidden_label }}</span>{% endif %}
+                            {% if p.hidden_label %} <span class="sr-only">{{ p.hidden_label }}</span>{% endif %}
+                        </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </footer>
+        {% endif %}
+        </section>
+    </div>
+
+
+    {% if is_explain_mode %}
+        <div class="modal fade" id="ExplanationModal" tabindex="-1" role="dialog" aria-labelledby="ExplanationModal" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">&nbsp;</h4>
+                    </div>
+                    <div class="modal-body"><div id="ExplanationModalContent">&nbsp;</div></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% include 'footer.html' %}
+</body>
+</html>

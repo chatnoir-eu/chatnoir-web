@@ -3,7 +3,7 @@
 <form role="search" action="{%  url 'search:index' %}" method="get">
     <div id="SearchHeader" class="row">
         <div id="LogoWrapper" class="col-sm-2">
-            <a rel="home" href="{%  url 'search:index' %}" title="ChatNoir">
+            <a rel="home" href="{{contextPath}}/" title="ChatNoir">
                 <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir.svg' %}">
                     ChatNoir Logo
                 </object>
@@ -11,14 +11,23 @@
             </a>
         </div>
         <div class="col-sm-8">
-            <div id="SearchField">
-                <div class="input-group">
-                    <input type="text" class="form-control input-lg" placeholder="Search" name="q" id="SearchInput">
-                    <span class="input-group-btn">
-                        <button type="submit" class="btn btn-primary input-lg">Go!</button>
-                    </span>
-                </div>
+            {%  include 'search-field.html' %}
+        </div>
+        {% if is_search %}
+            <div id="SearchOptionsToggle">
+                <button class="btn fa fa-cog active">Settings</button>
+            </div>
+        {% endif %}
+    </div>
+    {%  if is_search %}
+        <div id="SearchOptions">
+            <div class="indices">
+                <select data-placeholder="Select…" name="index" id="SearchIndices" multiple>
+                    {%  for i in allowed_indices %}
+                        <option value="{{ i.name }}"{%  if i.selected %} selected{%  endif %}>{{ i.displayName }}</option>
+                    {%  endfor %}
+                </select>
             </div>
         </div>
-    </div>
+    {%  endif %}
 </form>
