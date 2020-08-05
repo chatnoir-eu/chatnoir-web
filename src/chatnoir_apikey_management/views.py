@@ -29,8 +29,8 @@ def index(request):
             mail_context = {
                 'activation_code': activation_code
             }
-            mail_content_plain = get_template('frontend/confirmation_email.txt').render(mail_context, request)
-            mail_content_html = get_template('frontend/confirmation_email.html').render(mail_context, request)
+            mail_content_plain = get_template('apikey_email/confirmation_email.txt').render(mail_context, request)
+            mail_content_html = get_template('apikey_email/confirmation_email.html').render(mail_context, request)
             mail = EmailMultiAlternatives(
                 'Complete your ChatNoir API key request',
                 mail_content_plain,
@@ -42,15 +42,15 @@ def index(request):
 
             return redirect(request_sent)
         else:
-            return render(request, 'frontend/index.html', {'form': form})
+            return render(request, 'apikey_frontend/index.html', {'form': form})
     else:
         form = KeyRequestForm()
 
-    return render(request, 'frontend/index.html', {'form': form})
+    return render(request, 'apikey_frontend/index.html', {'form': form})
 
 
 def request_sent(request):
-    return render(request, 'frontend/request_sent.html', {})
+    return render(request, 'apikey_frontend/request_sent.html', {})
 
 
 def activate(request, activation_code):
@@ -60,8 +60,8 @@ def activate(request, activation_code):
     if api_key:
         context['api_key'] = api_key
 
-        mail_content_plain = get_template('frontend/apikey_email.txt').render(context, request)
-        mail_content_html = get_template('frontend/apikey_email.html').render(context, request)
+        mail_content_plain = get_template('apikey_email/apikey_email.txt').render(context, request)
+        mail_content_html = get_template('apikey_email/apikey_email.html').render(context, request)
         mail = EmailMultiAlternatives(
             'Your ChatNoir API key',
             mail_content_plain,
@@ -71,4 +71,4 @@ def activate(request, activation_code):
         mail.attach_alternative(mail_content_html, 'text/html')
         send_mail_executor.submit(mail.send)
 
-    return render(request, 'frontend/activate.html', context)
+    return render(request, 'apikey_frontend/activate.html', context)

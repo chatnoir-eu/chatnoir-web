@@ -21,20 +21,20 @@ ENV LC_ALL en_US.UTF-8
 RUN set -x \
     && groupadd -g 3000 chatnoir \
     && useradd -u 3000 -g chatnoir -d /opt/apikey-frontned -s /bin/bash chatnoir \
-    && mkdir /opt/apikey-frontend \
-    && chown chatnoir /opt/apikey-frontend
+    && mkdir /opt/chatnoir \
+    && chown chatnoir /opt/chatnoir
 
-WORKDIR /opt/apikey-frontend
+WORKDIR /opt/chatnoir
 
-COPY ./requirements.txt /opt/apikey-frontend/requirements.txt
+COPY ./requirements.txt /opt/chatnoir/requirements.txt
 RUN set -x \
     && ln -nfs /usr/bin/python3 /usr/bin/python \
     && pip3 install --no-cache-dir -r requirements.txt
 
-COPY ./src/ /opt/apikey-frontend/
+COPY ./src/ /opt/chatnoir/
 
-COPY ./wsgi.ini /opt/apikey-frontend/wsgi.ini
+COPY ./wsgi.ini /opt/chatnoir/wsgi.ini
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["uwsgi", "--ini", "/opt/apikey-frontend/wsgi.ini"]
+CMD ["uwsgi", "--ini", "/opt/chatnoir/wsgi.ini"]

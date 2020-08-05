@@ -4,12 +4,12 @@
     <title>Oops! Error: 500 Internal Server Error - ChatNoir</title>
 
     {% load static %}
-    {%  include 'frontend/header.html' %}
+    {%  include 'header.html' %}
 </head>
 <body class="search-page">
     <div id="Main" class="container error">
         <section id="Error">
-            <object id="Logo" type="image/svg+xml" data="{% static 'frontend/img/chatnoir-cat-only.svg' %}">
+            <object id="Logo" type="image/svg+xml" data="{% static '../static/img/chatnoir-cat-only.svg' %}">
                 ChatNoir Logo
             </object>
             <div class="message">
@@ -21,6 +21,6 @@
         </section>
     </div>
 
-    {% include 'frontend/footer.html' %}
+    {% include 'footer.html' %}
 </body>
 </html>

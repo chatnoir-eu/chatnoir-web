@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('frontend', '0001_initial'),
+        ('chatnoir_apikey_management', '0001_initial'),
     ]
 
     operations = [
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('state', models.CharField(blank=True, max_length=50, null=True)),
                 ('country', models.CharField(blank=True, max_length=50, null=True)),
                 ('activation_code', models.CharField(max_length=36, unique=True)),
-                ('passcode', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='frontend.Passcode')),
+                ('passcode', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='chatnoir_apikey_management.Passcode')),
             ],
         ),
         migrations.AlterUniqueTogether(

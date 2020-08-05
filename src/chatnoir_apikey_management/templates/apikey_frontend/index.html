@@ -4,11 +4,11 @@
     <title>ChatNoir API Keys</title>
 
     {% load static %}
-    {%  include 'frontend/header.html' %}
+    {% include 'header.html' %}
 </head>
 <body class="search-page">
     <div id="Main" class="container">
-        {% include 'frontend/search-header.html' %}
+        {% include 'search-header.html' %}
 
         <section id="ApiKeyContent">
             <h1>Welcome!</h1>
@@ -20,7 +20,7 @@
             <p>To receive an API key, please fill in the following information. Fields marked with <strong>*</strong>
             are required.</p>
             {{ form.non_field_errors }}
-            <form action="{% url 'index' %}" method="post" id="ApiKeyReqForm">
+            <form action="{% url 'apikey_management:index' %}" method="post" id="ApiKeyReqForm">
                 <div class="main-fields">
                     <div class="key-req-name">
                         {{ form.commonname.errors }}
@@ -79,6 +79,6 @@
         </section>
     </div>
 
-    {% include 'frontend/footer.html' %}
+    {% include 'footer.html' %}
 </body>
 </html>

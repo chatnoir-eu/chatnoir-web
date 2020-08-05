@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('passcode', models.CharField(max_length=100, unique=True)),
-                ('issue_key', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='frontend.IssueKey')),
+                ('issue_key', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='chatnoir_apikey_management.IssueKey')),
             ],
         ),
         migrations.CreateModel(
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('email_address', models.CharField(max_length=200)),
-                ('passcode', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='frontend.Passcode')),
+                ('passcode', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='chatnoir_apikey_management.Passcode')),
             ],
         ),
         migrations.AlterUniqueTogether(

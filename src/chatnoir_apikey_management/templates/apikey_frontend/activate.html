@@ -4,11 +4,11 @@
     <title>ChatNoir API Keys</title>
 
     {% load static %}
-    {%  include 'frontend/header.html' %}
+    {% include 'header.html' %}
 </head>
 <body class="search-page">
     <div id="Main" class="container">
-        {% include 'frontend/search-header.html' %}
+        {% include 'search-header.html' %}
 
         <section id="ApiKeyReqContents">
             {% if api_key %}
@@ -33,6 +33,6 @@
         </section>
     </div>
 
-    {% include 'frontend/footer.html' %}
+    {% include 'footer.html' %}
 </body>
 </html>
