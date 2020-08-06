@@ -24,13 +24,13 @@ class SimpleSearch(ABC):
         self.search_language = 'en'
         self.group_results_by_hostname = True
 
-    def search(self, query_string, results_from, results_size):
+    def search(self, query_string, search_from, search_size):
         """
         Run a search based on given search fields.
 
         :param query_string: search query
-        :param results_from: first result to return
-        :param results_size: number of results to return
+        :param search_from: first result to return
+        :param search_size: number of results to return
         """
         pass
 
@@ -165,19 +165,19 @@ class SimpleSearchV1(SimpleSearch):
         super().__init__(indices)
         self.user_lang_override = False
 
-    def search(self, query_string, results_from, results_size):
-        results_from = min(results_from, 10000)
-        results_size = results_size if results_from + results_size <= 10000 else 0
-        response = self.build_search_request(query_string, results_from, results_size).execute()
-        return SerpContext(self, response, results_from, results_size)
+    def search(self, query_string, search_from, search_size):
+        search_from = min(search_from, 10000)
+        search_size = search_size if search_from + search_size <= 10000 else 0
+        response = self.build_search_request(query_string, search_from, search_size).execute()
+        return SerpContext(self, response, search_from)
 
-    def build_search_request(self, query_string, results_from, results_size):
+    def build_search_request(self, query_string, search_from, search_size):
         """
         Build search request including pre-query, rescorer, node limit, highlighters etc.
 
         :param query_string: user query string
-        :param results_from: first result to return
-        :param results_size: number of results to return
+        :param search_from: index of first document to match
+        :param search_size: number of documents to match
         :return: configured SearchRequestBuilder
         """
         s = Search() \
@@ -197,7 +197,7 @@ class SimpleSearchV1(SimpleSearch):
             .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1) \
             .highlight_options(encoder='html')
 
-        return s[results_from:results_size]
+        return s[search_from:search_size]
 
     def build_pre_query(self, query_string):
         """
@@ -357,12 +357,17 @@ class SerpContext:
     Results page context with processed results.
     """
 
-    def __init__(self, search: SimpleSearch, response: Response, results_from, results_size):
+    def __init__(self, search: SimpleSearch, response: Response, results_from):
+        """
+        :param search: SimpleSearch object
+        :param response: Elasticsearch DSL response
+        :param results_from: index of first document for pagination (last is calculated from number of hits)
+        """
         self.search = search
         self.response = response
         self.hits = response.hits
         self.results_from = results_from
-        self.results_size = results_size
+        self.results_size = len(self.hits)
 
     @property
     def results(self):
