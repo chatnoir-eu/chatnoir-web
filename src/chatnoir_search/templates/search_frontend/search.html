@@ -5,8 +5,8 @@
     <title>{% if search_query %}{{ search_query }} - {% endif %}ChatNoir</title>
 
     {% load static %}
+    {% load l10n %}
     {% include 'header.html' %}
-    <link href="{% static 'apikey_frontend/style.css' %}" rel="stylesheet" />
 </head>
 <body class="search-page">
     {% include 'maintenance.html' %}
@@ -14,15 +14,15 @@
         {% include 'search-header.html' %}
 
         <div class="search-info">
-            {% if pagination_info.num_results %}<div class="num-results">Total results: {{ pagination_info.num_results }} (retrieved in {{ query_time }})</div>{% endif %}
-            <h1>Search results {% if results_found %}}{{pagination_info.results_range_start}}-{{pagination_info.results_range_end}} {% endif %}for <em>{{ search_query }}</em></h1>
+            {% if search_results %}<div class="num-results">Total results: {{ serp_context.total_results | localize }}{% if serp_context.terminated_early %}+{% endif %}
+                (retrieved in {{ serp_context.query_time | localize }}ms)</div>{% endif %}
+            <h1>Search results {% if search_results %}{{ serp_context.results_from | add:1 }}-{{ serp_context.results_to }} {% endif %}for <em>{{ search_query }}</em></h1>
         </div>
-
         <section id="SearchResults">
             {% for result in search_results %}
                 <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.document_id }}"{% if result.explanation %} data-explanation="{{ result.explanation_string }}"{% endif %}>
                     <header>
-                        <h2><a href="{%  url 'search:index' %}cache?uuid={{ result.document_id | iriencode }}&index={{ result.index | iriencode }}">{{ result.title | escape }}</a></h2>
+                        <h2><a href="{%  url 'search:index' %}cache?uuid={{ result.document_id | urlencode }}&index={{ result.index | urlencode }}">{{ result.title | safe }}</a></h2>
                         <div class="meta">
                             <a href="{{ result.target_uri }}" class="link">{% if result.target_hostname %}{{ result.target_hostname }}{{ result.target_path }}{% endif %}</a>
                             <div class="dropdown">
@@ -31,27 +31,27 @@
                                 </button>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                                     <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{ result.target_uri }}">Web Link</a></li>
-                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{%  url 'search:index' %}cache?uuid={{ result.document_id | iriencode }}&amp;index={{ result.index | iriencode }}&amp;plain">Plaintext</a></li>
+                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{%  url 'search:index' %}cache?uuid={{ result.document_id | urlencode }}&amp;index={{ result.index | urlencode }}&amp;plain">Plaintext</a></li>
                                     <li role="presentation" class="divider"></li>
-                                    <li role="presentation" class="dropdown-header">Index: {% if result.display_index %}{{ result.display_index | escape }}{% else %}{{ result.index | escape }}{% endif %}</li>
-                                    <li role="presentation" class="dropdown-header">Document ID: {{ result.document_id | escape }}</li>
-                                    {% if result.trec_id %}<li role="presentation" class="dropdown-header">TREC ID: {{ result.trec_id | escape }}</li>{% endif %}
-                                    <li role="presentation" class="dropdown-header">Score: {{ result.score_formatted }}</li>
-                                    <li role="presentation" class="dropdown-header">Page Rank: {{ result.page_rank_formatted }}</li>
-                                    <li role="presentation" class="dropdown-header">Spam Rank: {{ result.spam_rank_formatted }}</li>
+                                    <li role="presentation" class="dropdown-header">Index: {% if result.display_index %}{{ result.display_index }}{% else %}{{ result.index }}{% endif %}</li>
+                                    <li role="presentation" class="dropdown-header">Document ID: {{ result.document_id }}</li>
+                                    {% if result.trec_id %}<li role="presentation" class="dropdown-header">TREC ID: {{ result.trec_id }}</li>{% endif %}
+                                    <li role="presentation" class="dropdown-header">Score: {{ result.score | floatformat:3 }}</li>
+                                    <li role="presentation" class="dropdown-header">Page Rank: {{ result.page_rank | floatformat:3 }}</li>
+                                    <li role="presentation" class="dropdown-header">Spam Rank: {{ result.spam_rank }}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | iriencode }}&p={{ current_page }}&index={{ p.indices | join:',' | iriencode }}{% if is_explain_mode %}&explain{% endif %}#result-{{ result.document_id | iriencode }}">Explain</a>
+                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ current_page }}&index={{ p.indices | join:',' | urlencode }}{% if is_explain_mode %}&explain{% endif %}#result-{{ result.document_id | urlencode }}">Explain</a>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </header>
-                    {% if not result.is_grouping_suggested %}{{ snippet | escape }}{% endif %}
+                    {% if not result.is_grouping_suggested %}{{ result.snippet | safe }}{% endif %}
                 </article>
                 {% if result.is_more_suggested %}
                     <div class="more-from-host">
-                        <a href="{%  url 'search:index' %}?q=site:{{ result.target_hostname }}+{{ search_query | iriencode }}">More results from {{ result.target_hostname }}</a>
+                        <a href="{%  url 'search:index' %}?q=site:{{ result.target_hostname }}+{{ search_query | urlencode }}">More results from {{ result.target_hostname }}</a>
                     </div>
                 {% endif %}
 
@@ -64,7 +64,7 @@
                 <ul class="pagination">
                     {% for p in pagination %}
                         <li{% if p.active %} class="active"{% endif %}>
-                            <a href="{%  url 'search:index' %}?q={{ search_query | iriencode }}&p={{ page_number }}{% if is_explain_mode %}&explain{% endif %}&index={{ p.indices | join:',' | iriencode }}" {% if p.hidden_label %} title="{{ p.hidden_label }}"{% endif %}>
+                            <a href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ page_number }}{% if is_explain_mode %}&explain{% endif %}&index={{ p.indices | join:',' | urlencode }}" {% if p.hidden_label %} title="{{ p.hidden_label }}"{% endif %}>
                             {{ p.label }}{% if p.aria_hidden_label %} <span aria-hidden="true">{{ p.aria_hidden_label }}</span>{% endif %}
                             {% if p.hidden_label %} <span class="sr-only">{{ p.hidden_label }}</span>{% endif %}
                         </a>

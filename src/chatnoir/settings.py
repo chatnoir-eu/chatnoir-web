@@ -90,6 +90,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+USE_THOUSAND_SEPARATOR = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
@@ -99,3 +100,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'chatnoir', 'static')
 ]
+
+# Search settings
+
+SERP_RESULTS_PER_PAGE = 10
