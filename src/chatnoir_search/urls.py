@@ -5,5 +5,6 @@ from . import views
 app_name = 'search'
 
 urlpatterns = [
-    path('', views.index, name='index')
+    path('', views.index, name='index'),
+    path('cache', views.cache, name='cache')
 ]

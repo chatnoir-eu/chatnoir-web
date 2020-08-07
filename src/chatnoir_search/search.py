@@ -428,16 +428,16 @@ class SerpContext:
 
             result = {
                 'score': hit.meta.score,
-                'index': hit.meta.index,
-                'document_id': hit.meta.id,
+                'index': self.index_name_to_shorthand(hit.meta.index),
+                'uuid': hit.meta.id,
+                'page_rank': getattr(hit, 'page_rank', None),
+                'spam_rank': getattr(hit, 'spam_rank', None),
                 'trec_id': getattr(hit, 'warc_trec_id', None),
                 'title': title,
                 'target_hostname': hit.warc_target_hostname,
                 'target_path': urlparse(hit.warc_target_uri).path,
                 'target_uri': hit.warc_target_uri,
-                'snippet': snippet,
-                'page_rank': getattr(hit, 'page_rank', None),
-                'spam_rank': getattr(hit, 'spam_rank', None)
+                'snippet': snippet
             }
 
             results.append(result)
@@ -446,6 +446,18 @@ class SerpContext:
             return self.group_results(results)
 
         return results
+
+    def index_name_to_shorthand(self, index_name):
+        """
+        Inversely resolve internal index name to defined shorthand name.
+
+        :param index_name: internal index name
+        :return: shorthand or unmodified index name if not found
+        """
+        for i, v in self.search.indices.items():
+            if v['index'] == index_name:
+                return i
+        return index_name
 
     @staticmethod
     def group_results(results):

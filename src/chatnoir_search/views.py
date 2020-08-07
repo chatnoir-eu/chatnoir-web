@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import HttpResponse, render
 
 
 from .search import SimpleSearchV1
@@ -26,3 +26,18 @@ def index(request):
         'search_results': serp_context.results
     }
     return render(request, 'search_frontend/search.html', context)
+
+
+def cache(request):
+    context = {
+        'cache': {
+            'uuid': request.GET.get('uuid', ''),
+            'index': request.GET.get('index', ''),
+            'is_plaintext_mode': 'plain' in request.GET
+        }
+    }
+
+    if 'raw' in request.GET:
+        return HttpResponse('', 'text/plain', 200)
+
+    return render(request, 'search_frontend/cache.html', context)

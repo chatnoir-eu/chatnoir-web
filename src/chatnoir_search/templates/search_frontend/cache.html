@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ChatNoir Cached Webpage</title>
+
+    {% load static %}
+    {% include 'header.html' %}
+</head>
+<body class="cache-page">
+    {% include 'maintenance.html' %}
+    <div id="Main" class="container">
+        <div id="CacheHeader">
+            <div id="LogoWrapper">
+                <a rel="home" href="{%  url 'search:index' %}" title="ChatNoir">
+                    <img src="{% static 'img/chatnoir.svg' %}" id="Logo" alt="ChatNoir Logo">
+                </a>
+            </div>
+            <div id="CacheMeta">
+                <h1>Cache Result for document <em>{{ cache.uuid }}</em> ({{ cache.index }})</h1>
+                <p>
+                    <a href="{%  url 'search:index' %}" class="back">Back to search</a> –
+                    <a href="{{ cache.original_uri | urlencode }}" class="weblink" target="_blank">View original web page</a> –
+                    <a href="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}" class="html"{% if not cache.is_plaintext_mode %} style="display: none"{% endif %}>View original HTML</a>
+                    <a href="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;plain" class="plaintext"{% if cache.is_plaintext_mode %} style="display: none"{% endif %}>View plain text</a>
+                </p>
+            </div>
+        </div>
+        <div id="CacheResult">
+            <iframe src="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;raw{% if cache.is_plaintext_mode %}&amp;plain{% endif %}"></iframe>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+
+    <script>
+        let meta = $('#CacheMeta');
+        let result = $('#CacheResult');
+        let iframe = result.find('iframe');
+
+        if (document.referrer && document.referrer.indexOf(location.protocol + "//" + location.host) === 0) {
+            meta.find('a.back').attr("href", document.referrer)
+        }
+
+        $(iframe).load(function() {
+            meta.find('a.plaintext').click(function(e) {
+                e.preventDefault();
+                iframe.contents().get(0).location.href = this.href + "&raw";
+                $(this).hide();
+                meta.find('a.html').show();
+            });
+
+            meta.find('a.html').click(function(e) {
+                e.preventDefault();
+                iframe.contents().get(0).location.href = this.href + "&raw";
+                $(this).hide();
+                meta.find('a.plaintext').show();
+            });
+        });
+    </script>
+</body>
+</html>
