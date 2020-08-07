@@ -3,7 +3,7 @@
 <form role="search" action="{%  url 'search:index' %}" method="get">
     <div id="SearchHeader" class="row">
         <div id="LogoWrapper" class="col-sm-2">
-            <a rel="home" href="{{contextPath}}/" title="ChatNoir">
+            <a rel="home" href="{%  url 'search:index' %}" title="ChatNoir">
                 <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir.svg' %}">
                     ChatNoir Logo
                 </object>
@@ -11,23 +11,23 @@
             </a>
         </div>
         <div class="col-sm-8">
-            {%  include 'search-field.html' %}
+            {% include 'search-field.html' %}
         </div>
-        {% if is_search %}
+        {% if serp_context %}
             <div id="SearchOptionsToggle">
                 <button class="btn fa fa-cog active">Settings</button>
             </div>
         {% endif %}
     </div>
-    {%  if is_search %}
+    {% if serp_context %}
         <div id="SearchOptions">
             <div class="indices">
                 <select data-placeholder="Select…" name="index" id="SearchIndices" multiple>
-                    {%  for i in allowed_indices %}
-                        <option value="{{ i.name }}"{%  if i.selected %} selected{%  endif %}>{{ i.displayName }}</option>
-                    {%  endfor %}
+                    {% for i in serp_context.available_indices %}
+                        <option value="{{ i.name }}"{%  if i.selected %} selected{%  endif %}>{{ i.display_name }}</option>
+                    {% endfor %}
                 </select>
             </div>
         </div>
-    {%  endif %}
+    {% endif %}
 </form>

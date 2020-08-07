@@ -4,8 +4,9 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.search import Response
 
-from abc import ABC
-from collections import defaultdict
+from abc import ABC, abstractmethod
+from collections import defaultdict, deque
+import math
 import re
 from urllib.parse import urlparse
 
@@ -16,25 +17,56 @@ class SimpleSearch(ABC):
     """
     CLIENT = Elasticsearch(settings.ELASTICSEARCH_HOSTS)
 
-    def __init__(self, indices):
+    def __init__(self, indices=None, page_num=0):
         """
-        :param indices: list of indices to search
+        :param indices: list of indices to search (will be validated and replaced with defaults if necessary)
+        :param page_num: results page number (zero-based)
         """
-        self.indices = indices
+        if indices is not None and type(indices) is not list:
+            raise TypeError('indices must be a list')
+
+        if indices is None:
+            indices = {settings.SEARCH_DEFAULT_INDICES[self.search_version]}
+        self._indices_unvalidated = set(indices)
+
+        self.search_version = None
         self.search_language = 'en'
         self.group_results_by_hostname = True
+        self.results_per_page = 10
+        self.page_num = max(0, page_num)
 
-    def search(self, query_string, search_from, search_size):
+    @property
+    def allowed_indices(self):
+        """Allowed and compatible indices."""
+        return {i: settings.SEARCH_INDICES[i] for i in settings.SEARCH_INDICES
+                if self.search_version in settings.SEARCH_INDICES[i]['compat_search_versions']}
+
+    @property
+    def indices(self):
+        """Selected indices."""
+        allowed = self.allowed_indices
+        indices = {i: allowed[i] for i in self._indices_unvalidated if i in allowed}
+        if not indices:
+            default_index = settings.SEARCH_DEFAULT_INDICES[self.search_version]
+            indices = {default_index: settings.SEARCH_INDICES[default_index]}
+
+        return indices
+
+    @property
+    def search_from(self):
+        """Index of first result to be searched (depends on page number and number of results per page)."""
+        return max(0, min(self.page_num * self.results_per_page, 10000 - self.results_per_page))
+
+    @abstractmethod
+    def search(self, query_string):
         """
         Run a search based on given search fields.
 
         :param query_string: search query
-        :param search_from: first result to return
-        :param search_size: number of results to return
         """
         pass
 
-    def locale_fieldname(self, field_name):
+    def replace_lang_placeholder(self, field_name):
         """
         Helper function to localize field names according to the current search language.
 
@@ -161,113 +193,50 @@ class SimpleSearchV1(SimpleSearch):
         }
     ]
 
-    def __init__(self, indices):
-        super().__init__(indices)
+    def __init__(self, indices, page_num):
+        super().__init__(indices, page_num)
+        self.search_version = 1
         self.user_lang_override = False
 
-    def search(self, query_string, search_from, search_size):
-        search_from = min(search_from, 10000)
-        search_size = search_size if search_from + search_size <= 10000 else 0
-        response = self.build_search_request(query_string, search_from, search_size).execute()
-        return SerpContext(self, response, search_from)
+    def search(self, query_string):
+        response = self._build_search_request(query_string).execute()
+        return SerpContext(self, response)
 
-    def build_search_request(self, query_string, search_from, search_size):
+    def _build_search_request(self, query_string):
         """
         Build search request including pre-query, rescorer, node limit, highlighters etc.
 
         :param query_string: user query string
-        :param search_from: index of first document to match
-        :param search_size: number of documents to match
-        :return: configured SearchRequestBuilder
+        :return: configured Search
         """
+
+        # Parse query string and apply side effects
+        query_string, user_filters = self._parse_query_string_operators(query_string)
+
+        pre_query = self._build_pre_query(query_string)
+        pre_query.filter.extend(user_filters.filter)
+        pre_query.must_not.extend(user_filters.must_not)
+
         s = Search() \
             .using(SimpleSearch.CLIENT) \
-            .index(self.indices) \
-            .query(self.build_pre_query(query_string)) \
+            .index([i['index'] for _, i in self.indices.items()]) \
+            .query(pre_query) \
             .extra(rescore={
                 'window_size': SimpleSearchV1.RESCORE_WINDOW,
                 'query': {
                     'query_weight': 0.0,
                     'rescore_query_weight': 1.0,
                     'score_mode': 'total',
-                    'rescore_query': self.build_rescore_query(query_string).to_dict()
+                    'rescore_query': self._build_rescore_query(query_string).to_dict()
                 }
             }, terminate_after=70000) \
             .highlight('title_lang.' + self.search_language, fragment_size=70, number_of_fragments=1) \
             .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1) \
             .highlight_options(encoder='html')
 
-        return s[search_from:search_size]
+        return s[self.search_from:self.search_from + self.results_per_page]
 
-    def build_pre_query(self, query_string):
-        """
-        Assemble the fast pre-query for use with a rescorer.
-
-        :param query_string: user query string
-        :return: assembled pre-query
-        """
-
-        query_string, pre_query = self.parse_query_string_operators(query_string)
-        if not self.user_lang_override:
-            # Only add if not already added via user filter
-            pre_query.filter.append(Q('term', lang=self.search_language))
-
-        if query_string:
-            pre_query.must = Q('simple_query_string',
-                               query=query_string,
-                               default_operator='and',
-                               flags='AND|OR|NOT|WHITESPACE',
-                               fields=[self.locale_fieldname(f['name']) for f in SimpleSearchV1.MAIN_FIELDS])
-        else:
-            pre_query.must = Q('match_all')
-
-        range_filters = self.build_range_filters()
-        pre_query.filter.extend(range_filters.filter)
-        pre_query.must_not.extend(range_filters.must_not)
-
-        pre_query.should.extend(self.build_boost_query(True).should)
-
-        return pre_query
-
-    def build_rescore_query(self, query_string):
-        proximity_fields = []
-        fuzzy_fields = []
-
-        simple_query = Q('simple_query_string',
-                         query=query_string,
-                         minimum_should_match='30%',
-                         flags='AND|OR|NOT|PHRASE|PREFIX|WHITESPACE',
-                         fields=[])
-
-        rescore_query = Q('bool', must=simple_query, should=[])
-
-        for f in SimpleSearchV1.MAIN_FIELDS:
-            simple_query.fields.append(f'{self.locale_fieldname(f["name"])}^{f.get("boost", 1.0)}')
-
-            if f.get('proximity_matching', False):
-                proximity_fields.append((
-                    self.locale_fieldname(f['name']),
-                    f.get('proximity_slop', 1),
-                    f.get('proximity_boost', 1.0) / 2.0
-                ))
-
-            if f.get('fuzzy_matching', False):
-                fuzzy_fields.append(f['name'])
-
-        for pf in proximity_fields:
-            rescore_query.should.append(
-                Q('match_phrase', **{pf[0]: {'query': query_string, 'slop': pf[1], 'boost': pf[2]}})
-            )
-
-        for ff in fuzzy_fields:
-            rescore_query.should.append(
-                Q('fuzzy', **{ff: {'value': query_string, 'fuzziness': 'AUTO'}})
-            )
-
-        rescore_query.should.extend(self.build_boost_query(False).should)
-        return rescore_query
-
-    def parse_query_string_operators(self, query_string):
+    def _parse_query_string_operators(self, query_string):
         """
         Parse (non-standard) operators and configured filters from the query string such as site:example.com and
         delete the filters from the given query StringBuffer.
@@ -295,7 +264,7 @@ class SimpleSearchV1(SimpleSearch):
 
             # Special case: index
             if filter_field == '#index':
-                self.indices = [i.strip() for i in filter_value.split(',')]
+                self._indices_unvalidated = [i.strip() for i in filter_value.split(',')]
                 continue
 
             # Special case: hostname
@@ -312,13 +281,82 @@ class SimpleSearchV1(SimpleSearch):
         query_string = query_string.strip()
         return query_string, filter_query
 
-    def build_range_filters(self):
+    def _build_pre_query(self, query_string):
+        """
+        Assemble the fast pre-query for use with a rescorer.
+
+        :param query_string: user query string
+        :return: assembled pre-query
+        """
+
+        pre_query = Q('bool', filter=[], must_not=[])
+
+        if not self.user_lang_override:
+            # Only add if not already added via user filter
+            pre_query.filter.append(Q('term', lang=self.search_language))
+
+        if query_string:
+            pre_query.must = Q('simple_query_string',
+                               query=query_string,
+                               default_operator='and',
+                               flags='AND|OR|NOT|WHITESPACE',
+                               fields=[self.replace_lang_placeholder(f['name']) for f in SimpleSearchV1.MAIN_FIELDS])
+        else:
+            pre_query.must = Q('match_all')
+
+        range_filters = self._build_range_filters()
+        pre_query.filter.extend(range_filters.filter)
+        pre_query.must_not.extend(range_filters.must_not)
+
+        pre_query.should.extend(self._build_boost_query(True).should)
+
+        return pre_query
+
+    def _build_rescore_query(self, query_string):
+        proximity_fields = []
+        fuzzy_fields = []
+
+        simple_query = Q('simple_query_string',
+                         query=query_string,
+                         minimum_should_match='30%',
+                         flags='AND|OR|NOT|PHRASE|PREFIX|WHITESPACE',
+                         fields=[])
+
+        rescore_query = Q('bool', must=simple_query, should=[])
+
+        for f in SimpleSearchV1.MAIN_FIELDS:
+            simple_query.fields.append(f'{self.replace_lang_placeholder(f["name"])}^{f.get("boost", 1.0)}')
+
+            if f.get('proximity_matching', False):
+                proximity_fields.append((
+                    self.replace_lang_placeholder(f['name']),
+                    f.get('proximity_slop', 1),
+                    f.get('proximity_boost', 1.0) / 2.0
+                ))
+
+            if f.get('fuzzy_matching', False):
+                fuzzy_fields.append(f['name'])
+
+        for pf in proximity_fields:
+            rescore_query.should.append(
+                Q('match_phrase', **{pf[0]: {'query': query_string, 'slop': pf[1], 'boost': pf[2]}})
+            )
+
+        for ff in fuzzy_fields:
+            rescore_query.should.append(
+                Q('fuzzy', **{ff: {'value': query_string, 'fuzziness': 'AUTO'}})
+            )
+
+        rescore_query.should.extend(self._build_boost_query(False).should)
+        return rescore_query
+
+    def _build_range_filters(self):
         """
         Build numeric filter queries from config to the given query.
         """
         bool_query = Q('bool', filter=[], must_not=[])
         for f in SimpleSearchV1.RANGE_FILTERS:
-            field_name = self.locale_fieldname(f['name'])
+            field_name = self.replace_lang_placeholder(f['name'])
             filter_query = Q('range', **{field_name: {k: v for k, v in f.items() if k in ['gt', 'gte', 'lt', 'lte']}})
             if f.get('include_unset', False):
                 must_not_exist_query = Q('bool', must_not=Q('exists', field=field_name))
@@ -331,7 +369,7 @@ class SimpleSearchV1(SimpleSearch):
 
         return bool_query
 
-    def build_boost_query(self, match):
+    def _build_boost_query(self, match):
         """
         Add (positive) boosts from config to the given query.
 
@@ -343,8 +381,8 @@ class SimpleSearchV1(SimpleSearch):
                 continue
 
             regexp_query = Q('regexp', **{
-                self.locale_fieldname(b['name']): {
-                    'value': self.locale_fieldname(b['value']),
+                self.replace_lang_placeholder(b['name']): {
+                    'value': self.replace_lang_placeholder(b['value']),
                     'boost': b.get('match_boost', 1.0) if match else b.get('boost', 1.0)
                 }
             })
@@ -357,17 +395,18 @@ class SerpContext:
     Results page context with processed results.
     """
 
-    def __init__(self, search: SimpleSearch, response: Response, results_from):
+    def __init__(self, search: SimpleSearch, response: Response):
         """
         :param search: SimpleSearch object
         :param response: Elasticsearch DSL response
-        :param results_from: index of first document for pagination (last is calculated from number of hits)
         """
         self.search = search
         self.response = response
         self.hits = response.hits
-        self.results_from = results_from
+        self.results_from = self.search.search_from
         self.results_size = len(self.hits)
+        self.pagination_size = 10
+        self.max_page = int(math.ceil(10000 / self.search.results_per_page))
 
     @property
     def results(self):
@@ -452,3 +491,30 @@ class SerpContext:
     @property
     def query_time(self):
         return self.response.took
+
+    @property
+    def pagination(self):
+        current_page = min(self.search.page_num + 1, self.max_page)
+        first_page = max(1, current_page - self.pagination_size // 2)
+        last_page = min(self.max_page, current_page + (self.pagination_size - (current_page - first_page) - 1))
+        last_page = min(last_page, math.ceil(self.total_results / self.search.results_per_page))
+        pages = deque({'num': p, 'label': str(p)} for p in range(first_page, last_page + 1))
+
+        if current_page > 1:
+            pages.appendleft({'num': current_page - 1, 'label': '«', 'label_aria': 'Previous'})
+        if first_page > 1:
+            pages.appendleft({'num': 1, 'label': '←', 'label_aria': 'First'})
+        if current_page < last_page:
+            pages.append({'num': current_page + 1, 'label': '»', 'label_aria': 'Next'})
+
+        return {
+            'first_page': first_page,
+            'last_page': last_page,
+            'current_page': current_page,
+            'pages': pages
+        }
+
+    @property
+    def available_indices(self):
+        return [dict(v, **{'name': i, 'selected': i in self.search.indices})
+                for i, v in settings.SEARCH_INDICES.items()]

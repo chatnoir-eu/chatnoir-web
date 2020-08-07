@@ -3,7 +3,6 @@ Django settings for ChatNoir.
 """
 
 import os
-from .local_settings import *
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -101,6 +100,24 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'chatnoir', 'static')
 ]
 
-# Search settings
 
-SERP_RESULTS_PER_PAGE = 10
+# Search settings (override me)
+
+ELASTICSEARCH_HOSTS = ['localhost:9200']
+SEARCH_INDICES = {
+    'index_shorthand_name': {
+        'index': 'index_internal_name',
+        'display_name': 'Human-readable display name',
+        'compat_search_versions': [1]
+    }
+}
+SEARCH_DEFAULT_INDICES = {
+    # search version: default index
+    1: 'index_shorthand_name'
+}
+
+
+try:
+   from .local_settings import *
+except ImportError:
+    raise RuntimeError("Could not find local_settings.py.")
