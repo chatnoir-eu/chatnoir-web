@@ -104,10 +104,23 @@ STATICFILES_DIRS = [
 
 # Search settings (override me)
 
-ELASTICSEARCH_HOSTS = ['localhost:9200']
+ELASTICSEARCH_PROPERTIES = {
+    'hosts': ['localhost:9200'],
+    "use_ssl": True,
+    "api_key": ["apikey", "secret"]
+}
+
+S3_ENDPOINT_PROPERTIES = {
+    "endpoint_url": "http://localhost",
+    "aws_access_key_id": "access_key",
+    "aws_secret_access_key": "secret_key"
+}
+
 SEARCH_INDICES = {
     'index_shorthand_name': {
         'index': 'index_internal_name',
+        'warc_index': 'warc_meta_index_name',
+        'warc_bucket': 's3_warc_bucket_name',
         'display_name': 'Human-readable display name',
         'compat_search_versions': [1]
     }

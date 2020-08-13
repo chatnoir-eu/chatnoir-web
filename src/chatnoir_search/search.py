@@ -1,7 +1,5 @@
 from django.conf import settings
-
-from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Q, Search
+from elasticsearch_dsl import connections, Q, Search
 from elasticsearch_dsl.search import Response
 
 from abc import ABC, abstractmethod
@@ -15,7 +13,6 @@ class SimpleSearch(ABC):
     """
     Simple search base class.
     """
-    CLIENT = Elasticsearch(settings.ELASTICSEARCH_HOSTS)
 
     def __init__(self, indices=None, page_num=0):
         """
@@ -34,6 +31,9 @@ class SimpleSearch(ABC):
         self.group_results_by_hostname = True
         self.results_per_page = 10
         self.page_num = max(0, page_num)
+
+        if 'default' not in connections.connections._conns:
+            connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
 
     @property
     def allowed_indices(self):
@@ -218,7 +218,6 @@ class SimpleSearchV1(SimpleSearch):
         pre_query.must_not.extend(user_filters.must_not)
 
         s = Search() \
-            .using(SimpleSearch.CLIENT) \
             .index([i['index'] for _, i in self.indices.items()]) \
             .query(pre_query) \
             .extra(rescore={

@@ -1,6 +1,6 @@
 from django.shortcuts import HttpResponse, render
 
-
+from .cache import CacheDocument
 from .search import SimpleSearchV1
 
 
@@ -38,6 +38,10 @@ def cache(request):
     }
 
     if 'raw' in request.GET:
-        return HttpResponse('', 'text/plain', 200)
+        doc = CacheDocument().retrieve_by_uuid(request.GET.get('uuid'), request.GET.get('index'))
+        if doc is None:
+            return render(request, '404.html', status=404)
+
+        return HttpResponse(doc['body'], doc['meta'].content_type, 200)
 
     return render(request, 'search_frontend/cache.html', context)
