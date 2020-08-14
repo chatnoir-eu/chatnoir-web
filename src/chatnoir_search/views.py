@@ -29,19 +29,35 @@ def index(request):
 
 
 def cache(request):
+    if 'index' not in request.GET:
+        return render(request, '404.html', status=404)
+
+    raw_mode = 'raw' in request.GET
+    plaintext_mode = 'plain' in request.GET
     context = {
         'cache': {
-            'uuid': request.GET.get('uuid', ''),
-            'index': request.GET.get('index', ''),
-            'is_plaintext_mode': 'plain' in request.GET
+            'index': request.GET.get('index'),
+            'is_plaintext_mode': plaintext_mode,
+            'is_raw_mode': raw_mode
         }
     }
 
-    if 'raw' in request.GET:
-        doc = CacheDocument().retrieve_by_uuid(request.GET.get('uuid'), request.GET.get('index'))
-        if doc is None:
-            return render(request, '404.html', status=404)
+    cache_doc = CacheDocument()
+    doc = None
+    if request.GET.get('uuid'):
+        doc = cache_doc.retrieve_by_uuid(request.GET['index'], request.GET['uuid'], plaintext_mode)
+    elif request.GET.get('uri'):
+        doc = cache_doc.retrieve_by_filter(request.GET['index'], plaintext_mode, warc_target_uri=request.GET['uri'])
+    elif request.GET.get('trec-id'):
+        doc = cache_doc.retrieve_by_filter(request.GET['index'], plaintext_mode, warc_trec_id=request.GET['trec-id'])
 
+    if not doc:
+        return render(request, '404.html', status=404)
+
+    context['cache']['uuid'] = doc['meta'].meta.id
+    context['cache']['uri'] = doc['meta'].warc_target_uri
+
+    if raw_mode:
         return HttpResponse(doc['body'], doc['meta'].content_type, 200)
 
     return render(request, 'search_frontend/cache.html', context)

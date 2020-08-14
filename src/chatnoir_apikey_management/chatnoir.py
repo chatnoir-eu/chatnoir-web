@@ -1,6 +1,6 @@
 import json
 from typing import Any, Dict, Optional
-from urllib import error, request, parse
+from urllib import error, parse, request
 
 
 class ApiRequest:

@@ -1,12 +1,12 @@
-from .forms import KeyRequestForm
-from .models import PendingUser, User
+from concurrent.futures import ThreadPoolExecutor
 
 from django.core.mail import EmailMultiAlternatives
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
 from django.utils.crypto import get_random_string
 
-from concurrent.futures import ThreadPoolExecutor
+from .forms import KeyRequestForm
+from .models import PendingUser, User
 
 send_mail_executor = ThreadPoolExecutor(max_workers=20)
 

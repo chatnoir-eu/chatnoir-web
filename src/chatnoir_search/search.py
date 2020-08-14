@@ -1,12 +1,12 @@
-from django.conf import settings
-from elasticsearch_dsl import connections, Q, Search
-from elasticsearch_dsl.search import Response
-
-from abc import ABC, abstractmethod
-from collections import defaultdict, deque
 import math
 import re
+from abc import ABC, abstractmethod
+from collections import defaultdict, deque
 from urllib.parse import urlparse
+
+from django.conf import settings
+from elasticsearch_dsl import Q, Search, connections
+from elasticsearch_dsl.search import Response
 
 
 class SimpleSearch(ABC):

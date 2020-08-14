@@ -1,6 +1,6 @@
-from .chatnoir import ApiRequest
-
 from django.db import models
+
+from .chatnoir import ApiRequest
 
 
 class IssueKey(models.Model):
