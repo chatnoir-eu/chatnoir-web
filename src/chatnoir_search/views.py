@@ -1,6 +1,6 @@
 from django.shortcuts import HttpResponse, render
 
-from .cache import CacheDocument
+from .cache import BasicHtmlFormatter, CacheDocument
 from .search import SimpleSearchV1
 
 
@@ -38,18 +38,22 @@ def cache(request):
         'cache': {
             'index': request.GET.get('index'),
             'is_plaintext_mode': plaintext_mode,
-            'is_raw_mode': raw_mode
+            'is_raw_mode': raw_mode,
+            'search_query': request.GET.get('q', ''),
+            'search_page': request.GET.get('p', '')
         }
     }
 
     cache_doc = CacheDocument()
     doc = None
     if request.GET.get('uuid'):
-        doc = cache_doc.retrieve_by_uuid(request.GET['index'], request.GET['uuid'], plaintext_mode)
-    elif request.GET.get('uri'):
-        doc = cache_doc.retrieve_by_filter(request.GET['index'], plaintext_mode, warc_target_uri=request.GET['uri'])
+        doc = cache_doc.retrieve_by_uuid(request.GET['index'], request.GET['uuid'])
     elif request.GET.get('trec-id'):
-        doc = cache_doc.retrieve_by_filter(request.GET['index'], plaintext_mode, warc_trec_id=request.GET['trec-id'])
+        doc = cache_doc.retrieve_by_filter(request.GET['index'], warc_trec_id=request.GET['trec-id'])
+    elif request.GET.get('url'):
+        doc = cache_doc.retrieve_by_filter(request.GET['index'], warc_target_uri=request.GET['url'])
+        if not doc:
+            return render(request, 'search_frontend/cache-redirect.html', {'uri': request.GET['url']})
 
     if not doc:
         return render(request, '404.html', status=404)
@@ -57,7 +61,12 @@ def cache(request):
     context['cache']['uuid'] = doc['meta'].meta.id
     context['cache']['uri'] = doc['meta'].warc_target_uri
 
+    content_type = doc['meta'].content_type
+    if plaintext_mode:
+        doc['body'] = BasicHtmlFormatter.format(doc['body'])
+        content_type = 'text/html'
+
     if raw_mode:
-        return HttpResponse(doc['body'], doc['meta'].content_type, 200)
+        return HttpResponse(doc['body'], content_type, 200)
 
     return render(request, 'search_frontend/cache.html', context)

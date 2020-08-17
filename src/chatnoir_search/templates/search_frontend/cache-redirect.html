@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ChatNoir Cached Webpage</title>
+    <meta http-equiv="refresh" content="5; url={{ uri }}">
+
+    {% load static %}
+    {% include 'header.html' %}
+</head>
+<body class="cache-page">
+    <div id="Main" class="container">
+        <div class="redirect-message">
+            <h1>You are leaving us! ;-(</h1>
+            <p>Redirecting to the <em>InterWebz™</em> at <a href="{{ uri }}">{{ uri }}</a></p>
+            <p class="timer-message">…in <span class="timer">5</span> seconds…</p>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+
+    <script>
+        if (top.location !== location) {
+            top.location.href = location.href;
+        }
+
+        setInterval(function() {
+            let el = $('.timer');
+            el.text(Math.max(0, parseInt(el.text()) - 1));
+        }, 1000);
+    </script>
+</body>
+</html>

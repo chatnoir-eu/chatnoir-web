@@ -19,7 +19,9 @@
             <div id="CacheMeta">
                 <h1>Cache Result for document <em>{{ cache.uuid }}</em> ({{ cache.index }})</h1>
                 <p>
-                    <a href="{%  url 'search:index' %}" class="back">Back to search</a> –
+                {% if cache.search_query %}
+                    <a href="{%  url 'search:index' %}?q={{ cache.search_query | urlencode }}{% if cache.search_page %}&p={{ cache.search_page }}{% endif %}" class="back">Back to search</a> –
+                {% endif %}
                     <a href="{{ cache.uri }}" class="weblink" target="_blank">View original web page</a> –
                     <a href="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}" class="html"{% if not cache.is_plaintext_mode %} style="display: none"{% endif %}>View original HTML</a>
                     <a href="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;plain" class="plaintext"{% if cache.is_plaintext_mode %} style="display: none"{% endif %}>View plain text</a>
@@ -37,25 +39,39 @@
         let meta = $('#CacheMeta');
         let result = $('#CacheResult');
         let iframe = result.find('iframe');
+        let plainTextLink = meta.find('a.plaintext');
+        let htmlLink = meta.find('a.html');
 
-        if (document.referrer && document.referrer.indexOf(location.protocol + "//" + location.host) === 0) {
-            meta.find('a.back').attr("href", document.referrer)
+        function toggleLinks() {
+            let url = new URL(iframe.contents().get(0).location.href);
+            let urlParams = new URLSearchParams(url.search);
+            if (urlParams.has('plain')) {
+                plainTextLink.hide();
+                htmlLink.show();
+            } else {
+                plainTextLink.show();
+                htmlLink.hide();
+            }
         }
 
-        $(iframe).load(function() {
-            meta.find('a.plaintext').click(function(e) {
-                e.preventDefault();
-                iframe.contents().get(0).location.href = this.href + "&raw";
-                $(this).hide();
-                meta.find('a.html').show();
-            });
+        plainTextLink.click((e) => {
+            e.preventDefault();
+            iframe.contents().get(0).location.href += "&plain"
+            toggleLinks();
+        });
 
-            meta.find('a.html').click(function(e) {
-                e.preventDefault();
-                iframe.contents().get(0).location.href = this.href + "&raw";
-                $(this).hide();
-                meta.find('a.plaintext').show();
-            });
+        htmlLink.click((e) => {
+            e.preventDefault();
+            let url = new URL(iframe.contents().get(0).location.href);
+            let urlParams = new URLSearchParams(url.search);
+            urlParams.delete('plain');
+            url.search = urlParams.toString();
+            iframe.contents().get(0).location.href = url.toString();
+            toggleLinks();
+        });
+
+        iframe.load(() => {
+            toggleLinks();
         });
     </script>
 </body>

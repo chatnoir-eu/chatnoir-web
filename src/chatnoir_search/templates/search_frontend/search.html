@@ -22,7 +22,7 @@
             {% for result in search_results %}
                 <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.uuid }}"{% if result.explanation %} data-explanation="{{ result.explanation_string }}"{% endif %}>
                     <header>
-                        <h2><a href="{%  url 'search:cache' %}?uuid={{ result.uuid | urlencode }}&index={{ result.index | urlencode }}">{{ result.title | safe }}</a></h2>
+                        <h2><a href="{%  url 'search:cache' %}?uuid={{ result.uuid | urlencode }}&index={{ result.index | urlencode }}&q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}">{{ result.title | safe }}</a></h2>
                         <div class="meta">
                             <a href="{{ result.target_uri }}" class="link">{% if result.target_hostname %}{{ result.target_hostname }}{{ result.target_path }}{% endif %}</a>
                             <div class="dropdown">
@@ -41,7 +41,7 @@
                                     <li role="presentation" class="dropdown-header">Spam Rank: {% if result.spam_rank %}{{ result.spam_rank }}{% else %}none{% endif %}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ current_page }}&index={{ p.indices | join:',' | urlencode }}{% if is_explain_mode %}&explain{% endif %}#result-{{ result.uuid | urlencode }}">Explain</a>
+                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indices | join:',' | urlencode }}{% if is_explain_mode %}&explain{% endif %}#result-{{ result.uuid | urlencode }}">Explain</a>
                                     </li>
                                 </ul>
                             </div>

@@ -1,15 +1,17 @@
 import logging
 import os
+import re
 import urllib.parse as urlparse
 
 import boto3
 from botocore.errorfactory import ClientError
+import bleach
 from bs4 import BeautifulSoup, NavigableString, Tag
-from bs4.formatter import HTMLFormatter
 from django.conf import settings
 from django.urls import reverse
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import connections, Search
+import html
 from warcio.bufferedreaders import DecompressingBufferedReader
 from warcio.recordloader import ArcWarcRecordLoader
 
@@ -33,13 +35,12 @@ class CacheDocument:
         if self._S3_RESOURCE is None:
             self._S3_RESOURCE = boto3.resource('s3', **settings.S3_ENDPOINT_PROPERTIES)
 
-    def retrieve_by_uuid(self, doc_index, doc_uuid, basic_html=False):
+    def retrieve_by_uuid(self, doc_index, doc_uuid):
         """
         Retrieve document by its UUID.
 
         :param doc_index: index shorthand name
         :param doc_uuid: document UUID
-        :param basic_html: parse HTML content to basic "plaintext" HTML subset
         :return: dict(meta=WarcMetaDoc, body=str)
         """
         try:
@@ -48,14 +49,13 @@ class CacheDocument:
         except NotFoundError:
             return None
 
-        return self._read_warc_content(index.warc_bucket, doc_index, doc, basic_html)
+        return self._read_warc_content(index.warc_bucket, doc_index, doc)
 
-    def retrieve_by_filter(self, doc_index, basic_html=False, **filter_expr):
+    def retrieve_by_filter(self, doc_index, **filter_expr):
         """
         Retrieve first document that matches the given filter expression in the WARC meta index.
 
         :param doc_index: index shorthand name
-        :param basic_html: parse HTML content to basic "plaintext" HTML subset
         :param filter_expr: term filter expression (e.g. warc_target_uri="http://example.com")
         :return: dict(meta=WarcMetaDoc, body=str)
         """
@@ -67,7 +67,7 @@ class CacheDocument:
         if not result.hits:
             return None
 
-        return self._read_warc_content(index.warc_bucket, doc_index, result.hits[0], basic_html)
+        return self._read_warc_content(index.warc_bucket, doc_index, result.hits[0])
 
     def _read_warc_record(self, warc_bucket, warc_file, start_offset, record_size):
         """
@@ -89,14 +89,13 @@ class CacheDocument:
         except ClientError:
             return None
 
-    def _read_warc_content(self, warc_bucket, doc_index, doc, basic_html):
+    def _read_warc_content(self, warc_bucket, doc_index, doc):
         """
         Read and parse WARC content stream.
 
         :param warc_bucket: S3 bucket name
         :param doc_index: index shorthand name
         :param doc: WARC meta index document
-        :param basic_html: parse HTML content to basic "plaintext" HTML subset
         :return: dict(meta=WarcMetaDoc, body=str)
         """
         record = self._read_warc_record(warc_bucket, doc.warc_file, doc.warc_offset, doc.http_length)
@@ -104,9 +103,13 @@ class CacheDocument:
         if not record:
             return None
 
-        body = self._rewrite_links(record.content_stream().read(), doc.warc_target_uri, doc_index)
-        if basic_html:
-            body = BasicHtmlFormatter.format(body)
+        body = record.content_stream().read()
+        if doc.content_type.startswith('text/') or doc.content_type in ('application/json', 'application/xhtml+xml'):
+            body = body.decode(doc.content_encoding, errors='replace')
+
+        if doc.content_type in ('text/html', 'application/xhtml+xml'):
+            body = self._post_process_html(body, doc.warc_target_uri, doc_index,
+                                           doc.content_type == 'application/xhtml+xml')
 
         return {
             'meta': doc,
@@ -114,9 +117,9 @@ class CacheDocument:
         }
 
     @classmethod
-    def _rewrite_links(cls, html_doc, source_url, index):
+    def _post_process_html(cls, html_doc, source_url, index, xhtml_mode=False):
         """
-        Rewrite links in an HTML document.
+        Post-process HTML by rewriting links in an HTML document and updating encoding information.
 
         Link URIs are rewritten to point to the cache endpoint proxy.
         Images and embeds are replaced with their direct absolute URLs.
@@ -124,6 +127,7 @@ class CacheDocument:
         :param html_doc: HTML document as string
         :param source_url: source URL from which this document was crawled for resolving relative paths
         :param index: index containing the document
+        :param xhtml_mode: return XHTML-compatible document
         :return: modified HTML
         """
 
@@ -142,11 +146,37 @@ class CacheDocument:
         for obj in soup.select('object[data]'):
             obj['data'] = cls._get_absolute_uri(obj['data'], source_url)
 
-        # Remove base tags
-        for base in soup.select('head base'):
-            base.decompose()
+        # Add HTML head elements (find or create head first)
+        head = soup.find('head')
+        if not head:
+            head = soup.new_tag('head')
+            head_insert = soup.find('html')
+            if head_insert:
+                head_insert.insert(0, head)
+            else:
+                soup.find().insert_before(head)
 
-        return str(soup)
+        # Insert no-index and remove existing robots meta tags
+        [r.decompose() for r in head.select('meta[name="robots" i]')]
+        no_index = soup.new_tag('meta')
+        no_index['name'] = 'robots'
+        no_index['content'] = 'noindex, nofollow'
+        head.insert(0, no_index)
+
+        # Remove base tags
+        for head_insert in list(head.select('base')):
+            head_insert.decompose()
+
+        # Set encoding to UTF-8
+        meta_enc = head.select('meta[charset]')
+        for e in meta_enc:
+            e['charset'] = 'utf-8'
+
+        meta_enc = head.select('meta[http-equiv="Content-Type" i]')
+        for e in meta_enc:
+            e['content'] = re.sub(r'charset=[\w-]+', 'charset=utf-8', e['content'])
+
+        return soup.encode(formatter='minimal' if xhtml_mode else 'html5').decode('utf-8')
 
     @classmethod
     def _get_absolute_uri(cls, relative_url, base_url):
@@ -185,47 +215,60 @@ class BasicHtmlFormatter:
     Formatter for creating basic "plaintext" HTML.
     """
 
-    BASIC_HTML_ALLOWED_BLOCK_ELEMENTS = [
-        'p', 'pre', 'blockquote',
+    ALLOWED_ELEMENTS = [
+        'div', 'section', 'article', 'header', 'footer', 'p', 'pre', 'blockquote',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'ul', 'ol', 'dl', 'dt', 'dd', 'li'
+        'ul', 'ol', 'dl', 'dt', 'dd', 'li',
+        'table', 'td', 'tr', 'th',
+        'a', 'b', 'i', 'em', 'strong', 'code', 'br'
     ]
 
-    BASIC_HTML_ALLOWED_INLINE_ELEMENTS = [
-        'b', 'i', 'em', 'strong', 'code'
+    ALLOWED_ATTRS = {
+        'a': ['href', 'rel']
+    }
+
+    ALLOWED_PROTOCOLS = [
+        'http',
+        'https'
     ]
 
-    BASIC_HTML_BREAK_ELEMENTS = [
-        'br', 'tr'
-    ]
-
-    BASIC_HTML_COLLAPSE_BREAK_ELEMENTS = [
-        'article', 'aside', 'button', 'caption', 'div', 'fieldset', 'figcaption',
-        'figure', 'footer', 'form', 'header', 'hgroup', 'output', 'section', 'table'
-    ]
-
-    BASIC_HTML_DOUBLE_BREAK_ELEMENTS = [
-        'li', 'dt', 'dd'
-    ]
-
-    BASIC_HTML_LIST_ELEMENTS = [
-        'ul', 'ol', 'dl'
-    ]
-
-    BASIC_HTML_LIST_ITEM_ELEMENTS = [
-        'li', 'dt'
-    ]
-
-    @staticmethod
-    def format(html_doc):
+    @classmethod
+    def format(cls, html_doc):
         soup = BeautifulSoup(html_doc, 'html.parser')
+
+        title = soup.find('title')
+        if title:
+            title = ''.join(('<title>', html.escape(title.text), '</title>'))
+        else:
+            title = '<title>Cache Result</title>'
+
         body = soup.find('body')
         if not body:
             body = soup
 
-        return body
+        bleached_html = bleach.clean(str(body),
+                                     tags=cls.ALLOWED_ELEMENTS,
+                                     attributes=cls.ALLOWED_ATTRS,
+                                     protocols=cls.ALLOWED_PROTOCOLS,
+                                     strip=True,
+                                     strip_comments=True)
 
-    @staticmethod
-    def _traverse(el):
-        for child in el.children:
-            yield child
+        # Post-process bleached HTML
+        bleached_soup = BeautifulSoup('\n'.join(('<body>', bleached_html, '</body>')), 'html.parser')
+
+        # Strip tags with no content
+        decompose = []
+        for el in bleached_soup.descendants:
+            if isinstance(el, Tag) and el.name not in ('br', 'td', 'th') and not el.get_text(strip=True):
+                decompose.append(el)
+        [d.decompose() for d in decompose]
+
+        return '\n'.join(
+            ('<!doctype html>',
+             '<head>',
+             '<meta charset="utf-8">',
+             '<meta name="robots" content="noindex, nofollow">',
+             title,
+             '</head>',
+             bleached_soup.prettify(formatter="html5"))
+        )
