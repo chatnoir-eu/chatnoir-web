@@ -228,7 +228,7 @@ class SimpleSearchV1(SimpleSearch):
                     'score_mode': 'total',
                     'rescore_query': self._build_rescore_query(query_string).to_dict()
                 }
-            }, terminate_after=70000) \
+            }, terminate_after=70000, track_total_hits=True) \
             .highlight('title_lang.' + self.search_language, fragment_size=70, number_of_fragments=1) \
             .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1) \
             .highlight_options(encoder='html')
@@ -493,7 +493,7 @@ class SerpContext:
 
     @property
     def total_results(self):
-        return self.hits.total
+        return self.hits.total.value
 
     @property
     def terminated_early(self):
