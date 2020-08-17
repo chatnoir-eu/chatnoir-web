@@ -3,6 +3,7 @@ Django settings for ChatNoir.
 """
 
 import os
+from django.utils.log import DEFAULT_LOGGING
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALLOWED_HOSTS = ['*']
@@ -31,6 +32,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Do not filter console logs in production mode
+DEFAULT_LOGGING['handlers']['console']['filters'] = []
 
 ROOT_URLCONF = 'chatnoir.urls'
 
