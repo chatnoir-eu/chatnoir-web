@@ -433,7 +433,7 @@ class SerpContext:
                 'spam_rank': getattr(hit, 'spam_rank', None),
                 'trec_id': getattr(hit, 'warc_trec_id', None),
                 'title': title,
-                'target_hostname': hit.warc_target_hostname,
+                'target_hostname': getattr(hit, 'warc_target_hostname', None),
                 'target_path': urlparse(hit.warc_target_uri).path,
                 'target_uri': hit.warc_target_uri,
                 'snippet': snippet

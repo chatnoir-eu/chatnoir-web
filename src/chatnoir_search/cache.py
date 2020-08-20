@@ -162,16 +162,14 @@ class CacheDocument:
             else:
                 soup.find().insert_before(head)
 
-        # Insert no-index and remove existing robots meta tags
-        [r.decompose() for r in head.select('meta[name="robots" i]')]
+        # Remove existing robots meta and base tags
+        [e.decompose() for e in list(head.select('meta[name="robots" i], base'))]
+
+        # Insert robots no-index, nofollow
         no_index = soup.new_tag('meta')
         no_index['name'] = 'robots'
         no_index['content'] = 'noindex, nofollow'
         head.insert(0, no_index)
-
-        # Remove base tags
-        for head_insert in list(head.select('base')):
-            head_insert.decompose()
 
         # Set encoding to UTF-8
         meta_enc = head.select('meta[charset]')
