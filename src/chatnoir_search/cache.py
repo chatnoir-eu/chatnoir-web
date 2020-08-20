@@ -252,6 +252,9 @@ class BasicHtmlFormatter:
         if not body:
             body = soup
 
+        for el in list(body.select('script, style')):
+            el.decompose()
+
         bleached_html = bleach.clean(str(body),
                                      tags=cls.ALLOWED_ELEMENTS,
                                      attributes=cls.ALLOWED_ATTRS,
