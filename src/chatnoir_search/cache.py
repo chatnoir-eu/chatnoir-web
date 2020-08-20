@@ -222,11 +222,11 @@ class BasicHtmlFormatter:
     """
 
     ALLOWED_ELEMENTS = [
-        'div', 'section', 'article', 'header', 'footer', 'p', 'pre', 'blockquote',
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'p', 'div', 'pre', 'main', 'nav', 'section', 'article', 'header', 'footer', 'blockquote', 'aside', 'details',
+        'hgroup', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'ul', 'ol', 'dl', 'dt', 'dd', 'li',
-        'table', 'td', 'tr', 'th',
-        'a', 'b', 'i', 'em', 'strong', 'code', 'br'
+        'a', 'b', 'i', 'em', 'strong', 'code',
+        'br', 'hr'
     ]
 
     ALLOWED_ATTRS = {
@@ -252,8 +252,13 @@ class BasicHtmlFormatter:
         if not body:
             body = soup
 
+        # Remove non-content elements
         for el in list(body.select('script, style')):
             el.decompose()
+
+        # Replace disallowed block elements with divs
+        for tr in body.select('table, tr, dialog, fieldset, form, figure'):
+            tr.name = 'div'
 
         bleached_html = bleach.clean(str(body),
                                      tags=cls.ALLOWED_ELEMENTS,
@@ -277,6 +282,7 @@ class BasicHtmlFormatter:
              '<head>',
              '<meta charset="utf-8">',
              '<meta name="robots" content="noindex, nofollow">',
+             '<meta name="generator" content="The ChatNoir search engine - www.chatnoir.eu">',
              title,
              '</head>',
              bleached_soup.prettify(formatter="html5"))
