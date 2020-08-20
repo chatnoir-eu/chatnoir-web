@@ -6,7 +6,7 @@ import urllib.parse as urlparse
 import boto3
 from botocore.errorfactory import ClientError
 import bleach
-from bs4 import BeautifulSoup, NavigableString, Tag
+from bs4 import BeautifulSoup, Tag
 from django.conf import settings
 from django.urls import reverse
 from elasticsearch.exceptions import NotFoundError
@@ -112,6 +112,10 @@ class CacheDocument:
             if doc.http_content_type in ('text/html', 'application/xhtml+xml'):
                 body = self._post_process_html(body, doc.warc_target_uri, doc_index,
                                                doc.http_content_type == 'application/xhtml+xml')
+
+        # ClueWeb09 messed up the encoding of many pages, so strip Unicode replacement characters
+        if doc.warc_trec_id and doc.warc_trec_id.startswith('clueweb09'):
+            body = body.replace('\ufffd', '')
 
         return {
             'meta': doc,
