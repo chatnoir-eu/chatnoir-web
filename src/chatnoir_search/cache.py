@@ -254,6 +254,11 @@ class BasicHtmlFormatter:
         for el in list(soup.select('script, style')):
             el.decompose()
 
+        # Replace images with their alt description
+        for img in soup.select('img, area'):
+            if img.get('alt'):
+                img.string = '[ {} ]'.format(img['alt'])
+
         # Replace disallowed block elements with divs
         for tr in soup.select('table, tr, dialog, fieldset, form, figure'):
             tr.name = 'div'
