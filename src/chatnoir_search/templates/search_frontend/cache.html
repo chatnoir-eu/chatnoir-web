@@ -17,12 +17,17 @@
                 </a>
             </div>
             <div id="CacheMeta">
-                <h1>Cache Result for document <em>{{ cache.uuid }}</em> ({{ cache.index }})</h1>
+                <h1>Cache Result for document <em>{{ cache.uuid }}</em></h1>
+                <div class="cache-document-meta">
+                    <em>Index:</em> {{ cache.index }}
+                    {% if cache.meta.warc_trec_id %} &bullet; <em>TREC ID:</em> {{ cache.meta.warc_trec_id }} {% endif %}
+                    &bullet; <em>Crawl Date:</em> {{ cache.meta.warc_date | date:"M d, Y" }}
+                </div>
                 <p>
                 {% if cache.search_query %}
-                    <a href="{%  url 'search:index' %}?q={{ cache.search_query | urlencode }}{% if cache.search_page %}&p={{ cache.search_page }}{% endif %}" class="back">Back to search</a> –
+                    <a href="{%  url 'search:index' %}?q={{ cache.search_query | urlencode }}&index={{ cache.index }}{% if cache.search_page %}&p={{ cache.search_page }}{% endif %}" class="back">Back to search</a> –
                 {% endif %}
-                    <a href="{{ cache.uri }}" class="weblink" target="_blank">View original web page</a> –
+                    <a href="{{ cache.meta.warc_target_uri }}" class="weblink" target="_blank">View original web page</a> –
                     <a href="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}" class="html"{% if not cache.is_plaintext_mode %} style="display: none"{% endif %}>View original HTML</a>
                     <a href="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;plain" class="plaintext"{% if cache.is_plaintext_mode %} style="display: none"{% endif %}>View plain text</a>
                 </p>

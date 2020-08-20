@@ -59,7 +59,7 @@ def cache(request):
         return render(request, '404.html', status=404)
 
     context['cache']['uuid'] = doc['meta'].meta.id
-    context['cache']['uri'] = doc['meta'].warc_target_uri
+    context['cache']['meta'] = doc['meta']
 
     content_type = doc['meta'].http_content_type
     if not content_type:

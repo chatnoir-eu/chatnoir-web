@@ -496,12 +496,19 @@ a {
 #CacheMeta h1 {
     font-size: 1.5rem;
     font-weight: normal;
-    margin-top: .9em;
+    margin: 0;
 }
 
 #CacheMeta h1 em {
     font-style: normal;
     font-weight: bold;
+}
+
+#CacheMeta .cache-document-meta {
+    font-size: .95em;
+    margin-top: .3em;
+    margin-bottom: .5em;
+    color: #555;
 }
 
 #CacheHeader {

@@ -60,7 +60,7 @@ class CacheDocument:
         :return: dict(meta=WarcMetaDoc, body=str)
         """
         index = get_index(doc_index)
-        result = (Search()
+        result = (Search().doc_type(index.warc_meta_doc)
                   .index(index.warc_index_name)
                   .filter('term', **filter_expr)[:1].execute())
 
@@ -230,7 +230,7 @@ class BasicHtmlFormatter:
     ]
 
     ALLOWED_ATTRS = {
-        'a': ['href', 'rel']
+        'a': ['href']
     }
 
     ALLOWED_PROTOCOLS = [
