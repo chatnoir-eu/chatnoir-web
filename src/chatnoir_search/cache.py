@@ -246,19 +246,19 @@ class BasicHtmlFormatter:
         else:
             title = '<title>Cache Result</title>'
 
-        body = soup.find('body')
-        if not body:
-            body = soup
+        head = soup.find('head')
+        if head:
+            head.decompose()
 
         # Remove non-content elements
-        for el in list(body.select('script, style')):
+        for el in list(soup.select('script, style')):
             el.decompose()
 
         # Replace disallowed block elements with divs
-        for tr in body.select('table, tr, dialog, fieldset, form, figure'):
+        for tr in soup.select('table, tr, dialog, fieldset, form, figure'):
             tr.name = 'div'
 
-        bleached_html = bleach.clean(str(body),
+        bleached_html = bleach.clean(str(soup),
                                      tags=cls.ALLOWED_ELEMENTS,
                                      attributes=cls.ALLOWED_ATTRS,
                                      protocols=cls.ALLOWED_PROTOCOLS,
