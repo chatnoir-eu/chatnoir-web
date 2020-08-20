@@ -98,18 +98,20 @@ class CacheDocument:
         :param doc: WARC meta index document
         :return: dict(meta=WarcMetaDoc, body=str)
         """
-        record = self._read_warc_record(warc_bucket, doc.warc_file, doc.warc_offset, doc.http_length)
+        record = self._read_warc_record(warc_bucket, doc.source_file, doc.source_offset, doc.http_content_length)
 
         if not record:
             return None
 
         body = record.content_stream().read()
-        if doc.content_type.startswith('text/') or doc.content_type in ('application/json', 'application/xhtml+xml'):
-            body = body.decode(doc.content_encoding, errors='replace')
+        if doc.http_content_type:
+            if doc.http_content_type.startswith('text/') or \
+                    doc.http_content_type in ('application/json', 'application/xhtml+xml'):
+                body = body.decode(doc.content_encoding, errors='replace')
 
-        if doc.content_type in ('text/html', 'application/xhtml+xml'):
-            body = self._post_process_html(body, doc.warc_target_uri, doc_index,
-                                           doc.content_type == 'application/xhtml+xml')
+            if doc.http_content_type in ('text/html', 'application/xhtml+xml'):
+                body = self._post_process_html(body, doc.warc_target_uri, doc_index,
+                                               doc.http_content_type == 'application/xhtml+xml')
 
         return {
             'meta': doc,

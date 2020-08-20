@@ -61,7 +61,10 @@ def cache(request):
     context['cache']['uuid'] = doc['meta'].meta.id
     context['cache']['uri'] = doc['meta'].warc_target_uri
 
-    content_type = doc['meta'].content_type
+    content_type = doc['meta'].http_content_type
+    if not content_type:
+        content_type = 'text/html'
+
     if plaintext_mode:
         doc['body'] = BasicHtmlFormatter.format(doc['body'])
         content_type = 'text/html'
