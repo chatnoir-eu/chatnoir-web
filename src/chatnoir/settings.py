@@ -14,13 +14,15 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 INSTALLED_APPS = [
     'chatnoir_search.apps.ChatnoirSearchConfig',
-    'chatnoir_apikey_management.apps.ChatnoirApikeyManagement',
+    'chatnoir_apikey_management.apps.ChatnoirApikeyManagementConfig',
+    'chatnoir_api.apps.ChatnoirApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -32,6 +34,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer'
+    ]
+}
+
 
 # Do not filter console logs in production mode
 DEFAULT_LOGGING['handlers']['console']['filters'] = []

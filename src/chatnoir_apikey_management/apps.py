@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class ChatnoirApikeyManagement(AppConfig):
+class ChatnoirApikeyManagementConfig(AppConfig):
     name = 'chatnoir_apikey_management'

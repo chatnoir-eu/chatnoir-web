@@ -6,8 +6,8 @@ from . import views
 app_name = 'apikey_management'
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('apikey/admin/', admin.site.urls, name='admin'),
-    path('activate/<slug:activation_code>', views.activate, name='activate'),
-    path('request_sent', views.request_sent, name='request_sent')
+    path(r'', views.index, name='index'),
+    path(r'apikey/admin/', admin.site.urls, name='admin'),
+    path(r'activate/<slug:activation_code>', views.activate, name='activate'),
+    path(r'request_sent', views.request_sent, name='request_sent')
 ]

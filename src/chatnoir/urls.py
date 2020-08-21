@@ -18,6 +18,7 @@ from django.urls import include, path
 app_name = 'main'
 
 urlpatterns = [
-    path('', include('chatnoir_search.urls')),
-    path('apikey/', include('chatnoir_apikey_management.urls'))
+    path(r'', include('chatnoir_search.urls')),
+    path(r'api/', include('chatnoir_api.urls')),
+    path(r'apikey/', include('chatnoir_apikey_management.urls'))
 ]
