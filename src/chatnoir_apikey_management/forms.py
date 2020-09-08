@@ -1,14 +1,14 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from .models import Passcode, PendingUser, User
+from .models import ApiKeyPasscode, PendingApiUser, ApiUser
 
 
 class KeyRequestForm(forms.ModelForm):
     class Meta:
-        model = PendingUser
+        model = PendingApiUser
         fields = [
-            'commonname',
+            'common_name',
             'email',
             'organization',
             'address',
@@ -19,7 +19,7 @@ class KeyRequestForm(forms.ModelForm):
 
         ]
         widgets = {
-            'commonname': forms.TextInput(attrs={'class': 'form-control'}),
+            'common_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'organization': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.TextInput(attrs={'class': 'form-control'}),
@@ -36,16 +36,16 @@ class KeyRequestForm(forms.ModelForm):
         self._validate_unique = False
 
         try:
-            pc = Passcode.objects.get(passcode=self.data.get('passcode', ''))
+            pc = ApiKeyPasscode.objects.get(passcode=self.data.get('passcode'))
             cleaned_data['passcode'] = pc
             del self._errors['passcode']
 
             # check if API key for this email address / passcode combination has already been issued
-            existing_user = User.objects.filter(passcode=pc, email_address=cleaned_data.get('email', 'xx')).count()
+            existing_user = PendingApiUser.objects.filter(passcode=pc, email=cleaned_data.get('email')).count()
             if existing_user > 0:
                 self._errors['passcode'] = self.error_class([
                     _('Passcode already redeemed.')])
-        except Passcode.DoesNotExist:
+        except ApiKeyPasscode.DoesNotExist:
             self._errors['passcode'] = self.error_class([_('The passcode "{0}" is invalid.').format(
                 self.data.get('passcode', ''))])
 

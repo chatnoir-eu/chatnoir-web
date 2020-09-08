@@ -145,6 +145,11 @@ SEARCH_DEFAULT_INDICES = {
 }
 
 
+# Api settings
+API_ADMIN_ROLE = 'admin'
+API_KEY_CREATE_ROLE = 'keycreate'
+
+
 try:
    from .local_settings import *
 except ImportError:

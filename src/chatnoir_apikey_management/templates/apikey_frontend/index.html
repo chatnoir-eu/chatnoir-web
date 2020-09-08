@@ -25,9 +25,9 @@
             <form action="{% url 'apikey_management:index' %}" method="post" id="ApiKeyReqForm">
                 <div class="main-fields">
                     <div class="key-req-name">
-                        {{ form.commonname.errors }}
-                        <label for="{{ form.commonname.id_for_label }}">Name: *</label>
-                        {{ form.commonname }}
+                        {{ form.common_name.errors }}
+                        <label for="{{ form.common_name.id_for_label }}">Name: *</label>
+                        {{ form.common_name }}
                     </div>
                     <div class="key-req-email">
                         {{ form.email.errors }}

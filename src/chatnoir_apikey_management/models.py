@@ -1,107 +1,169 @@
-from django.db import models
+import logging
+import uuid
 
-from .chatnoir import ApiRequest
+from django.db import IntegrityError, models, transaction
+from django.utils.translation import gettext as _
 
 
-class IssueKey(models.Model):
+logger = logging.getLogger(__name__)
+
+
+class ApiUser(models.Model):
     """
-    Issue / master API keys.
-    """
-    api_key = models.CharField(max_length=36, unique=True)
-
-    def __str__(self):
-        return self.api_key
-
-
-class Passcode(models.Model):
-    """
-    API key issue passcodes.
-    """
-    issue_key = models.ForeignKey(IssueKey, on_delete=models.CASCADE)
-    passcode = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.passcode
-
-
-class User(models.Model):
-    """
-    API keys issued by passcode.
+    API users associated with an API key.
     """
     class Meta:
-        unique_together = ('passcode', 'email_address')
+        verbose_name = _('API User')
+        verbose_name_plural = _('API Users')
 
-    passcode = models.ForeignKey(Passcode, on_delete=models.CASCADE)
-    email_address = models.CharField(max_length=200)
+    common_name = models.CharField(verbose_name=_('Common Name'), max_length=100)
+    email = models.EmailField(verbose_name=_('Email Address'), max_length=200)
+    organization = models.CharField(verbose_name=_('Organization'), max_length=100, null=True, blank=True)
+    address = models.CharField(verbose_name=_('Address'), max_length=200, null=True, blank=True)
+    zip_code = models.CharField(verbose_name=_('ZIP Code'), max_length=50, null=True, blank=True)
+    state = models.CharField(verbose_name=_('State'), max_length=50, null=True, blank=True)
+    country = models.CharField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return '{} (passcode: {})'.format(self.email_address, self.passcode)
+        return '{0} ({1})'.format(self.common_name, self.email)
 
-    @staticmethod
-    def issue_api_key(activation_code):
-        """
-        Issue a new API key.
+    def str_plain(self):
+        return str(self.common_name)
 
-        :param activation_code: activation code
-        :return: 2-tuple containing the new API key and the user's email address or
-                 none if an error occurred (e.g., activation code invalid)
-        """
-        instance = PendingUser.get_by_activation_code(activation_code)
-        if not instance:
-            return None, None
+    def api_keys_plain(self):
+        return ', '.join([str(a.api_key) for a in self.api_key.all()])
 
-        issue_key = instance.passcode.issue_key.api_key
-
-        api_request = ApiRequest(issue_key, '_manage_keys', 'create')
-        response = api_request.request({
-            'user': {
-                'common_name': instance.commonname,
-                'email': instance.email,
-                'organization': instance.organization,
-                'address': instance.address,
-                'zip_code': instance.zip_code,
-                'state': instance.state,
-                'country': instance.country,
-            },
-            'limits': {
-                'day': None,
-                'week': None,
-                'month': None
-            },
-            'roles': []
-        })
-
-        if not response or 'apikey' not in response:
-            return None, None
-
-        user = User(passcode=instance.passcode, email_address=instance.email)
-        user.save()
-        instance.delete()
-
-        return response['apikey'], user.email_address
+    api_keys_plain.short_description = _('API Keys')
 
 
-class PendingUser(models.Model):
+class ApiKeyRole(models.Model):
+    """
+    API key permission roles.
+    """
+    class Meta:
+        verbose_name = _('API Key Role')
+        verbose_name_plural = _('API Key Roles')
+
+    role = models.CharField(verbose_name=_('API Key Role'), max_length=255, primary_key=True)
+
+    def __str__(self):
+        return self.role
+
+
+class ApiKey(models.Model):
+    """
+    API key with limits.
+    """
+    class Meta:
+        verbose_name = _('API Key')
+        verbose_name_plural = _('API Keys')
+
+    api_key = models.UUIDField(verbose_name=_('API Key'), primary_key=True, default=uuid.uuid4)
+    user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key', on_delete=models.CASCADE)
+    parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
+    expires = models.DateField(verbose_name=_('Expiration Date'), null=True, blank=True)
+    limits_day = models.IntegerField(verbose_name=_('Daily Limit'), null=True, blank=True)
+    limits_week = models.IntegerField(verbose_name=_('Weekly Limit'), null=True, blank=True)
+    limits_month = models.IntegerField(verbose_name=_('Monthly Limit'), null=True, blank=True)
+    allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
+    roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
+
+    def __str__(self):
+        return '{0} ({1})'.format(self.api_key, self.user.common_name)
+
+    def parent_str(self):
+        if not self.parent:
+            return ''
+        return str(self.parent.api_key)
+
+    def roles_str(self):
+        return ','.join([r.role for r in self.roles.all()])
+
+    roles_str.short_description = _('Roles')
+    parent_str.short_description = _('Parent Key')
+
+
+class ApiKeyPasscode(models.Model):
+    """
+    API key issue pass codes.
+    """
+    class Meta:
+        verbose_name = _('API Key Passcode')
+        verbose_name_plural = _('API Key Passcodes')
+
+    issue_key = models.ForeignKey(ApiKey, verbose_name=_('Issue Key'), on_delete=models.CASCADE)
+    passcode = models.CharField(verbose_name=_('Passcode'), max_length=100, unique=True)
+    expires = models.DateField(verbose_name=_('Expiration Date'), null=True, blank=True)
+
+    def __str__(self):
+        return str(self.passcode)
+
+
+class PasscodeRedemption(models.Model):
+    """
+    List of already redeemed passcodes.
+    """
+    class Meta:
+        unique_together = ('api_key', 'passcode')
+
+    api_key = models.ForeignKey(ApiKey, on_delete=models.CASCADE)
+    passcode = models.ForeignKey(ApiKeyPasscode, on_delete=models.CASCADE)
+
+
+class PendingApiUser(models.Model):
+    """
+    Passcode API users pending activation.
+    """
     class Meta:
         unique_together = ('email', 'passcode')
+        verbose_name = _('Pending API User')
+        verbose_name_plural = _('Pending API Users')
 
-    commonname = models.CharField(max_length=100)
-    email = models.EmailField(max_length=200)
-    organization = models.CharField(max_length=100, null=True, blank=True)
-    address = models.CharField(max_length=200, null=True, blank=True)
-    zip_code = models.CharField(max_length=50, null=True, blank=True)
-    state = models.CharField(max_length=50, null=True, blank=True)
-    country = models.CharField(max_length=50, null=True, blank=True)
-    activation_code = models.CharField(max_length=36, unique=True)
-    passcode = models.ForeignKey(Passcode, on_delete=models.CASCADE)
+    activation_code = models.UUIDField(verbose_name=_('Activation Code'), default=uuid.uuid4, primary_key=True)
+    passcode = models.ForeignKey(ApiKeyPasscode, verbose_name=_('Passcode'), on_delete=models.CASCADE)
+    common_name = models.CharField(verbose_name=_('Common Name'), max_length=100)
+    email = models.EmailField(verbose_name=_('Email Address'), max_length=200)
+    organization = models.CharField(verbose_name=_('Organization'), max_length=100, null=True, blank=True)
+    address = models.CharField(verbose_name=_('Address'), max_length=200, null=True, blank=True)
+    zip_code = models.CharField(verbose_name=_('ZIP Code'), max_length=50, null=True, blank=True)
+    state = models.CharField(verbose_name=_('State'), max_length=50, null=True, blank=True)
+    country = models.CharField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
 
     @staticmethod
-    def get_by_activation_code(activation_code: str):
+    def activate_by_code(activation_code: str):
         """
         :param activation_code: activation code
-        :return: pending user identified by `activation_code`
+        :return: activated user or False if activation code does not exist
         """
         try:
-            return PendingUser.objects.get(activation_code=activation_code)
-        except PendingUser.DoesNotExist:
-            return None
+            pending_user = PendingApiUser.objects.get(activation_code=activation_code)
+            if not pending_user.passcode:
+                logger.error('Pending user {} ({}) has no associated passcode.'.format(
+                    pending_user.common_name, pending_user.email))
+                return False
+
+        except PendingApiUser.DoesNotExist:
+            return False
+
+        try:
+            with transaction.atomic():
+                api_key = ApiKey(api_key=str(uuid.uuid4()), parent=pending_user.passcode.issue_key)
+                api_key.save()
+                user = ApiUser(
+                    api_key=api_key,
+                    common_name=pending_user.common_name,
+                    email=pending_user.email,
+                    organization=pending_user.organization,
+                    address=pending_user.address,
+                    zip_code=pending_user.zip_code,
+                    state=pending_user.state,
+                    country=pending_user.country,
+                )
+                user.save()
+                redemption = PasscodeRedemption(api_key=api_key, passcode=pending_user.passcode)
+                redemption.save()
+                pending_user.delete()
+                return user
+        except IntegrityError as e:
+            logger.error('Error activating user {} ({}):'.format(pending_user.common_name, pending_user.email), e)
+            return False

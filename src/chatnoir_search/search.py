@@ -427,22 +427,36 @@ class SerpContext:
 
             result = {
                 'score': hit.meta.score,
-                'index': self.index_name_to_shorthand(hit.meta.index),
                 'uuid': hit.meta.id,
+                'index': self.index_name_to_shorthand(hit.meta.index),
+                'trec_id': getattr(hit, 'warc_trec_id', None),
+                'target_hostname': getattr(hit, 'warc_target_hostname', None),
+                'target_uri': hit.warc_target_uri,
                 'page_rank': getattr(hit, 'page_rank', None),
                 'spam_rank': getattr(hit, 'spam_rank', None),
-                'trec_id': getattr(hit, 'warc_trec_id', None),
                 'title': title,
-                'target_hostname': getattr(hit, 'warc_target_hostname', None),
-                'target_path': urlparse(hit.warc_target_uri).path,
-                'target_uri': hit.warc_target_uri,
-                'snippet': snippet
+                'snippet': snippet,
+                'target_path': urlparse(hit.warc_target_uri).path
             }
 
             results.append(result)
 
         if self.search.group_results_by_hostname:
             return self.group_results(results)
+
+        return results
+
+    @property
+    def results_api(self):
+        """
+        Result list stripped of internal fields suitable to be presented as an API response.
+        """
+        results = self.results
+        for i in range(len(results)):
+            results[i] = {k: v for k, v in results[i].items() if k in (
+                'score', 'uuid', 'index', 'trec_id', 'target_hostname', 'target_uri',
+                'page_rank', 'spam_rank', 'title', 'snippet'
+            )}
 
         return results
 

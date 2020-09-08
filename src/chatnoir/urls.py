@@ -14,11 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import include, path
+from django.contrib import admin
 
 app_name = 'main'
 
 urlpatterns = [
     path(r'', include('chatnoir_search.urls')),
     path(r'api/', include('chatnoir_api.urls')),
-    path(r'apikey/', include('chatnoir_apikey_management.urls'))
+    path(r'apikey/', include('chatnoir_apikey_management.urls')),
+    path(r'apikey/admin/', admin.site.urls),
 ]
