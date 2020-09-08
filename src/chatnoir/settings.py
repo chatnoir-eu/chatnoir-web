@@ -119,6 +119,7 @@ STATICFILES_DIRS = [
 
 ELASTICSEARCH_PROPERTIES = {
     'hosts': ['localhost:9200'],
+    'retry_on_timeout': True,
     "use_ssl": True,
     "api_key": ["apikey", "secret"]
 }
