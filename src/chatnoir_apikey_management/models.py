@@ -1,11 +1,19 @@
+from datetime import date
 import logging
 import uuid
+import secrets
 
+from django.core.cache import cache
 from django.db import IntegrityError, models, transaction
-from django.utils.translation import gettext as _
+from django.utils.html import mark_safe
+from django.utils.translation import gettext_lazy as _
 
 
 logger = logging.getLogger(__name__)
+
+
+def generate_apikey():
+    return secrets.token_urlsafe(16)
 
 
 class ApiUser(models.Model):
@@ -33,7 +41,19 @@ class ApiUser(models.Model):
     def api_keys_plain(self):
         return ', '.join([str(a.api_key) for a in self.api_key.all()])
 
+    def api_keys_html(self):
+        return mark_safe('<br>'.join([str(a.api_key) for a in self.api_key.all()]))
+
     api_keys_plain.short_description = _('API Keys')
+    api_keys_html.short_description = _('API Keys')
+
+    @property
+    def is_anonymous(self):
+        return self.pk is None
+
+    @property
+    def is_authenticated(self):
+        return not self.is_anonymous
 
 
 class ApiKeyRole(models.Model):
@@ -58,29 +78,83 @@ class ApiKey(models.Model):
         verbose_name = _('API Key')
         verbose_name_plural = _('API Keys')
 
-    api_key = models.UUIDField(verbose_name=_('API Key'), primary_key=True, default=uuid.uuid4)
+    api_key = models.CharField(verbose_name=_('API Key'), max_length=255, primary_key=True, default=generate_apikey)
     user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key', on_delete=models.CASCADE)
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
     expires = models.DateField(verbose_name=_('Expiration Date'), null=True, blank=True)
-    limits_day = models.IntegerField(verbose_name=_('Daily Limit'), null=True, blank=True)
-    limits_week = models.IntegerField(verbose_name=_('Weekly Limit'), null=True, blank=True)
-    limits_month = models.IntegerField(verbose_name=_('Monthly Limit'), null=True, blank=True)
-    allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
+    limits_day = models.IntegerField(verbose_name=_('Request Limit Day'), null=True, blank=True)
+    limits_week = models.IntegerField(verbose_name=_('Request Limit Week'), null=True, blank=True)
+    limits_month = models.IntegerField(verbose_name=_('Request Limit Month'), null=True, blank=True)
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
+    allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
+    comment = models.CharField(verbose_name=_('Comment'), max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return '{0} ({1})'.format(self.api_key, self.user.common_name)
+        comment = self.comment or ''
+        if comment:
+            comment = ''.join((' (', comment, ')'))
+        return '{0}: {1}{2}'.format(self.user.common_name, self.api_key, comment)
 
-    def parent_str(self):
-        if not self.parent:
-            return ''
-        return str(self.parent.api_key)
+    def resolve_inheritance(self, *field_names):
+        if self.pk is None:
+            raise RuntimeError('Cannot resolve inheritance on unsaved model.')
 
+        cache_key = '.'.join((__name__, self.__class__.__name__, self.pk, ':'.join(field_names)))
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        if len(field_names) < 1:
+            raise AttributeError('field_names must at least be length 1')
+
+        obj = self
+        resolved = {f: getattr(obj, f) for f in field_names if getattr(obj, f)}
+        unresolved = {f: None for f in field_names if not getattr(obj, f)}
+
+        while unresolved and obj.parent:
+            obj = obj.parent
+            for f in set(unresolved.keys()):
+                if getattr(obj, f):
+                    resolved[f] = getattr(obj, f)
+                    del unresolved[f]
+
+        resolved.update(unresolved)
+        if len(resolved) == 1:
+            val = next(iter(resolved.values()))
+            cache.set(cache_key, val)
+            return val
+
+        resolved = tuple(resolved.values())
+        cache.set(cache_key, resolved)
+        return resolved
+
+    @property
     def roles_str(self):
-        return ','.join([r.role for r in self.roles.all()])
+        return ', '.join([r.role for r in self.roles.all()])
 
-    roles_str.short_description = _('Roles')
-    parent_str.short_description = _('Parent Key')
+    @property
+    def expires_inherited(self):
+        return self.resolve_inheritance('expires')
+
+    @property
+    def allowed_remote_hosts_list(self):
+        if not self.allowed_remote_hosts:
+            return []
+        return [h.strip() for h in self.allowed_remote_hosts.split(',')]
+
+    @property
+    def limits_inherited(self):
+        return tuple(lim if lim is not None else -1
+                     for lim in self.resolve_inheritance('limits_day', 'limits_week', 'limits_month'))
+
+    @property
+    def has_expired(self):
+        expires = self.resolve_inheritance('expires')
+        return expires and expires < date.today()
+
+    roles_str.fget.short_description = roles.verbose_name
+    expires_inherited.fget.short_description = expires.verbose_name
+    limits_inherited.fget.short_description = _('Request Limits')
 
 
 class ApiKeyPasscode(models.Model):
@@ -119,7 +193,8 @@ class PendingApiUser(models.Model):
         verbose_name = _('Pending API User')
         verbose_name_plural = _('Pending API Users')
 
-    activation_code = models.UUIDField(verbose_name=_('Activation Code'), default=uuid.uuid4, primary_key=True)
+    activation_code = models.CharField(verbose_name=_('Activation Code'), max_length=255,
+                                       default=generate_apikey, primary_key=True)
     passcode = models.ForeignKey(ApiKeyPasscode, verbose_name=_('Passcode'), on_delete=models.CASCADE)
     common_name = models.CharField(verbose_name=_('Common Name'), max_length=100)
     email = models.EmailField(verbose_name=_('Email Address'), max_length=200)

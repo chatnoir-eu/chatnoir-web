@@ -39,9 +39,16 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer'
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'chatnoir_api.views.api_exception_handler'
 }
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'chatnoir_cache',
+        'TIMEOUT': 120
+    }
+}
 
 # Do not filter console logs in production mode
 DEFAULT_LOGGING['handlers']['console']['filters'] = []
@@ -148,7 +155,8 @@ SEARCH_DEFAULT_INDICES = {
 # Api settings
 API_ADMIN_ROLE = 'admin'
 API_KEY_CREATE_ROLE = 'keycreate'
-
+API_NOLOG_ROLES = ('dev',)
+API_TRUST_X_FORWARDED_FOR = False
 
 try:
    from .local_settings import *

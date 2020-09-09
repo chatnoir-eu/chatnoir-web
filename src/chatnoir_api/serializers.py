@@ -1,6 +1,8 @@
 from django.conf import settings
 from rest_framework import serializers
 
+from .validators import *
+
 
 class OptionalListField(serializers.ListField):
     """
@@ -21,14 +23,10 @@ class ApiSerializer(serializers.Serializer):
         return {k.rstrip('_'): v for k, v in super().get_fields().items()}
 
 
-class ApiKeyField(serializers.UUIDField):
-    def __init__(self, **kwargs):
-        super().__init__(format='hex_verbose', **kwargs)
-
-
 class AuthenticatedApiSerializer(ApiSerializer):
-    apikey = ApiKeyField(
+    apikey = serializers.CharField(
         required=True,
+        max_length=255,
         initial='<apikey>',
         label='API Key',
         help_text='API key'
@@ -44,8 +42,9 @@ class SimpleSearchRequestSerializerV1(AuthenticatedApiSerializer):
     index = OptionalListField(
         child=serializers.CharField(),
         required=False,
-        initial=settings.SEARCH_DEFAULT_INDICES[1],
-        default=settings.SEARCH_DEFAULT_INDICES[1],
+        initial=(settings.SEARCH_DEFAULT_INDICES[1],),
+        default=(settings.SEARCH_DEFAULT_INDICES[1],),
+        validators=(validate_index_names,),
         help_text='Index name or list of index names to search'
     )
     from_ = serializers.IntegerField(

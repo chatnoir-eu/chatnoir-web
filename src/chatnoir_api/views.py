@@ -1,12 +1,29 @@
+from django.utils.translation import gettext as _
 from rest_framework import routers, viewsets
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
 
+from .authentication import *
 from .metadata import *
-# from .permissions import HasAPIKeyV1
 from .serializers import *
 
 from chatnoir_search.search import SimpleSearchV1
+
+
+def api_exception_handler(exc, context):
+    if not isinstance(exc, exceptions.APIException):
+        raise exc
+
+    status_code = exc.status_code
+    if isinstance(exc, (exceptions.NotAuthenticated, exceptions.AuthenticationFailed)):
+        status_code = 401
+
+    response = Response({
+        'code': status_code,
+        'message': exc.detail
+    }, status_code)
+
+    return response
 
 
 class APIRootV1(routers.APIRootView):
@@ -21,7 +38,6 @@ class APIRootV1(routers.APIRootView):
 class ApiViewSet(viewsets.ViewSet):
     serializer_class = SimpleSearchRequestSerializerV1
     metadata_class = SimpleSearchMetadata
-    # permission_classes = (HasAPIKeyV1,)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,6 +69,7 @@ class SimpleSearchViewSetV1(ApiViewSet):
 
     # metadata_class = SimpleSearchMetadata
     allowed_methods = ('GET', 'POST', 'OPTIONS')
+    authentication_classes = (ApiKeyAuthentication,)
 
     def get_view_name(self):
         return 'Simple Search'
@@ -81,7 +98,7 @@ class SimpleSearchViewSetV1(ApiViewSet):
             'meta': {
                 'query_time': serp_ctx.query_time,
                 'total_results': serp_ctx.total_results,
-                'indices': data['index']
+                'indices': params.data['index']
             },
             'results': serp_ctx.results_api
         })
