@@ -10,7 +10,7 @@ from .serializers import *
 from chatnoir_search.search import SimpleSearchV1
 
 
-def api_exception_handler(exc, context):
+def api_exception_handler(exc, _):
     if not isinstance(exc, exceptions.APIException):
         raise exc
 
@@ -48,7 +48,7 @@ class ApiViewSet(viewsets.ViewSet):
 
     @staticmethod
     def _bool_param_set(param, request_data):
-        return param in request_data and request_data.get(param) not in ('0', 'false')
+        return param in request_data and str(request_data.get(param)).lower() not in ('0', 'false')
 
     def initialize_request(self, request, *args, **kwargs):
         request = super().initialize_request(request, *args, **kwargs)
