@@ -284,7 +284,7 @@ a {
     clear: both;
 }
 
-#SearchOptions .indices, #SearchOptions select[multiple] {
+#SearchOptions .indexes, #SearchOptions select[multiple] {
     float: right;
     width: 25rem;
 }

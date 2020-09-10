@@ -15,9 +15,9 @@ def index(request):
         page_num = '0'
     page_num = max(0, int(page_num) - 1)
 
-    indices = request.GET.getlist('index')
+    indexes = request.GET.getlist('index')
 
-    search = SimpleSearchV1(indices, search_from=page_num * 10, num_results=10)
+    search = SimpleSearchV1(indexes, search_from=page_num * 10, num_results=10)
     serp_context = search.search(query_string)
 
     context = {

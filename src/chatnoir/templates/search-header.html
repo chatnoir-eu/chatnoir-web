@@ -21,9 +21,9 @@
     </div>
     {% if serp_context %}
         <div id="SearchOptions">
-            <div class="indices">
-                <select data-placeholder="Select…" name="index" id="SearchIndices" multiple>
-                    {% for i in serp_context.available_indices %}
+            <div class="indexes">
+                <select data-placeholder="Select…" name="index" id="SearchIndexes" multiple>
+                    {% for i in serp_context.available_indexes %}
                         <option value="{{ i.name }}"{%  if i.selected %} selected{%  endif %}>{{ i.display_name }}</option>
                     {% endfor %}
                 </select>

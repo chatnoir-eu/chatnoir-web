@@ -92,13 +92,16 @@ class SimpleSearchViewSetV1(ApiViewSet):
 
         return data
 
-    def _process_search(self, search_obj, params):
+    def _process_search(self, search_obj, request, params):
         serp_ctx = search_obj.search(params.data['query'])
+
+        # keep API response compatible
+        indexes_key = 'indices' if (request.auth and request.auth.is_legacy_key) else 'indexes'
         return Response({
             'meta': {
                 'query_time': serp_ctx.query_time,
                 'total_results': serp_ctx.total_results,
-                'indices': list(serp_ctx.search.indices.keys())
+                indexes_key: list(serp_ctx.search.indexes.keys())
             },
             'results': serp_ctx.results_api
         })
@@ -108,7 +111,7 @@ class SimpleSearchViewSetV1(ApiViewSet):
         params.is_valid(raise_exception=True)
         validated = params.validated_data
         search = SimpleSearchV1(validated['index'], validated['from'], validated['size'])
-        return self._process_search(search, params)
+        return self._process_search(search, request, params)
 
 
 class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
@@ -126,4 +129,4 @@ class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
         params.is_valid(raise_exception=True)
         validated = params.validated_data
         search = PhraseSearchV1(validated['index'], validated['from'], validated['size'], validated['slop'])
-        return self._process_search(search, params)
+        return self._process_search(search, request, params)

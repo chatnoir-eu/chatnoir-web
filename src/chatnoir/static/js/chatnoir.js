@@ -61,10 +61,10 @@ $(function () {
     });
 
     // initialize search settings
-    $("#SearchIndices").SumoSelect({
-        placeholder: 'Select indices',
-        captionFormat:'{0} indices',
-        captionFormatAllSelected:'All indices',
+    $("#SearchIndexes").SumoSelect({
+        placeholder: 'Select indexes',
+        captionFormat:'{0} indexes',
+        captionFormatAllSelected:'All indexes',
         forceCustomRendering: false,
         nativeOnDevice: ['Android', 'BlackBerry', 'iPhone', 'iPad', 'iPod', 'Opera Mini', 'IEMobile', 'Silk'],
         selectAll: true,

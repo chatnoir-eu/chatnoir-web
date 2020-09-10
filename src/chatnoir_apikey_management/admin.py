@@ -22,6 +22,7 @@ class ApiKeyAdminBase:
         'api_key',
         'user',
         'parent',
+        'issue_date',
         'expires',
         ('limits_day', 'limits_week', 'limits_month'),
         'roles',

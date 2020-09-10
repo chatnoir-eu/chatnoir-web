@@ -41,7 +41,7 @@
                                     <li role="presentation" class="dropdown-header">Spam Rank: {% if result.spam_rank %}{{ result.spam_rank }}{% else %}none{% endif %}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indices | join:',' | urlencode }}{% if is_explain_mode %}&explain{% endif %}#result-{{ result.uuid | urlencode }}">Explain</a>
+                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}{% if is_explain_mode %}&explain{% endif %}#result-{{ result.uuid | urlencode }}">Explain</a>
                                     </li>
                                 </ul>
                             </div>
@@ -64,7 +64,7 @@
                 <ul class="pagination">
                     {% for p in serp_context.pagination.pages %}
                         <li{% if p.num == serp_context.pagination.current_page %} class="active"{% endif %}>
-                            <a href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.is_explain_mode %}&explain{% endif %}{% for i in serp_context.search.indices %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
+                            <a href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.is_explain_mode %}&explain{% endif %}{% for i in serp_context.search.indexes %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
                             {% if p.label_aria %}
                                 <span aria-hidden="true">{{ p.label }}</span>
                                 <span class="sr-only">{{ p.label_aria }}</span>

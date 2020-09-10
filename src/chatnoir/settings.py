@@ -137,7 +137,7 @@ S3_ENDPOINT_PROPERTIES = {
     "aws_secret_access_key": "secret_key"
 }
 
-SEARCH_INDICES = {
+SEARCH_INDEXES = {
     'index_shorthand_name': {
         'index': 'index_internal_name',
         'warc_index': 'warc_meta_index_name',
@@ -146,7 +146,7 @@ SEARCH_INDICES = {
         'compat_search_versions': [1]
     }
 }
-SEARCH_DEFAULT_INDICES = {
+SEARCH_DEFAULT_INDEXES = {
     # search version: default index
     1: 'index_shorthand_name'
 }

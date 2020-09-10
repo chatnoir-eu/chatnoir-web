@@ -14,18 +14,18 @@ class SimpleSearch(ABC):
     Simple search base class.
     """
 
-    def __init__(self, indices=None, search_from=0, num_results=10):
+    def __init__(self, indexes=None, search_from=0, num_results=10):
         """
-        :param indices: list of indices to search (will be validated and replaced with defaults if necessary)
+        :param indexes: list of indexes to search (will be validated and replaced with defaults if necessary)
         :param page_num: results page number (zero-based)
         :param num_results: number of results per page
         """
-        if indices is not None and type(indices) not in (tuple, list):
-            raise TypeError('indices must be a list')
+        if indexes is not None and type(indexes) not in (tuple, list):
+            raise TypeError('indexes must be a list')
 
-        if indices is None:
-            indices = {settings.SEARCH_DEFAULT_INDICES[self.search_version]}
-        self._indices_unvalidated = set(indices)
+        if indexes is None:
+            indexes = {settings.SEARCH_DEFAULT_INDEXES[self.search_version]}
+        self._indexes_unvalidated = set(indexes)
 
         self.search_version = None
         self.search_language = 'en'
@@ -37,21 +37,21 @@ class SimpleSearch(ABC):
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
 
     @property
-    def allowed_indices(self):
-        """Allowed and compatible indices."""
-        return {i: settings.SEARCH_INDICES[i] for i in settings.SEARCH_INDICES
-                if self.search_version in settings.SEARCH_INDICES[i]['compat_search_versions']}
+    def allowed_indexes(self):
+        """Allowed and compatible indexes."""
+        return {i: settings.SEARCH_INDEXES[i] for i in settings.SEARCH_INDEXES
+                if self.search_version in settings.SEARCH_INDEXES[i]['compat_search_versions']}
 
     @property
-    def indices(self):
-        """Selected indices."""
-        allowed = self.allowed_indices
-        indices = {i: allowed[i] for i in self._indices_unvalidated if i in allowed}
-        if not indices:
-            default_index = settings.SEARCH_DEFAULT_INDICES[self.search_version]
-            indices = {default_index: settings.SEARCH_INDICES[default_index]}
+    def indexes(self):
+        """Selected indexes."""
+        allowed = self.allowed_indexes
+        indexes = {i: allowed[i] for i in self._indexes_unvalidated if i in allowed}
+        if not indexes:
+            default_index = settings.SEARCH_DEFAULT_INDEXES[self.search_version]
+            indexes = {default_index: settings.SEARCH_INDEXES[default_index]}
 
-        return indices
+        return indexes
 
     @property
     def page_num(self):
@@ -201,8 +201,8 @@ class SimpleSearchV1(SimpleSearch):
     """Number of top documents to rescore."""
     RESCORE_WINDOW = 400
 
-    def __init__(self, indices, search_from=0, num_results=10):
-        super().__init__(indices, search_from, num_results)
+    def __init__(self, indexes, search_from=0, num_results=10):
+        super().__init__(indexes, search_from, num_results)
         self.search_version = 1
         self.user_lang_override = False
 
@@ -226,7 +226,7 @@ class SimpleSearchV1(SimpleSearch):
         pre_query.must_not.extend(user_filters.must_not)
 
         s = Search() \
-            .index([i['index'] for i in self.indices.values()]) \
+            .index([i['index'] for i in self.indexes.values()]) \
             .query(pre_query) \
             .extra(
                 from_=self.search_from,
@@ -279,7 +279,7 @@ class SimpleSearchV1(SimpleSearch):
 
             # Special case: index
             if filter_field == '#index':
-                self._indices_unvalidated = [i.strip() for i in filter_value.split(',')]
+                self._indexes_unvalidated = [i.strip() for i in filter_value.split(',')]
                 continue
 
             # Special case: hostname
@@ -426,8 +426,8 @@ class PhraseSearchV1(SimpleSearchV1):
     """Terminate search after this many results per node."""
     NODE_LIMIT = 4000
 
-    def __init__(self, indices, search_from=0, num_results=10, slop=None):
-        super().__init__(indices, search_from, num_results)
+    def __init__(self, indexes, search_from=0, num_results=10, slop=None):
+        super().__init__(indexes, search_from, num_results)
         self.slop = slop or self.DEFAULT_SLOP
 
     def _build_search_request(self, query_string):
@@ -550,7 +550,7 @@ class SerpContext:
         :param index_name: internal index name
         :return: shorthand or unmodified index name if not found
         """
-        for i, v in self.search.indices.items():
+        for i, v in self.search.indexes.items():
             if v['index'] == index_name:
                 return i
         return index_name
@@ -623,6 +623,6 @@ class SerpContext:
         }
 
     @property
-    def available_indices(self):
-        return [dict(v, **{'name': i, 'selected': i in self.search.indices})
-                for i, v in settings.SEARCH_INDICES.items()]
+    def available_indexes(self):
+        return [dict(v, **{'name': i, 'selected': i in self.search.indexes})
+                for i, v in settings.SEARCH_INDEXES.items()]

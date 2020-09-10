@@ -80,6 +80,7 @@ class ApiKey(models.Model):
 
     api_key = models.CharField(verbose_name=_('API Key'), max_length=255, primary_key=True, default=generate_apikey)
     user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key', on_delete=models.CASCADE)
+    issue_date = models.DateField(verbose_name=_('Issue Date'), default=date.today, null=True, blank=True)
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
     expires = models.DateField(verbose_name=_('Expiration Date'), null=True, blank=True)
     limits_day = models.IntegerField(verbose_name=_('Request Limit Day'), null=True, blank=True)
@@ -152,6 +153,14 @@ class ApiKey(models.Model):
         expires = self.resolve_inheritance('expires')
         return expires and expires < date.today()
 
+    @property
+    def is_legacy_key(self):
+        try:
+            uuid.UUID(self.api_key)
+            return True
+        except ValueError:
+            return False
+
     roles_str.fget.short_description = roles.verbose_name
     expires_inherited.fget.short_description = expires.verbose_name
     limits_inherited.fget.short_description = _('Request Limits')
@@ -222,7 +231,7 @@ class PendingApiUser(models.Model):
 
         try:
             with transaction.atomic():
-                api_key = ApiKey(api_key=str(uuid.uuid4()), parent=pending_user.passcode.issue_key)
+                api_key = ApiKey(api_key=generate_apikey(), parent=pending_user.passcode.issue_key)
                 api_key.save()
                 user = ApiUser(
                     api_key=api_key,
@@ -238,7 +247,7 @@ class PendingApiUser(models.Model):
                 redemption = PasscodeRedemption(api_key=api_key, passcode=pending_user.passcode)
                 redemption.save()
                 pending_user.delete()
-                return user
+            return user
         except IntegrityError as e:
             logger.error('Error activating user {} ({}):'.format(pending_user.common_name, pending_user.email), e)
             return False

@@ -2,14 +2,14 @@ import elasticsearch_dsl as edsl
 from django.conf import settings
 from elasticsearch.exceptions import NotFoundError
 
-_INDICES = {}
+_INDEXES = {}
 
 
 def get_index(shorthand):
-    if not _INDICES:
-        _INDICES.update({k: SearchIndex(k) for k in settings.SEARCH_INDICES})
+    if not _INDEXES:
+        _INDEXES.update({k: SearchIndex(k) for k in settings.SEARCH_INDEXES})
 
-    return _INDICES.get(shorthand)
+    return _INDEXES.get(shorthand)
 
 
 class SearchIndex:
@@ -46,10 +46,10 @@ class SearchIndex:
             }])
 
     def __init__(self, shorthand):
-        if shorthand not in settings.SEARCH_INDICES:
+        if shorthand not in settings.SEARCH_INDEXES:
             raise NotFoundError('No such index: {}'.format(shorthand))
 
-        self._conf = settings.SEARCH_INDICES[shorthand]
+        self._conf = settings.SEARCH_INDEXES[shorthand]
 
         self.display_name = self._conf['display_name']
         self.interal_name = self._conf['index']
