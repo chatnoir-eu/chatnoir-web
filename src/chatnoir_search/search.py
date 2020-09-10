@@ -14,12 +14,13 @@ class SimpleSearch(ABC):
     Simple search base class.
     """
 
-    def __init__(self, indices=None, page_num=0):
+    def __init__(self, indices=None, search_from=0, num_results=10):
         """
         :param indices: list of indices to search (will be validated and replaced with defaults if necessary)
         :param page_num: results page number (zero-based)
+        :param num_results: number of results per page
         """
-        if indices is not None and type(indices) is not list:
+        if indices is not None and type(indices) not in (tuple, list):
             raise TypeError('indices must be a list')
 
         if indices is None:
@@ -29,8 +30,8 @@ class SimpleSearch(ABC):
         self.search_version = None
         self.search_language = 'en'
         self.group_results_by_hostname = True
-        self.results_per_page = 10
-        self.page_num = max(0, page_num)
+        self.num_results = max(1, num_results)
+        self.search_from = max(0, min(search_from, 10000 - self.num_results))
 
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
@@ -53,9 +54,9 @@ class SimpleSearch(ABC):
         return indices
 
     @property
-    def search_from(self):
-        """Index of first result to be searched (depends on page number and number of results per page)."""
-        return max(0, min(self.page_num * self.results_per_page, 10000 - self.results_per_page))
+    def page_num(self):
+        """Search result page number."""
+        return self.search_from // self.num_results
 
     @abstractmethod
     def search(self, query_string):
@@ -118,6 +119,7 @@ class SimpleSearchV1(SimpleSearch):
         'index': '#index'
     }
 
+    """Default search fields."""
     MAIN_FIELDS = [
         {
             'name': 'title_lang.%lang%',
@@ -163,8 +165,7 @@ class SimpleSearchV1(SimpleSearch):
         }
     ]
 
-    RESCORE_WINDOW = 400
-
+    """Numeric query filters."""
     RANGE_FILTERS = [
         {
             'name': 'body_length',
@@ -177,6 +178,7 @@ class SimpleSearchV1(SimpleSearch):
         }
     ]
 
+    """Additional fields for boosting queries."""
     BOOSTS = [
         {
             'name': 'warc_target_hostname.raw',
@@ -193,8 +195,14 @@ class SimpleSearchV1(SimpleSearch):
         }
     ]
 
-    def __init__(self, indices, page_num):
-        super().__init__(indices, page_num)
+    """Terminate search after this many results per node."""
+    NODE_LIMIT = 70000
+
+    """Number of top documents to rescore."""
+    RESCORE_WINDOW = 400
+
+    def __init__(self, indices, search_from=0, num_results=10):
+        super().__init__(indices, search_from, num_results)
         self.search_version = 1
         self.user_lang_override = False
 
@@ -218,22 +226,30 @@ class SimpleSearchV1(SimpleSearch):
         pre_query.must_not.extend(user_filters.must_not)
 
         s = Search() \
-            .index([i['index'] for _, i in self.indices.items()]) \
+            .index([i['index'] for i in self.indices.values()]) \
             .query(pre_query) \
-            .extra(rescore={
-                'window_size': SimpleSearchV1.RESCORE_WINDOW,
-                'query': {
-                    'query_weight': 0.0,
-                    'rescore_query_weight': 1.0,
-                    'score_mode': 'total',
-                    'rescore_query': self._build_rescore_query(query_string).to_dict()
-                }
-            }, terminate_after=70000, track_total_hits=True) \
+            .extra(
+                from_=self.search_from,
+                size=self.num_results,
+                terminate_after=self.NODE_LIMIT,
+                track_total_hits=True) \
             .highlight('title_lang.' + self.search_language, fragment_size=70, number_of_fragments=1) \
             .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1) \
             .highlight_options(encoder='html')
 
-        return s[self.search_from:self.search_from + self.results_per_page]
+        rescore_query = self._build_rescore_query(query_string)
+        if rescore_query is not None:
+            s = s.extra(rescore={
+                'window_size': self.RESCORE_WINDOW,
+                'query': {
+                    'query_weight': 0.0,
+                    'rescore_query_weight': 1.0,
+                    'score_mode': 'total',
+                    'rescore_query': rescore_query.to_dict()
+                }
+            })
+
+        return s
 
     def _parse_query_string_operators(self, query_string):
         """
@@ -248,7 +264,7 @@ class SimpleSearchV1(SimpleSearch):
         query_string = re.sub(r'(?!\B"[^"]*) OR (?![^"]*"\B)', ' | ', query_string)
 
         filter_query = Q('bool', filter=[])
-        for filter_keyword in SimpleSearchV1.QUERY_FILTERS:
+        for filter_keyword in self.QUERY_FILTERS:
 
             filter_match = re.search(r'(?:^|\s)({}):\s*((\S+)(?:$|\s))'.format(re.escape(filter_keyword)), query_string)
             if not filter_match:
@@ -259,7 +275,7 @@ class SimpleSearchV1(SimpleSearch):
             filter_value = filter_match.group(3)
 
             # Build filter term
-            filter_field = SimpleSearchV1.QUERY_FILTERS[filter_keyword]
+            filter_field = self.QUERY_FILTERS[filter_keyword]
 
             # Special case: index
             if filter_field == '#index':
@@ -299,7 +315,7 @@ class SimpleSearchV1(SimpleSearch):
                                query=query_string,
                                default_operator='and',
                                flags='AND|OR|NOT|WHITESPACE',
-                               fields=[self.replace_lang_placeholder(f['name']) for f in SimpleSearchV1.MAIN_FIELDS])
+                               fields=[self.replace_lang_placeholder(f['name']) for f in self.MAIN_FIELDS])
         else:
             pre_query.must = Q('match_all')
 
@@ -323,7 +339,7 @@ class SimpleSearchV1(SimpleSearch):
 
         rescore_query = Q('bool', must=simple_query, should=[])
 
-        for f in SimpleSearchV1.MAIN_FIELDS:
+        for f in self.MAIN_FIELDS:
             simple_query.fields.append(f'{self.replace_lang_placeholder(f["name"])}^{f.get("boost", 1.0)}')
 
             if f.get('proximity_matching', False):
@@ -354,7 +370,7 @@ class SimpleSearchV1(SimpleSearch):
         Build numeric filter queries from config to the given query.
         """
         bool_query = Q('bool', filter=[], must_not=[])
-        for f in SimpleSearchV1.RANGE_FILTERS:
+        for f in self.RANGE_FILTERS:
             field_name = self.replace_lang_placeholder(f['name'])
             filter_query = Q('range', **{field_name: {k: v for k, v in f.items() if k in ['gt', 'gte', 'lt', 'lte']}})
             if f.get('include_unset', False):
@@ -375,7 +391,7 @@ class SimpleSearchV1(SimpleSearch):
         :param match: only add boosts which are allowed during match phase (pre-query)
         """
         boost_query = Q('bool', should=[])
-        for b in SimpleSearchV1.BOOSTS:
+        for b in self.BOOSTS:
             if match and not b.get('match', False):
                 continue
 
@@ -387,6 +403,64 @@ class SimpleSearchV1(SimpleSearch):
             })
             boost_query.should.append(regexp_query)
         return boost_query
+
+
+class PhraseSearchV1(SimpleSearchV1):
+    """Default for how far terms can be apart in a phrase."""
+    DEFAULT_SLOP = 0
+
+    """Maximum allowed phrase slop."""
+    MAX_SLOP = 2
+
+    """Fields to search."""
+    MAIN_FIELDS = [
+        {
+            'name': 'body_lang.%lang%',
+            'boost': 1.0
+        }
+    ]
+
+    """Collapse search results based on field"""
+    COLLAPSE_FIELD = 'warc_target_hostname.raw'
+
+    """Terminate search after this many results per node."""
+    NODE_LIMIT = 4000
+
+    def __init__(self, indices, search_from=0, num_results=10, slop=None):
+        super().__init__(indices, search_from, num_results)
+        self.slop = slop or self.DEFAULT_SLOP
+
+    def _build_search_request(self, query_string):
+        return super()._build_search_request(query_string).extra(collapse={'field': self.COLLAPSE_FIELD})
+
+    def _build_pre_query(self, query_string):
+        pre_query = Q('bool', filter=[], must_not=[])
+
+        if not self.user_lang_override:
+            # Only add if not already added via user filter
+            pre_query.filter.append(Q('term', lang=self.search_language))
+
+        pre_query.must = []
+        main_fields = set()
+        for f in PhraseSearchV1.MAIN_FIELDS:
+            fname = self.replace_lang_placeholder(f['name'])
+            main_fields.add(fname)
+            pre_query.must.append(Q('match_phrase', **{fname: dict(
+                query=query_string,
+                slop=min(self.slop, self.MAX_SLOP),
+                boost=f.get('boost', 1.0))}))
+
+        pre_query.should = []
+        for f in super().MAIN_FIELDS:
+            fname = self.replace_lang_placeholder(f['name'])
+            if fname in main_fields:
+                continue
+            pre_query.should.append(Q('match', **{fname: dict(query=query_string, boost=f.get('boost', 1.0))}))
+
+        return pre_query
+
+    def _build_rescore_query(self, query_string):
+        return None
 
 
 class SerpContext:
@@ -405,7 +479,7 @@ class SerpContext:
         self.results_from = self.search.search_from
         self.results_size = len(self.hits)
         self.pagination_size = 10
-        self.max_page = int(math.ceil(10000 / self.search.results_per_page))
+        self.max_page = int(math.ceil(10000 / self.search.num_results))
 
     @property
     def results(self):
@@ -531,7 +605,7 @@ class SerpContext:
         current_page = min(self.search.page_num + 1, self.max_page)
         first_page = max(1, current_page - self.pagination_size // 2)
         last_page = min(self.max_page, current_page + (self.pagination_size - (current_page - first_page) - 1))
-        last_page = min(last_page, math.ceil(self.total_results / self.search.results_per_page))
+        last_page = min(last_page, math.ceil(self.total_results / self.search.num_results))
         pages = deque({'num': p, 'label': str(p)} for p in range(first_page, last_page + 1))
 
         if current_page > 1:

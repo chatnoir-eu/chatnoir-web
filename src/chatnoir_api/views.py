@@ -7,7 +7,7 @@ from .authentication import *
 from .metadata import *
 from .serializers import *
 
-from chatnoir_search.search import SimpleSearchV1
+from chatnoir_search.search import SimpleSearchV1, PhraseSearchV1
 
 
 def api_exception_handler(exc, _):
@@ -78,7 +78,7 @@ class SimpleSearchViewSetV1(ApiViewSet):
         request.data.update(request.GET.dict())
         return self.post(request)
 
-    def post(self, request):
+    def _get_request_params(self, request):
         data = request.data
         if isinstance(data, QueryDict):
             data = data.dict()
@@ -90,18 +90,25 @@ class SimpleSearchViewSetV1(ApiViewSet):
         if 'index' in data and type(data['index']) is str:
             data['index'] = data['index'].split(',')
 
-        params = SimpleSearchRequestSerializerV1(data=data)
-        params.is_valid(raise_exception=True)
+        return data
 
-        serp_ctx = SimpleSearchV1(params.data['index'], params.data['from']).search(params.data['query'])
+    def _process_search(self, search_obj, params):
+        serp_ctx = search_obj.search(params.data['query'])
         return Response({
             'meta': {
                 'query_time': serp_ctx.query_time,
                 'total_results': serp_ctx.total_results,
-                'indices': params.data['index']
+                'indices': list(serp_ctx.search.indices.keys())
             },
             'results': serp_ctx.results_api
         })
+
+    def post(self, request):
+        params = SimpleSearchRequestSerializerV1(data=self._get_request_params(request))
+        params.is_valid(raise_exception=True)
+        validated = params.validated_data
+        search = SimpleSearchV1(validated['index'], validated['from'], validated['size'])
+        return self._process_search(search, params)
 
 
 class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
@@ -113,3 +120,10 @@ class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
 
     def get_view_name(self):
         return 'Phrase Search'
+
+    def post(self, request):
+        params = PhraseSearchRequestSerializerV1(data=self._get_request_params(request))
+        params.is_valid(raise_exception=True)
+        validated = params.validated_data
+        search = PhraseSearchV1(validated['index'], validated['from'], validated['size'], validated['slop'])
+        return self._process_search(search, params)
