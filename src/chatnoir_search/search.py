@@ -425,13 +425,22 @@ class SerpContext:
             if not title:
                 title = '[ no title available ]'
 
+            result_index = self.index_name_to_shorthand(hit.meta.index)
+            target_uri = hit.warc_target_uri
+
+            if result_index == 'cw09':
+                # ClueWeb09 has buggy encoding, only thing we can do is strip <?> replacement characters
+                title = title.replace('\ufffd', '')
+                snippet = snippet.replace('\ufffd', '')
+                target_uri = target_uri.replace('\ufffd', '')
+
             result = {
                 'score': hit.meta.score,
                 'uuid': hit.meta.id,
-                'index': self.index_name_to_shorthand(hit.meta.index),
+                'index': result_index,
                 'trec_id': getattr(hit, 'warc_trec_id', None),
                 'target_hostname': getattr(hit, 'warc_target_hostname', None),
-                'target_uri': hit.warc_target_uri,
+                'target_uri': target_uri,
                 'page_rank': getattr(hit, 'page_rank', None),
                 'spam_rank': getattr(hit, 'spam_rank', None),
                 'title': title,

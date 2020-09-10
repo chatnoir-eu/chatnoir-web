@@ -1,3 +1,4 @@
+from collections import deque
 from datetime import datetime, timedelta
 import ipaddress
 
@@ -6,7 +7,7 @@ from django.core.cache import cache
 from django.utils.translation import gettext as _
 from rest_framework import authentication, exceptions, permissions
 
-from chatnoir_apikey_management.models import *
+from chatnoir_apikey_management.models import ApiKey
 
 
 class ApiKeyAuthentication(authentication.BaseAuthentication):
@@ -34,37 +35,53 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         raise exceptions.PermissionDenied(_('Remote IP not allowed.'))
 
     @classmethod
-    def validate_api_limits(cls, api_key):
-        cache_key = '.'.join((__name__, cls.__name__, api_key.pk, 'api_limits'))
-
-        def check_window(window, limit, timeout):
-            if limit < 0:
-                # unlimited
-                return True
-
-            window_key = '.'.join((cache_key, window))
-            default = (datetime.now(), 0)
-            quota_used = cache.get_or_set(window_key, default, timeout=timeout)
-            if datetime.now() - quota_used[0] > timedelta(seconds=timeout):
-                # Window has expired
-                quota_used = default
-
-            if quota_used[1] > limit:
-                return False
-
-            cache.set(window_key, (quota_used[0], quota_used[1] + 1))
-            return True
-
+    def validate_api_limits(cls, api_key, increment=True):
         limits = api_key.limits_inherited
-        timeout_base = 60 * 60 * 24
-        if check_window('month', limits[2], timeout_base * 30) and \
-                check_window('week', limits[1], timeout_base * 7) and \
-                check_window('day', limits[0], timeout_base):
+        if limits == (-1, -1, -1):
+            # Entirely unlimited
             return
 
-        raise exceptions.Throttled(None, _('API request limit exceeded.'))
+        cache_key = '.'.join((__name__, cls.__name__, api_key.pk, 'api_quota_used'))
+
+        day_seconds = 60 * 60 * 24
+        now = datetime.now()
+        bucket_default = (int(now.timestamp()), 0)
+        quota_used = cache.get(cache_key, deque())
+        month_back = (now - timedelta(seconds=day_seconds * 30)).timestamp()
+        week_back = (now - timedelta(seconds=day_seconds * 7)).timestamp()
+        day_back = (now - timedelta(seconds=day_seconds)).timestamp()
+
+        # Drop all buckets older than a month
+        while quota_used and quota_used[0][0] < month_back:
+            quota_used.popleft()
+
+        # Append "today" bucket if needed
+        if not quota_used or quota_used[-1][0] < day_back:
+            quota_used.append(bucket_default)
+
+        day_used = quota_used[-1][1]
+        week_used = 0
+        month_used = 0
+        for bucket in quota_used:
+            month_used += bucket[1]
+            if bucket[0] >= week_back:
+                week_used += bucket[1]
+
+        def exceeded(u, l):
+            return -1 < l <= u
+
+        if exceeded(day_used, limits[0]) or exceeded(week_used, limits[1]) or exceeded(month_used, limits[2]):
+            cache.set(cache_key, quota_used, timeout=day_seconds * 30)
+            raise exceptions.Throttled(None, _('API request limit exceeded.'))
+
+        if increment:
+            quota_used[-1] = (quota_used[-1][0], quota_used[-1][1] + 1)
+        cache.set(cache_key, quota_used, timeout=day_seconds * 30)
 
     def authenticate(self, request):
+        if request.method == 'OPTIONS':
+            return None
+
         api_key = request.data.get('apikey') or request.GET.get('apikey')
         if not api_key:
             raise exceptions.NotAuthenticated(_('No API key supplied.'))
