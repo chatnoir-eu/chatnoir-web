@@ -132,3 +132,41 @@ class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
                                 validated['explain'], validated['slop'])
         search.minimal_response = validated['minimal']
         return self._process_search(search, request, params)
+
+
+class ManageKeysViewSetV1(ApiViewSet):
+    """
+    API key management endpoint.
+    """
+
+    authentication_classes = (ApiKeyAuthentication,)
+
+    def list(self, request):
+        try:
+            api_key = ApiKey.objects.get(api_key=request.auth.api_key)
+            limits = api_key.limits_inherited
+            user = api_key.user
+            return Response({
+                'apikey': api_key.api_key,
+                'expires': api_key.expires_inherited,
+                'revoked': api_key.is_revoked,
+                'user': {
+                    'common_name': user.common_name,
+                    'email': user.email,
+                    'organization': user.organization,
+                    'address': user.address,
+                    'zip_code': user.zip_code,
+                    'state': user.state,
+                    'country': user.country,
+                },
+                'roles': [r.role for r in api_key.roles.all()],
+                'remote_hosts': api_key.allowed_remote_hosts_list,
+                'limits': {
+                    'day': limits[0],
+                    'week': limits[1],
+                    'month': limits[2],
+                }
+            })
+
+        except ApiKey.DoesNotExist:
+            raise exceptions.ValidationError(_('Invalid API key.'))

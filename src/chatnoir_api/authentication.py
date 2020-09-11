@@ -17,6 +17,11 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed(_('API key has expired.'))
 
     @staticmethod
+    def validate_revocation(api_key):
+        if api_key.is_revoked:
+            raise exceptions.AuthenticationFailed(_('API key has been revoked.'))
+
+    @staticmethod
     def validate_remote_hosts(api_key, request):
         allowed_hosts = api_key.allowed_remote_hosts_list
         if not allowed_hosts:
@@ -92,6 +97,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             raise exceptions.NotAuthenticated(_('Invalid API key.'))
 
         self.validate_expiration(api_key)
+        self.validate_revocation(api_key)
         self.validate_remote_hosts(api_key, request)
         self.validate_api_limits(api_key)
 
