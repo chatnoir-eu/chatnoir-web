@@ -6,7 +6,7 @@ from django.template.loader import get_template
 from django.utils.crypto import get_random_string
 
 from .forms import KeyRequestForm
-from .models import ApiUser, PendingApiUser
+from .models import PendingApiUser
 
 send_mail_executor = ThreadPoolExecutor(max_workers=20)
 
@@ -19,7 +19,7 @@ def index(request):
             activation_code = get_random_string(length=36)
             try:
                 instance = PendingApiUser.objects.get(email=form.cleaned_data['email'],
-                                                   passcode=form.cleaned_data['passcode'])
+                                                      passcode=form.cleaned_data['passcode'])
                 form.update_instance(instance, activation_code)
             except PendingApiUser.DoesNotExist:
                 instance = form.save(commit=False)
@@ -40,7 +40,7 @@ def index(request):
             mail.attach_alternative(mail_content_html, 'text/html')
             send_mail_executor.submit(mail.send)
 
-            return redirect(request_sent)
+            return redirect('apikey_management:request_sent')
         else:
             return render(request, 'apikey_frontend/index.html', {'form': form})
     else:
@@ -56,8 +56,9 @@ def request_sent(request):
 def activate(request, activation_code):
     context = {}
 
-    api_key, email = ApiUser.issue_api_key(activation_code)
-    if api_key:
+    user = PendingApiUser.activate_by_code(activation_code)
+    if user:
+        user, api_key = user
         context['api_key'] = api_key
 
         mail_content_plain = get_template('apikey_email/apikey_email.txt').render(context, request)
@@ -66,7 +67,7 @@ def activate(request, activation_code):
             'Your ChatNoir API key',
             mail_content_plain,
             'no-reply@chatnoir.eu',
-            [email]
+            [user.email]
         )
         mail.attach_alternative(mail_content_html, 'text/html')
         send_mail_executor.submit(mail.send)

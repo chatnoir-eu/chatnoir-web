@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from .models import ApiKeyPasscode, PendingApiUser, ApiUser
+from .models import ApiKeyPasscode, PendingApiUser, PasscodeRedemption
 
 
 class KeyRequestForm(forms.ModelForm):
@@ -33,16 +33,18 @@ class KeyRequestForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        self._validate_unique = False
-
         try:
             pc = ApiKeyPasscode.objects.get(passcode=self.data.get('passcode'))
             cleaned_data['passcode'] = pc
             del self._errors['passcode']
 
             # check if API key for this email address / passcode combination has already been issued
-            existing_user = PendingApiUser.objects.filter(passcode=pc, email=cleaned_data.get('email')).count()
-            if existing_user > 0:
+            redeemed = PasscodeRedemption.objects.filter(passcode=pc,
+                                                         api_key__user__email=cleaned_data.get('email')).exists()
+            if not redeemed:
+                redeemed = PendingApiUser.objects.filter(passcode=pc, email=cleaned_data.get('email')).exists()
+
+            if redeemed:
                 self._errors['passcode'] = self.error_class([
                     _('Passcode already redeemed.')])
         except ApiKeyPasscode.DoesNotExist:
