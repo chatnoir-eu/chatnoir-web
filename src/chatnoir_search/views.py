@@ -2,6 +2,7 @@ from django.shortcuts import HttpResponse, render
 
 from .cache import BasicHtmlFormatter, CacheDocument
 from .search import SimpleSearchV1
+from chatnoir_api.views import bool_param_set
 
 
 def index(request):
@@ -17,7 +18,9 @@ def index(request):
 
     indexes = request.GET.getlist('index')
 
-    search = SimpleSearchV1(indexes, search_from=page_num * 10, num_results=10)
+    search = SimpleSearchV1(indexes, search_from=page_num * 10, num_results=10,
+                            explain=bool_param_set('explain', request.GET))
+    search.explain = bool_param_set('explain', request.GET)
     serp_context = search.search(query_string)
 
     context = {

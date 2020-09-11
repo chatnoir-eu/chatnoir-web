@@ -131,7 +131,7 @@ ChatNoir.isExplainMode = function () {
 ChatNoir.renderExplanationTree = function (explanation) {
     var htmlString = "";
 
-    if (explanation instanceof Object && null !== explanation) {
+    if (explanation instanceof Object) {
         htmlString += '<ul><li><span class="key text-primary">' + explanation["description"] + '</span> ' +
             '<span class="text-muted"> = </span><span class="value">' + explanation["value"] + '</span>';
 

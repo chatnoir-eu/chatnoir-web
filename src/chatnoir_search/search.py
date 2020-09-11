@@ -14,11 +14,12 @@ class SimpleSearch(ABC):
     Simple search base class.
     """
 
-    def __init__(self, indexes=None, search_from=0, num_results=10):
+    def __init__(self, indexes=None, search_from=0, num_results=10, explain=False):
         """
         :param indexes: list of indexes to search (will be validated and replaced with defaults if necessary)
-        :param page_num: results page number (zero-based)
-        :param num_results: number of results per page
+        :param search_from: start search at this result index
+        :param num_results: number of results to return
+        :param explain: explain result scores
         """
         if indexes is not None and type(indexes) not in (tuple, list):
             raise TypeError('indexes must be a list')
@@ -32,6 +33,8 @@ class SimpleSearch(ABC):
         self.group_results_by_hostname = True
         self.num_results = max(1, num_results)
         self.search_from = max(0, min(search_from, 10000 - self.num_results))
+        self.explain = explain
+        self.minimal_response = False
 
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
@@ -201,8 +204,8 @@ class SimpleSearchV1(SimpleSearch):
     """Number of top documents to rescore."""
     RESCORE_WINDOW = 400
 
-    def __init__(self, indexes, search_from=0, num_results=10):
-        super().__init__(indexes, search_from, num_results)
+    def __init__(self, indexes, search_from=0, num_results=10, explain=False):
+        super().__init__(indexes, search_from, num_results, explain)
         self.search_version = 1
         self.user_lang_override = False
 
@@ -215,6 +218,7 @@ class SimpleSearchV1(SimpleSearch):
         Build search request including pre-query, rescorer, node limit, highlighters etc.
 
         :param query_string: user query string
+        :param explain: explain result ranking
         :return: configured Search
         """
 
@@ -232,7 +236,8 @@ class SimpleSearchV1(SimpleSearch):
                 from_=self.search_from,
                 size=self.num_results,
                 terminate_after=self.NODE_LIMIT,
-                track_total_hits=True) \
+                track_total_hits=True,
+                explain=self.explain) \
             .highlight('title_lang.' + self.search_language, fragment_size=70, number_of_fragments=1) \
             .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1) \
             .highlight_options(encoder='html')
@@ -426,8 +431,8 @@ class PhraseSearchV1(SimpleSearchV1):
     """Terminate search after this many results per node."""
     NODE_LIMIT = 4000
 
-    def __init__(self, indexes, search_from=0, num_results=10, slop=None):
-        super().__init__(indexes, search_from, num_results)
+    def __init__(self, indexes, search_from=0, num_results=10, explain=False, slop=None):
+        super().__init__(indexes, search_from, num_results, explain)
         self.slop = slop or self.DEFAULT_SLOP
 
     def _build_search_request(self, query_string):
@@ -464,6 +469,9 @@ class PhraseSearchV1(SimpleSearchV1):
 
 
 class SerpContext:
+    API_MINIMAL_FIELDS = {'score', 'uuid', 'target_uri', 'snippet'}
+    API_FIELDS = API_MINIMAL_FIELDS | {'index', 'trec_id', 'target_hostname', 'page_rank', 'spam_rank', 'title'}
+
     """
     Results page context with processed results.
     """
@@ -480,6 +488,7 @@ class SerpContext:
         self.results_size = len(self.hits)
         self.pagination_size = 10
         self.max_page = int(math.ceil(10000 / self.search.num_results))
+        self.explain = self.search.explain
 
     @property
     def results(self):
@@ -508,6 +517,10 @@ class SerpContext:
                 snippet = snippet.replace('\ufffd', '')
                 target_uri = target_uri.replace('\ufffd', '')
 
+            explanation = None
+            if hasattr(hit.meta, 'explanation'):
+                explanation = hit.meta.explanation.to_dict()
+
             result = {
                 'score': hit.meta.score,
                 'uuid': hit.meta.id,
@@ -519,7 +532,8 @@ class SerpContext:
                 'spam_rank': getattr(hit, 'spam_rank', None),
                 'title': title,
                 'snippet': snippet,
-                'target_path': urlparse(hit.warc_target_uri).path
+                'target_path': urlparse(hit.warc_target_uri).path,
+                'explanation': explanation
             }
 
             results.append(result)
@@ -535,11 +549,12 @@ class SerpContext:
         Result list stripped of internal fields suitable to be presented as an API response.
         """
         results = self.results
+        fields = self.API_FIELDS.copy() if not self.search.minimal_response else self.API_MINIMAL_FIELDS.copy()
+        if self.search.explain:
+            fields.add('explanation')
+
         for i in range(len(results)):
-            results[i] = {k: v for k, v in results[i].items() if k in (
-                'score', 'uuid', 'index', 'trec_id', 'target_hostname', 'target_uri',
-                'page_rank', 'spam_rank', 'title', 'snippet'
-            )}
+            results[i] = {k: v for k, v in results[i].items() if k in fields}
 
         return results
 

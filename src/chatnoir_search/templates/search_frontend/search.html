@@ -4,8 +4,7 @@
     <meta charset="utf-8">
     <title>{% if search_query %}{{ search_query }} - {% endif %}ChatNoir</title>
 
-    {% load static %}
-    {% load l10n %}
+    {% load static l10n chatnoir_tags %}
     {% include 'header.html' %}
 </head>
 <body class="search-page">
@@ -20,7 +19,7 @@
         </div>
         <section id="SearchResults">
             {% for result in search_results %}
-                <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.uuid }}"{% if result.explanation %} data-explanation="{{ result.explanation_string }}"{% endif %}>
+                <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.uuid }}"{% if result.explanation %} data-explanation="{{ result.explanation | json }}"{% endif %}>
                     <header>
                         <h2><a href="{%  url 'search:cache' %}?uuid={{ result.uuid | urlencode }}&index={{ result.index | urlencode }}&q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}">{{ result.title | safe }}</a></h2>
                         <div class="meta">
@@ -41,7 +40,7 @@
                                     <li role="presentation" class="dropdown-header">Spam Rank: {% if result.spam_rank %}{{ result.spam_rank }}{% else %}none{% endif %}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}{% if is_explain_mode %}&explain{% endif %}#result-{{ result.uuid | urlencode }}">Explain</a>
+                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}&explain#result-{{ result.uuid | urlencode }}">Explain</a>
                                     </li>
                                 </ul>
                             </div>
@@ -64,7 +63,7 @@
                 <ul class="pagination">
                     {% for p in serp_context.pagination.pages %}
                         <li{% if p.num == serp_context.pagination.current_page %} class="active"{% endif %}>
-                            <a href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.is_explain_mode %}&explain{% endif %}{% for i in serp_context.search.indexes %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
+                            <a href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.serp_context.explain %}&explain{% endif %}{% for i in serp_context.search.indexes %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
                             {% if p.label_aria %}
                                 <span aria-hidden="true">{{ p.label }}</span>
                                 <span class="sr-only">{{ p.label_aria }}</span>
@@ -81,7 +80,7 @@
     </div>
 
 
-    {% if is_explain_mode %}
+    {% if serp_context.explain %}
         <div class="modal fade" id="ExplanationModal" tabindex="-1" role="dialog" aria-labelledby="ExplanationModal" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">

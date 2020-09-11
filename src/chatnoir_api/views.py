@@ -1,4 +1,3 @@
-from django.utils.translation import gettext as _
 from rest_framework import routers, viewsets
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
@@ -26,6 +25,10 @@ def api_exception_handler(exc, _):
     return response
 
 
+def bool_param_set(name, request_params):
+    return ImplicitBooleanField().to_internal_value(request_params.get(name, False))
+
+
 class APIRootV1(routers.APIRootView):
     """
     REST API for accessing ChatNoir search results.
@@ -46,13 +49,9 @@ class ApiViewSet(viewsets.ViewSet):
     def get_serializer(self):
         return self.serializer_class()
 
-    @staticmethod
-    def _bool_param_set(param, request_data):
-        return param in request_data and str(request_data.get(param)).lower() not in ('0', 'false')
-
     def initialize_request(self, request, *args, **kwargs):
         request = super().initialize_request(request, *args, **kwargs)
-        self.pretty_print = self._bool_param_set('pretty', request.data) or self._bool_param_set('pretty', request.GET)
+        self.pretty_print = bool_param_set('pretty', request.data) or bool_param_set('pretty', request.GET)
         return request
 
     def get_renderer_context(self):
@@ -110,7 +109,8 @@ class SimpleSearchViewSetV1(ApiViewSet):
         params = SimpleSearchRequestSerializerV1(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
-        search = SimpleSearchV1(validated['index'], validated['from'], validated['size'])
+        search = SimpleSearchV1(validated['index'], validated['from'], validated['size'], validated['explain'])
+        search.minimal_response = validated['minimal']
         return self._process_search(search, request, params)
 
 
@@ -128,5 +128,7 @@ class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
         params = PhraseSearchRequestSerializerV1(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
-        search = PhraseSearchV1(validated['index'], validated['from'], validated['size'], validated['slop'])
+        search = PhraseSearchV1(validated['index'], validated['from'], validated['size'],
+                                validated['explain'], validated['slop'])
+        search.minimal_response = validated['minimal']
         return self._process_search(search, request, params)

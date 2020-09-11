@@ -15,6 +15,14 @@ class OptionalListField(serializers.ListField):
         return super().to_internal_value(data)
 
 
+class ImplicitBooleanField(serializers.BooleanField):
+    """
+    Boolean field that treats no or an empty value as True.
+    """
+    TRUE_VALUES = serializers.BooleanField.TRUE_VALUES | {'', None}
+    NULL_VALUES = {}
+
+
 class ApiSerializer(serializers.Serializer):
     def get_fields(self):
         """
@@ -59,12 +67,12 @@ class SimpleSearchRequestSerializerV1(AuthenticatedApiSerializer):
         default=10,
         help_text='Number of results per page'
     )
-    minimal = serializers.BooleanField(
+    minimal = ImplicitBooleanField(
         required=False,
         default=False,
         help_text='Reduce result list to score, uuid, target_uri, and snippet for each hit'
     )
-    explain = serializers.BooleanField(
+    explain = ImplicitBooleanField(
         required=False,
         default=False,
         help_text='Return additional scoring information'
