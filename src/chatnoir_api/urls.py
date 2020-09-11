@@ -10,7 +10,7 @@ router_v1 = routers.DefaultRouter(trailing_slash=False)
 router_v1.APIRootView = views.APIRootV1
 router_v1.register(r'_search', views.SimpleSearchViewSetV1, basename='v1-search')
 router_v1.register(r'_phrases', views.PhraseSearchViewSetV1, basename='v1-phrases')
-router_v1.register(r'_manage_keys', views.ManageKeysViewSetV1, basename='v1-manage-keys')
+router_v1.register(r'_manage_keys', views.ManageKeysInfoViewSetV1, basename='v1-manage-keys')
 
 urlpatterns = [
     path(r'', RedirectView.as_view(url=reverse_lazy('api:api-root'))),

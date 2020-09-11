@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from rest_framework import routers, viewsets
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
@@ -35,7 +36,7 @@ class APIRootV1(routers.APIRootView):
     """
 
     def get_view_name(self):
-        return 'ChatNoir API'
+        return _('ChatNoir API')
 
 
 class ApiViewSet(viewsets.ViewSet):
@@ -71,7 +72,7 @@ class SimpleSearchViewSetV1(ApiViewSet):
     authentication_classes = (ApiKeyAuthentication,)
 
     def get_view_name(self):
-        return 'Simple Search'
+        return _('Simple Search')
 
     def list(self, request):
         request.data.update(request.GET.dict())
@@ -122,7 +123,7 @@ class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
     serializer_class = PhraseSearchRequestSerializerV1
 
     def get_view_name(self):
-        return 'Phrase Search'
+        return _('Phrase Search')
 
     def post(self, request):
         params = PhraseSearchRequestSerializerV1(data=self._get_request_params(request))
@@ -134,18 +135,23 @@ class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
         return self._process_search(search, request, params)
 
 
-class ManageKeysViewSetV1(ApiViewSet):
+class ManageKeysInfoViewSetV1(ApiViewSet):
     """
     API key management endpoint.
     """
 
     authentication_classes = (ApiKeyAuthentication,)
+    allowed_methods = ('GET',)
+
+    def get_view_name(self):
+        return _('API Key Management')
 
     def list(self, request):
         try:
             api_key = ApiKey.objects.get(api_key=request.auth.api_key)
             limits = api_key.limits_inherited
             user = api_key.user
+
             return Response({
                 'apikey': api_key.api_key,
                 'expires': api_key.expires_inherited,

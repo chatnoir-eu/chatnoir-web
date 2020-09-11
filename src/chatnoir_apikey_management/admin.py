@@ -19,12 +19,11 @@ class ApiKeyAdminBase:
         models.TextField: {'widget': TextInput(attrs={'class': 'vTextField'})}
     }
     fields = (
-        'api_key',
+        ('api_key', 'revoked'),
         'user',
         'parent',
         'issue_date',
         'expires',
-        'revoked',
         ('limits_day', 'limits_week', 'limits_month'),
         'roles',
         'allowed_remote_hosts',

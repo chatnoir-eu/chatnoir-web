@@ -83,7 +83,7 @@ class ApiKey(models.Model):
     issue_date = models.DateField(verbose_name=_('Issue Date'), default=date.today, null=True, blank=True)
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
     expires = models.DateField(verbose_name=_('Expiration Date'), null=True, blank=True)
-    revoked = models.BooleanField(verbose_name=_('Revoked'), null=True, blank=True)
+    revoked = models.BooleanField(verbose_name=_('Is Revoked'), null=False, blank=True)
     limits_day = models.IntegerField(verbose_name=_('Request Limit Day'), null=True, blank=True)
     limits_week = models.IntegerField(verbose_name=_('Request Limit Week'), null=True, blank=True)
     limits_month = models.IntegerField(verbose_name=_('Request Limit Month'), null=True, blank=True)
