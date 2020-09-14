@@ -90,6 +90,7 @@ class ApiKey(models.Model):
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
     allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
     comment = models.CharField(verbose_name=_('Comment'), max_length=255, null=True, blank=True)
+    quota_used = models.BinaryField(blank=True)
 
     def __str__(self):
         comment = self.comment or ''

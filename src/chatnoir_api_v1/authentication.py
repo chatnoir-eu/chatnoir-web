@@ -1,9 +1,8 @@
-from collections import deque
 from datetime import datetime, timedelta
 import ipaddress
+import pickle
 
 from django.conf import settings
-from django.core.cache import cache
 from django.utils.translation import gettext as _
 from rest_framework import authentication, exceptions, permissions
 
@@ -46,19 +45,18 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             # Entirely unlimited
             return
 
-        cache_key = '.'.join((__name__, cls.__name__, api_key.pk, 'api_quota_used'))
-
         day_seconds = 60 * 60 * 24
         now = datetime.now()
         bucket_default = (int(now.timestamp()), 0)
-        quota_used = cache.get(cache_key, deque())
-        month_back = (now - timedelta(seconds=day_seconds * 30)).timestamp()
-        week_back = (now - timedelta(seconds=day_seconds * 7)).timestamp()
-        day_back = (now - timedelta(seconds=day_seconds)).timestamp()
+        month_back = int((now - timedelta(seconds=day_seconds * 30)).timestamp())
+        week_back = int((now - timedelta(seconds=day_seconds * 7)).timestamp())
+        day_back = int((now - timedelta(seconds=day_seconds)).timestamp())
 
-        # Drop all buckets older than a month
-        while quota_used and quota_used[0][0] < month_back:
-            quota_used.popleft()
+        if not api_key.quota_used:
+            quota_used = [(bucket_default,)]
+        else:
+            # Load pickled quota and drop buckets older than a month
+            quota_used = [q for q in pickle.loads(api_key.quota_used) if q[0] >= month_back]
 
         # Append "today" bucket if needed
         if not quota_used or quota_used[-1][0] < day_back:
@@ -75,13 +73,19 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         def exceeded(u, l):
             return -1 < l <= u
 
-        if exceeded(day_used, limits[0]) or exceeded(week_used, limits[1]) or exceeded(month_used, limits[2]):
-            cache.set(cache_key, quota_used, timeout=day_seconds * 30)
-            raise exceptions.Throttled(None, _('API request limit exceeded.'))
+        quota_exceeded = exceeded(day_used, limits[0]) or \
+            exceeded(week_used, limits[1]) or exceeded(month_used, limits[2])
 
-        if increment:
+        if increment and not quota_exceeded:
             quota_used[-1] = (quota_used[-1][0], quota_used[-1][1] + 1)
-        cache.set(cache_key, quota_used, timeout=day_seconds * 30)
+
+        pickled = pickle.dumps(quota_used)
+        if api_key.quota_used != pickled:
+            api_key.quota_used = pickled
+            api_key.save()
+
+        if quota_exceeded:
+            raise exceptions.Throttled(None, _('API request limit exceeded.'))
 
     def authenticate(self, request):
         if request.method == 'OPTIONS':
