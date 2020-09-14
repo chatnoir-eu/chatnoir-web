@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
@@ -183,19 +185,14 @@ class ApiLimitsSerializer(ApiSerializer):
 
 class ApiKeySerializer(ApiSerializer):
     class Meta:
-        validators = (validate_api_key,)
+        validators = (partial(validate_api_key, no_parent_ok=True),)
 
     apikey = serializers.CharField(
         required=False,
+        initial=_('<apikey>'),
         max_length=255,
         label=_('API Key'),
         help_text=_('API key')
-    )
-    parent = serializers.CharField(
-        required=False,
-        max_length=255,
-        label=_('Parent Key'),
-        help_text=_('Parent key')
     )
     user = ApiUserSerializer(required=True)
     roles = serializers.ListSerializer(
@@ -204,33 +201,67 @@ class ApiKeySerializer(ApiSerializer):
         allow_null=True,
         required=False
     )
-    limits = ApiLimitsSerializer(required=True)
+    limits = ApiLimitsSerializer(required=False)
     remote_hosts = serializers.ListSerializer(
         child=serializers.CharField(max_length=255, validators=(validate_cidr_address,)),
         allow_empty=True,
         allow_null=True,
         required=False
     )
-    expires = serializers.DateField(allow_null=True, required=False)
+    expires = serializers.DateTimeField(allow_null=True, required=False)
+    comment = serializers.CharField(required=False)
 
-    def save(self):
+    def save(self, parent=None, set_roles=True):
         user, _ = ApiUser.objects.update_or_create(email=self.validated_data['user']['email'],
                                                    defaults=self.validated_data['user'])
 
+        limits = self.validated_data.get('limits', {})
         api_key_defaults = dict(
             user=user,
-            limits_day=self.validated_data['limits']['day'],
-            limits_week=self.validated_data['limits']['week'],
-            limits_month=self.validated_data['limits']['month'],
-            allowed_remote_hosts=','.join(self.validated_data['remote_hosts']),
-            expires=self.validated_data['expires']
+            limits_day=limits.get('day'),
+            limits_week=limits.get('week'),
+            limits_month=limits.get('month'),
+            revoked=False,
+            expires=self.validated_data.get('expires'),
+            allowed_remote_hosts=','.join(self.validated_data.get('remote_hosts', ''))
         )
 
         api_key = self.validated_data.get('apikey')
+        if parent and parent != api_key:
+            api_key_defaults['parent'] = parent
+
         if api_key:
             api_key, _ = ApiKey.objects.update_or_create(
                 api_key=self.validated_data['apikey'], defaults=api_key_defaults)
         else:
             api_key = ApiKey.objects.create(**api_key_defaults)
 
+        if set_roles:
+            api_key.roles.set(ApiKeyRole.objects.filter(role__in=self.validated_data.get('roles', [])),)
+
         return api_key
+
+
+class ParentedApiKeySerializer(ApiKeySerializer):
+    class Meta:
+        validators = (validate_api_key,)
+
+    parent = serializers.CharField(
+        required=False,
+        max_length=255,
+        label=_('Parent Key'),
+        help_text=_('Parent key')
+    )
+
+
+class ApiKeyRevocationSerializer(ApiSerializer):
+    class Meta:
+        validators = (validate_api_key,)
+
+    apikey = serializers.CharField(
+        required=False,
+        initial=_('<apikey>'),
+        max_length=255,
+        label=_('API Key'),
+        help_text=_('API key')
+    )

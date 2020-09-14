@@ -2,6 +2,7 @@ from ipaddress import ip_network
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 
@@ -29,9 +30,11 @@ def validate_api_role_exists(role):
         raise ValidationError(_('Role \'{}\' does not exist.').format(role))
 
 
-def validate_api_key(data):
+def validate_api_key(data, no_parent_ok=False):
     if not data.get('apikey') and not data.get('parent'):
-        raise ValidationError(_('Either apikey or parent are required'))
+        if no_parent_ok:
+            raise ValidationError(_('No API key given.'))
+        raise ValidationError(_('Either API key or parent API key are required'))
 
     parent = None
     if data.get('parent'):
@@ -46,17 +49,29 @@ def validate_api_key(data):
             pass
 
     if parent is None:
+        if no_parent_ok:
+            return
         raise ValidationError(_('API key has no parent.'))
 
+    if parent == data.get('apikey'):
+        raise ValidationError(_('API key cannot be its own parent.'))
+
+    limits = data.get('limits', {})
     parent_limits = parent.limits_inherited
     for i, lim in enumerate(('day', 'week', 'month')):
-        if data['limits'][lim] is None or parent_limits[i] < 0:
+        if limits.get(lim) is None or parent_limits[i] < 0:
             continue
-        elif data['limits'][lim] > parent_limits[i] or (data['limits'][lim] < 0 and parent_limits[i] >= 0):
-            raise ValidationError(_('Request limit for \'{}\' cannot exceed parent request limit.'.format(lim)))
+        elif limits.get(lim) > parent_limits[i] or (data['limits'][lim] < 0 and parent_limits[i] >= 0):
+            raise ValidationError(_('Request limit for "{}" cannot exceed parent request limit.'.format(lim)))
+
+    if data.get('expires'):
+        if data['expires'] > parent.expires_inherited:
+            raise ValidationError(_('Expiration date cannot be further in the future than parent expiration date.'))
+        if data['expires'] < timezone.now():
+            raise ValidationError(_('Expiration date cannot be in the past.'))
 
     parent_roles = {r.role for r in parent.roles.all()}
     if settings.API_ADMIN_ROLE not in parent_roles:
-        for role in data['roles']:
+        for role in data.get('roles', []):
             if role not in parent_roles:
-                raise ValidationError(_('Cannot assign role \'{}\' which you do not possess yourself.'.format(role)))
+                raise ValidationError(_('Cannot assign role "{}" which you do not possess yourself.'.format(role)))

@@ -1,5 +1,5 @@
 from django.utils.translation import gettext as _
-from rest_framework import routers, viewsets
+from rest_framework import exceptions, routers, viewsets
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
 
@@ -38,17 +38,18 @@ class APIRoot(routers.APIRootView):
     def get_view_name(self):
         return _('ChatNoir API')
 
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        return Response({k: v for k, v in response.data.items() if '/' not in k}, status=response.status_code)
+
 
 class ApiViewSet(viewsets.ViewSet):
-    serializer_class = SimpleSearchRequestSerializer
+    serializer_class = ApiSerializer
     metadata_class = SimpleSearchMetadata
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pretty_print = False
-
-    def get_serializer(self):
-        return self.serializer_class()
 
     def initialize_request(self, request, *args, **kwargs):
         request = super().initialize_request(request, *args, **kwargs)
@@ -61,6 +62,15 @@ class ApiViewSet(viewsets.ViewSet):
             context['indent'] = 4
         return context
 
+    def list(self, request, **kwargs):
+        raise exceptions.MethodNotAllowed(request.method)
+
+    def post(self, request, **kwargs):
+        raise exceptions.MethodNotAllowed(request.method)
+
+    def put(self, request, **kwargs):
+        raise exceptions.MethodNotAllowed(request.method)
+
 
 class SimpleSearchViewSet(ApiViewSet):
     """
@@ -68,13 +78,14 @@ class SimpleSearchViewSet(ApiViewSet):
     """
 
     # metadata_class = SimpleSearchMetadata
+    serializer_class = SimpleSearchRequestSerializer
     allowed_methods = ('GET', 'POST', 'OPTIONS')
     authentication_classes = (ApiKeyAuthentication,)
 
     def get_view_name(self):
         return _('Simple Search')
 
-    def list(self, request):
+    def list(self, request, **kwargs):
         request.data.update(request.GET.dict())
         return self.post(request)
 
@@ -106,7 +117,7 @@ class SimpleSearchViewSet(ApiViewSet):
             'results': serp_ctx.results_api
         })
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         params = SimpleSearchRequestSerializer(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
@@ -125,7 +136,7 @@ class PhraseSearchViewSet(SimpleSearchViewSet):
     def get_view_name(self):
         return _('Phrase Search')
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         params = PhraseSearchRequestSerializer(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
@@ -135,18 +146,22 @@ class PhraseSearchViewSet(SimpleSearchViewSet):
         return self._process_search(search, request, params)
 
 
-class ManageKeysInfoViewSet(ApiViewSet):
+class ManageKeysViewSet(ApiViewSet):
     """
     API key management endpoint.
     """
 
     authentication_classes = (ApiKeyAuthentication,)
-    allowed_methods = ('GET',)
 
     def get_view_name(self):
         return _('API Key Management')
 
-    def list(self, request):
+
+class ManageKeysInfoViewSet(ManageKeysViewSet):
+    serializer_class = SimpleSearchRequestSerializer
+    allowed_methods = ('GET',)
+
+    def list(self, request, **kwargs):
         try:
             api_key = ApiKey.objects.get(api_key=request.auth.api_key)
             limits = api_key.limits_inherited
@@ -176,3 +191,77 @@ class ManageKeysInfoViewSet(ApiViewSet):
 
         except ApiKey.DoesNotExist:
             raise exceptions.ValidationError(_('Invalid API key.'))
+
+
+class ManageKeysCreateViewSet(ManageKeysViewSet):
+    serializer_class = ApiKeySerializer
+    permission_classes = (HasKeyCreateRole,)
+    allowed_methods = ('POST',)
+
+    def post(self, request, **kwargs):
+        request_data = request.data.copy()
+        if 'apikey' in request_data:
+            request_data.pop('apikey')
+        request_data['parent'] = request.auth.api_key
+        request_data = ParentedApiKeySerializer(data=request_data)
+        request_data.is_valid(raise_exception=True)
+        api_key = request_data.save(request.auth)
+
+        return Response({
+            'message': _('API key created.'),
+            'apikey': api_key.api_key
+        })
+
+
+class ManageKeysUpdateViewSet(ManageKeysViewSet):
+    serializer_class = ApiKeySerializer
+    permission_classes = (HasKeyCreateRole,)
+    allowed_methods = ('PUT',)
+
+    @staticmethod
+    def check_is_sub_key(child, parent):
+        try:
+            child_key = ApiKey.objects.get(api_key=child)
+            if not child_key.is_sub_key_of(parent):
+                raise ApiKey.DoesNotExist
+            return child_key
+        except ApiKey.DoesNotExist:
+            raise exceptions.ValidationError(
+                _('API key "{}" does not exist or is not a sub key.'.format(child)))
+
+    def put(self, request, target_apikey=None, **kwargs):
+        if not target_apikey:
+            raise exceptions.ValidationError(_('No target API given.'))
+
+        self.check_is_sub_key(target_apikey, request.auth.api_key)
+
+        request_data = request.data.copy()
+
+        if 'parent' in request_data:
+            request_data.pop('parent')
+        request_data = ApiKeySerializer(data=request_data)
+        request_data.is_valid(raise_exception=True)
+
+        api_key = request_data.save(set_roles=target_apikey != request.auth.api_key)
+
+        return Response({
+            'message': _('API key updated.'),
+            'apikey': api_key.api_key
+        })
+
+
+class ManageKeysRevokeViewSet(ManageKeysUpdateViewSet):
+    serializer_class = ApiKeyRevocationSerializer
+
+    def put(self, request, target_apikey=None, **kwargs):
+        if not target_apikey:
+            raise exceptions.ValidationError(_('No target API given.'))
+
+        api_key = self.check_is_sub_key(target_apikey, request.auth.api_key)
+        api_key.revoked = True
+        api_key.save()
+
+        return Response({
+            'message': _('API key revoked.'),
+            'apikey': api_key.api_key
+        })

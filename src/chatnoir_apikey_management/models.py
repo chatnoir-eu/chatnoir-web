@@ -1,10 +1,10 @@
-from datetime import date
 import logging
 import uuid
 import secrets
 
 from django.core.cache import cache
 from django.db import IntegrityError, models, transaction
+from django.utils import timezone
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
 
@@ -80,9 +80,9 @@ class ApiKey(models.Model):
 
     api_key = models.CharField(verbose_name=_('API Key'), max_length=255, primary_key=True, default=generate_apikey)
     user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key', on_delete=models.CASCADE)
-    issue_date = models.DateField(verbose_name=_('Issue Date'), default=date.today, null=True, blank=True)
+    issue_date = models.DateTimeField(verbose_name=_('Issue Date'), default=timezone.now, null=True, blank=True)
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
-    expires = models.DateField(verbose_name=_('Expiration Date'), null=True, blank=True)
+    expires = models.DateTimeField(verbose_name=_('Expiration Date'), null=True, blank=True)
     revoked = models.BooleanField(verbose_name=_('Is Revoked'), null=False, blank=True)
     limits_day = models.IntegerField(verbose_name=_('Request Limit Day'), null=True, blank=True)
     limits_week = models.IntegerField(verbose_name=_('Request Limit Week'), null=True, blank=True)
@@ -90,7 +90,7 @@ class ApiKey(models.Model):
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
     allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
     comment = models.CharField(verbose_name=_('Comment'), max_length=255, null=True, blank=True)
-    quota_used = models.BinaryField(blank=True)
+    quota_used = models.BinaryField(blank=True, default=b'')
 
     def __str__(self):
         comment = self.comment or ''
@@ -131,6 +131,20 @@ class ApiKey(models.Model):
         cache.set(cache_key, resolved)
         return resolved
 
+    def is_sub_key_of(self, key):
+        if self.pk is None:
+            return False
+
+        if self.pk == key:
+            return True
+
+        parent = self.parent
+        while self.parent:
+            if parent.api_key == key:
+                return True
+            parent = parent.parent
+        return False
+
     @property
     def roles_str(self):
         return ', '.join([r.role for r in self.roles.all()])
@@ -153,7 +167,7 @@ class ApiKey(models.Model):
     @property
     def has_expired(self):
         expires = self.resolve_inheritance('expires')
-        return expires and expires < date.today()
+        return expires and expires < timezone.now()
 
     @property
     def is_revoked(self):
@@ -169,7 +183,7 @@ class ApiKey(models.Model):
 
     roles_str.fget.short_description = roles.verbose_name
     expires_inherited.fget.short_description = expires.verbose_name
-    limits_inherited.fget.short_description = _('Request Limits')
+    is_revoked.fget.short_description = _('Revoked')
 
 
 class ApiKeyPasscode(models.Model):
@@ -196,7 +210,7 @@ class PasscodeRedemption(models.Model):
         unique_together = ('api_key', 'passcode')
 
     api_key = models.ForeignKey(ApiKey, on_delete=models.CASCADE)
-    redemption_date = models.DateField(default=date.today)
+    redemption_date = models.DateTimeField(default=timezone.now)
     passcode = models.ForeignKey(ApiKeyPasscode, on_delete=models.CASCADE)
 
 

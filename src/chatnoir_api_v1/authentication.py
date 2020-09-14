@@ -53,7 +53,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         day_back = int((now - timedelta(seconds=day_seconds)).timestamp())
 
         if not api_key.quota_used:
-            quota_used = [(bucket_default,)]
+            quota_used = [bucket_default]
         else:
             # Load pickled quota and drop buckets older than a month
             quota_used = [q for q in pickle.loads(api_key.quota_used) if q[0] >= month_back]

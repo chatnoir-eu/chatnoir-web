@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.db.models import Q
 from django.forms import ModelForm, TextInput
+from django.utils.translation import gettext_lazy as _
 
 from .models import *
 
@@ -22,8 +23,7 @@ class ApiKeyAdminBase:
         ('api_key', 'revoked'),
         'user',
         'parent',
-        'issue_date',
-        'expires',
+        ('issue_date', 'expires'),
         ('limits_day', 'limits_week', 'limits_month'),
         'roles',
         'allowed_remote_hosts',
@@ -32,7 +32,7 @@ class ApiKeyAdminBase:
 
 
 class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
-    list_display = ('api_key', 'roles_str', 'expires_inherited', 'user', 'comment')
+    list_display = ('api_key', 'roles_str', 'expires_inherited', 'is_revoked', 'user', 'comment')
     list_filter = ('roles', 'user', 'expires')
 
     def get_search_results(self, request, queryset, search_term):
@@ -56,6 +56,12 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
             queryset = results
 
         return queryset, use_distinct
+
+    def is_revoked(self, obj):
+        return obj.is_revoked
+
+    is_revoked.short_description = _('Revoked')
+    is_revoked.boolean = True
 
 
 class AlwaysChangedModelForm(ModelForm):
