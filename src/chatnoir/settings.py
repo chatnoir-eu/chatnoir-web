@@ -15,7 +15,7 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 INSTALLED_APPS = [
     'chatnoir_search.apps.ChatnoirSearchConfig',
     'chatnoir_apikey_management.apps.ChatnoirApikeyManagementConfig',
-    'chatnoir_api.apps.ChatnoirApiConfig',
+    'chatnoir_api_v1.apps.ChatnoirApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

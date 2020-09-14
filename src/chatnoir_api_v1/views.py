@@ -30,7 +30,7 @@ def bool_param_set(name, request_params):
     return ImplicitBooleanField().to_internal_value(request_params.get(name, False))
 
 
-class APIRootV1(routers.APIRootView):
+class APIRoot(routers.APIRootView):
     """
     REST API for accessing ChatNoir search results.
     """
@@ -40,7 +40,7 @@ class APIRootV1(routers.APIRootView):
 
 
 class ApiViewSet(viewsets.ViewSet):
-    serializer_class = SimpleSearchRequestSerializerV1
+    serializer_class = SimpleSearchRequestSerializer
     metadata_class = SimpleSearchMetadata
 
     def __init__(self, *args, **kwargs):
@@ -62,7 +62,7 @@ class ApiViewSet(viewsets.ViewSet):
         return context
 
 
-class SimpleSearchViewSetV1(ApiViewSet):
+class SimpleSearchViewSet(ApiViewSet):
     """
     Default ChatNoir search module.
     """
@@ -107,7 +107,7 @@ class SimpleSearchViewSetV1(ApiViewSet):
         })
 
     def post(self, request):
-        params = SimpleSearchRequestSerializerV1(data=self._get_request_params(request))
+        params = SimpleSearchRequestSerializer(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
         search = SimpleSearchV1(validated['index'], validated['from'], validated['size'], validated['explain'])
@@ -115,18 +115,18 @@ class SimpleSearchViewSetV1(ApiViewSet):
         return self._process_search(search, request, params)
 
 
-class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
+class PhraseSearchViewSet(SimpleSearchViewSet):
     """
     ChatNoir exact phrase search module.
     """
 
-    serializer_class = PhraseSearchRequestSerializerV1
+    serializer_class = PhraseSearchRequestSerializer
 
     def get_view_name(self):
         return _('Phrase Search')
 
     def post(self, request):
-        params = PhraseSearchRequestSerializerV1(data=self._get_request_params(request))
+        params = PhraseSearchRequestSerializer(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
         search = PhraseSearchV1(validated['index'], validated['from'], validated['size'],
@@ -135,7 +135,7 @@ class PhraseSearchViewSetV1(SimpleSearchViewSetV1):
         return self._process_search(search, request, params)
 
 
-class ManageKeysInfoViewSetV1(ApiViewSet):
+class ManageKeysInfoViewSet(ApiViewSet):
     """
     API key management endpoint.
     """

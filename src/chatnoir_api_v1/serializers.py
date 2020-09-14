@@ -47,7 +47,7 @@ class AuthenticatedApiSerializer(ApiSerializer):
     )
 
 
-class SimpleSearchRequestSerializerV1(AuthenticatedApiSerializer):
+class SimpleSearchRequestSerializer(AuthenticatedApiSerializer):
     query = serializers.CharField(
         required=True,
         initial=_('hello world'),
@@ -85,7 +85,7 @@ class SimpleSearchRequestSerializerV1(AuthenticatedApiSerializer):
     )
 
 
-class PhraseSearchRequestSerializerV1(SimpleSearchRequestSerializerV1):
+class PhraseSearchRequestSerializer(SimpleSearchRequestSerializer):
     slop = serializers.IntegerField(
         min_value=0,
         max_value=2,
@@ -96,7 +96,7 @@ class PhraseSearchRequestSerializerV1(SimpleSearchRequestSerializerV1):
     )
 
 
-class ResultMetaSerializerV1(ApiSerializer):
+class ResultMetaSerializer(ApiSerializer):
     query_time = serializers.IntegerField(
         help_text=_('Query time in milliseconds')
     )
@@ -109,7 +109,7 @@ class ResultMetaSerializerV1(ApiSerializer):
     )
 
 
-class ResultSerializerV1(ApiSerializer):
+class ResultSerializer(ApiSerializer):
     score = serializers.FloatField(
         help_text=_('Ranking score of this result')
     )
@@ -154,11 +154,11 @@ class ResultSerializerV1(ApiSerializer):
     )
 
 
-class ResultListSerializerV1(ApiSerializer):
-    meta = ResultMetaSerializerV1(
+class ResultListSerializer(ApiSerializer):
+    meta = ResultMetaSerializer(
         help_text=_('Global result meta information')
     )
-    results = ResultSerializerV1(
+    results = ResultSerializer(
         many=True,
         help_text=_('List of search results')
     )

@@ -1,26 +1,13 @@
-"""chatnoir URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/2.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.urls import include, path
+from django.urls import include, path, reverse_lazy
 from django.contrib import admin
+from django.views.generic import RedirectView
 
 app_name = 'main'
 
 urlpatterns = [
     path(r'', include('chatnoir_search.urls')),
-    path(r'api/', include('chatnoir_api.urls')),
+    path(r'api/', RedirectView.as_view(url=reverse_lazy('api_v1:api-root'))),
+    path(r'api/v1/', include('chatnoir_api_v1.urls')),
     path(r'apikey/', include('chatnoir_apikey_management.urls')),
     path(r'apikey/admin/', admin.site.urls),
 ]

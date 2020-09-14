@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class ChatnoirApiConfig(AppConfig):
-    name = 'chatnoir_api'
+    name = 'chatnoir_api_v1'

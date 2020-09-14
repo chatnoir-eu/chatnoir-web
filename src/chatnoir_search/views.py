@@ -2,7 +2,7 @@ from django.shortcuts import HttpResponse, render
 
 from .cache import BasicHtmlFormatter, CacheDocument
 from .search import SimpleSearchV1
-from chatnoir_api.views import bool_param_set
+from chatnoir_api_v1.views import bool_param_set
 
 
 def index(request):
