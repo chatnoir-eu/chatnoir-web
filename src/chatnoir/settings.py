@@ -13,9 +13,9 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 # Application definition
 
 INSTALLED_APPS = [
-    'chatnoir_search.apps.ChatnoirSearchConfig',
-    'chatnoir_apikey_management.apps.ChatnoirApikeyManagementConfig',
+    'chatnoir_web.apps.ChatnoirWebConfig',
     'chatnoir_api_v1.apps.ChatnoirApiConfig',
+    'chatnoir_apikey_management.apps.ChatnoirApikeyManagementConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,7 +40,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer'
     ],
-    'EXCEPTION_HANDLER': 'chatnoir_api.views.api_exception_handler'
+    'EXCEPTION_HANDLER': 'chatnoir_api_v1.views.api_exception_handler'
 }
 CACHES = {
     'default': {

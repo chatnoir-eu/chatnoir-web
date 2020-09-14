@@ -7,7 +7,7 @@ from .authentication import *
 from .metadata import *
 from .serializers import *
 
-from chatnoir_search.search import SimpleSearchV1, PhraseSearchV1
+from .search import SimpleSearch, PhraseSearch
 
 
 def api_exception_handler(exc, _):
@@ -110,7 +110,7 @@ class SimpleSearchViewSet(ApiViewSet):
         params = SimpleSearchRequestSerializer(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
-        search = SimpleSearchV1(validated['index'], validated['from'], validated['size'], validated['explain'])
+        search = SimpleSearch(validated['index'], validated['from'], validated['size'], validated['explain'])
         search.minimal_response = validated['minimal']
         return self._process_search(search, request, params)
 
@@ -129,8 +129,8 @@ class PhraseSearchViewSet(SimpleSearchViewSet):
         params = PhraseSearchRequestSerializer(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
-        search = PhraseSearchV1(validated['index'], validated['from'], validated['size'],
-                                validated['explain'], validated['slop'])
+        search = PhraseSearch(validated['index'], validated['from'], validated['size'],
+                              validated['explain'], validated['slop'])
         search.minimal_response = validated['minimal']
         return self._process_search(search, request, params)
 

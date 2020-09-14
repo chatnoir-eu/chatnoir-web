@@ -9,7 +9,7 @@ from elasticsearch_dsl import Q, Search, connections
 from elasticsearch_dsl.search import Response
 
 
-class SimpleSearch(ABC):
+class SearchBase(ABC):
     """
     Simple search base class.
     """
@@ -110,7 +110,7 @@ class SimpleSearch(ABC):
             return snippet.strip()
 
 
-class SimpleSearchV1(SimpleSearch):
+class SimpleSearch(SearchBase):
     """
     Simple search (version 1).
     """
@@ -229,30 +229,29 @@ class SimpleSearchV1(SimpleSearch):
         pre_query.filter.extend(user_filters.filter)
         pre_query.must_not.extend(user_filters.must_not)
 
-        s = Search() \
-            .index([i['index'] for i in self.indexes.values()]) \
-            .query(pre_query) \
-            .extra(
-                from_=self.search_from,
-                size=self.num_results,
-                terminate_after=self.NODE_LIMIT,
-                track_total_hits=True,
-                explain=self.explain) \
-            .highlight('title_lang.' + self.search_language, fragment_size=70, number_of_fragments=1) \
-            .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1) \
-            .highlight_options(encoder='html')
+        s = (Search()
+             .index([i['index'] for i in self.indexes.values()])
+             .query(pre_query)
+             .extra(from_=self.search_from,
+                    size=self.num_results,
+                    terminate_after=self.NODE_LIMIT,
+                    track_total_hits=True,
+                    explain=self.explain)
+             .highlight('title_lang.' + self.search_language, fragment_size=70, number_of_fragments=1)
+             .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1)
+             .highlight_options(encoder='html'))
 
         rescore_query = self._build_rescore_query(query_string)
         if rescore_query is not None:
-            s = s.extra(rescore={
-                'window_size': self.RESCORE_WINDOW,
-                'query': {
-                    'query_weight': 0.0,
-                    'rescore_query_weight': 1.0,
-                    'score_mode': 'total',
-                    'rescore_query': rescore_query.to_dict()
-                }
-            })
+            s = s.extra(rescore=dict(
+                window_size=self.RESCORE_WINDOW,
+                query=dict(
+                    query_weight=0.0,
+                    rescore_query_weight=1.0,
+                    score_mode='total',
+                    rescore_query=rescore_query.to_dict()
+                )
+            ))
 
         return s
 
@@ -410,7 +409,7 @@ class SimpleSearchV1(SimpleSearch):
         return boost_query
 
 
-class PhraseSearchV1(SimpleSearchV1):
+class PhraseSearch(SimpleSearch):
     """Default for how far terms can be apart in a phrase."""
     DEFAULT_SLOP = 0
 
@@ -447,7 +446,7 @@ class PhraseSearchV1(SimpleSearchV1):
 
         pre_query.must = []
         main_fields = set()
-        for f in PhraseSearchV1.MAIN_FIELDS:
+        for f in PhraseSearch.MAIN_FIELDS:
             fname = self.replace_lang_placeholder(f['name'])
             main_fields.add(fname)
             pre_query.must.append(Q('match_phrase', **{fname: dict(
@@ -476,7 +475,7 @@ class SerpContext:
     Results page context with processed results.
     """
 
-    def __init__(self, search: SimpleSearch, response: Response):
+    def __init__(self, search: SearchBase, response: Response):
         """
         :param search: SimpleSearch object
         :param response: Elasticsearch DSL response
