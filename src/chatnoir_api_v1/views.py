@@ -40,7 +40,27 @@ class APIRoot(routers.APIRootView):
 
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
-        return Response({k: v for k, v in response.data.items() if '/' not in k}, status=response.status_code)
+        return Response({k: v for k, v in response.data.items()
+                         if '/' not in k and k != '.+'}, status=response.status_code)
+
+
+class Error404(viewsets.ViewSet):
+    allowed_methods = tuple()
+
+    def get_view_name(self):
+        return _('Not Found')
+
+    def handle_exception(self, _):
+        return api_exception_handler(exceptions.NotFound(), None)
+
+    def head(self, _):
+        return Response(status=404)
+
+    def list(self, _):
+        raise exceptions.NotFound()
+
+    def options(self, _, *args, **kwargs):
+        raise exceptions.NotFound()
 
 
 class ApiViewSet(viewsets.ViewSet):

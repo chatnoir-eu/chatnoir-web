@@ -15,6 +15,8 @@ router_v1.register(r'_manage_keys/update/(?P<target_apikey>[^/]+)',
                    views.ManageKeysUpdateViewSet, basename='v1-manage-keys-update')
 router_v1.register(r'_manage_keys/revoke/(?P<target_apikey>[^/]+)',
                    views.ManageKeysRevokeViewSet, basename='v1-manage-keys-revoke')
+router_v1.register(r'.+', views.Error404, basename='v1-error-404')
+
 
 urlpatterns = [
     path(r'', include(router_v1.urls))
