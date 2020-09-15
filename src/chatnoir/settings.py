@@ -40,6 +40,10 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer'
     ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser'
+    ],
+    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'chatnoir_api_v1.negotiation.FallbackContentNegotiation',
     'EXCEPTION_HANDLER': 'chatnoir_api_v1.views.api_exception_handler'
 }
 CACHES = {
