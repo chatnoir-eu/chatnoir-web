@@ -1,3 +1,7 @@
+import uuid
+
+from django.conf import settings
+from django.http import Http404
 from django.shortcuts import HttpResponse, render
 
 from .cache import BasicHtmlFormatter, CacheDocument
@@ -31,9 +35,16 @@ def index(request):
     return render(request, 'search_frontend/search.html', context)
 
 
+def webis_uuid(prefix, doc_id):
+    """
+    Calculate Webis UUID from a corpus prefix and a document ID.
+    """
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, ':'.join((prefix, doc_id))))
+
+
 def cache(request):
-    if 'index' not in request.GET:
-        return render(request, '404.html', status=404)
+    if 'index' not in request.GET or request.GET.get('index') not in settings.SEARCH_INDEXES:
+        raise Http404()
 
     raw_mode = 'raw' in request.GET
     plaintext_mode = 'plain' in request.GET
@@ -49,17 +60,20 @@ def cache(request):
 
     cache_doc = CacheDocument()
     doc = None
-    if request.GET.get('uuid'):
-        doc = cache_doc.retrieve_by_uuid(request.GET['index'], request.GET['uuid'])
-    elif request.GET.get('trec-id'):
-        doc = cache_doc.retrieve_by_filter(request.GET['index'], warc_trec_id=request.GET['trec-id'])
+    doc_id = request.GET.get('uuid')
+    if not doc_id and request.GET.get('trec-id'):
+        # Retrieve by internal document ID, which is usually faster than searching for the warc_trec_id term
+        doc_id = webis_uuid(settings.SEARCH_INDEXES[request.GET['index']]['warc_uuid_prefix'], request.GET['trec-id'])
+
+    if doc_id:
+        doc = cache_doc.retrieve_by_uuid(request.GET['index'], doc_id)
     elif request.GET.get('url'):
         doc = cache_doc.retrieve_by_filter(request.GET['index'], warc_target_uri=request.GET['url'])
         if not doc:
             return render(request, 'search_frontend/cache-redirect.html', {'uri': request.GET['url']})
 
     if not doc:
-        return render(request, '404.html', status=404)
+        raise Http404()
 
     context['cache']['uuid'] = doc['meta'].meta.id
     context['cache']['meta'] = doc['meta']

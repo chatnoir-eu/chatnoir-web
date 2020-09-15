@@ -62,7 +62,8 @@ class CacheDocument:
         index = get_index(doc_index)
         result = (Search().doc_type(index.warc_meta_doc)
                   .index(index.warc_index_name)
-                  .filter('term', **filter_expr)[:1].execute())
+                  .filter('term', **filter_expr)
+                  .extra(terminate_after=1).execute())
 
         if not result.hits:
             return None
@@ -101,6 +102,7 @@ class CacheDocument:
         record = self._read_warc_record(warc_bucket, doc.source_file, doc.source_offset, doc.http_content_length)
 
         if not record:
+            logger.warning('Document {} not found in {}.'.format(doc.meta.id, doc.source_file))
             return None
 
         body = record.content_stream().read()

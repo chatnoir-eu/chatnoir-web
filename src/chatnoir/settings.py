@@ -142,6 +142,7 @@ SEARCH_INDEXES = {
         'index': 'index_internal_name',
         'warc_index': 'warc_meta_index_name',
         'warc_bucket': 's3_warc_bucket_name',
+        'warc_uuid_prefix': 'webis-uuid-prefix',
         'display_name': 'Human-readable display name',
         'compat_search_versions': [1]
     }
