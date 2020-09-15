@@ -1,8 +1,13 @@
+import os
 import uuid
 
+from django.core.cache import cache as django_cache
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import HttpResponse, render
+from django.utils.translation import gettext as _
+import frontmatter
+import mistune
 
 from .cache import BasicHtmlFormatter, CacheDocument
 from chatnoir_api_v1.search import SimpleSearch
@@ -90,3 +95,44 @@ def cache(request):
         return HttpResponse(doc['body'], content_type, 200)
 
     return render(request, 'search_frontend/cache.html', context)
+
+
+def doc(request, subpath=''):
+    subpath = subpath.strip('/')
+    basedir = os.path.realpath(os.path.join(os.path.dirname(__file__), 'doc'))
+    doc_path = os.path.realpath(os.path.join(basedir, subpath))
+
+    if os.path.commonpath((basedir, doc_path)) != basedir:
+        raise Http404()
+
+    if os.path.isdir(doc_path):
+        doc_path = os.path.join(doc_path, 'index')
+
+    doc_path += '.md'
+    if not os.path.isfile(doc_path):
+        raise Http404()
+
+    cache_key = '.'.join((__name__, 'doc', subpath))
+    context = django_cache.get(cache_key)
+    if context:
+        return render(request, 'search_frontend/doc.html', context)
+
+    source_doc = frontmatter.load(doc_path)
+    rendered = mistune.html(source_doc.content)
+    metadata = source_doc.metadata
+
+    breadcrumbs = [dict(path='', title=_('ChatNoir Documentation'))]
+    subpath_split = subpath.split('/')
+    if 'breadcrumbs' in metadata:
+        for p, t in zip(subpath_split, metadata['breadcrumbs']):
+            breadcrumbs.append(dict(path=p, title=t))
+    breadcrumbs.append(dict(path=subpath_split[-1], title=metadata.get('title', '')))
+
+    metadata['breadcrumbs'] = breadcrumbs
+    context = {
+        'is_index': subpath in ('', 'index'),
+        'meta': metadata,
+        'doc_content': rendered
+    }
+    django_cache.set(cache_key, context, timeout=settings.DOC_PAGE_CACHE_TIMEOUT)
+    return render(request, 'search_frontend/doc.html', context)

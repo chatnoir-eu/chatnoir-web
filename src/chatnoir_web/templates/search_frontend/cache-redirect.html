@@ -24,7 +24,7 @@
             top.location.href = location.href;
         }
 
-        setInterval(function() {
+        setInterval(() => {
             let el = $('.timer');
             el.text(Math.max(0, parseInt(el.text()) - 1));
         }, 1000);

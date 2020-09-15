@@ -5,6 +5,8 @@ django>=3.1
 djangorestframework
 elasticsearch
 elasticsearch-dsl
+mistune==2.0.0a5
+python-frontmatter
 typing
 uwsgi
 warcio

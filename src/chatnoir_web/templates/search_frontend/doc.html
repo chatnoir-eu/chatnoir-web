@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{ meta.title }} - ChatNoir Documentation</title>
+
+    {% load static %}
+    {% include 'header.html' %}
+    <link href="{% static 'css/prism.min.css' %}" rel="stylesheet">
+</head>
+<body class="search-page">
+    <div id="Main" class="container">
+        {% include 'search-header.html' %}
+
+        {% if not is_index %}
+        <section>
+            <div class="back-to-index">
+                You are here:
+                {% for crumb in meta.breadcrumbs %}
+                    {% if forloop.last %}
+                    {{ crumb.title }}
+                    {% else %}
+                    <a href="{% url 'search:doc' %}{{ crumb.path }}">{{ crumb.title }}</a> »
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <section id="DocContent">
+            {{ doc_content | safe }}
+        </section>
+    </div>
+
+    {% include 'footer.html' %}
+    <script src="{% static 'js/prism.min.js' %}"></script>
+    <script>
+        $("pre > code").each((index, el) => {
+            el = $(el)
+            el.html(Prism.highlight(el.text(), Prism.languages.json));
+            el.html(el.html().replace(/^(GET|POST|PUT) (.+)\n/,
+                    '<div class="request"><span class="request-method">$1</span> <span class="request-uri">$2</span></div>'));
+        });
+    </script>
+</body>
+</html>

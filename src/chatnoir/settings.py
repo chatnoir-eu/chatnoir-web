@@ -164,6 +164,9 @@ API_KEY_CREATE_ROLE = 'keycreate'
 API_NOLOG_ROLES = ('dev',)
 API_TRUST_X_FORWARDED_FOR = False
 
+# Documentation cache time
+DOC_PAGE_CACHE_TIMEOUT = 10 * 60
+
 try:
    from .local_settings import *
 except ImportError:
