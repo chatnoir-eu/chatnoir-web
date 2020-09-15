@@ -1,13 +1,12 @@
-from rest_framework import fields, metadata, serializers
+from rest_framework import fields, metadata
 
 from .serializers import OptionalListField
 
 
-class SimpleSearchMetadata(metadata.SimpleMetadata):
+class ApiMetadata(metadata.SimpleMetadata):
     def get_field_info(self, field):
         """
-        Given an instance of a serializer field, return a dictionary
-        of metadata about it.
+        Given an instance of a serializer field, return a dictionary of metadata about it.
         """
         field_info = {
             'type': self.label_lookup[field]

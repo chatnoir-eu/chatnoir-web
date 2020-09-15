@@ -45,11 +45,14 @@ class APIRoot(routers.APIRootView):
 
 class ApiViewSet(viewsets.ViewSet):
     serializer_class = ApiSerializer
-    metadata_class = SimpleSearchMetadata
+    metadata_class = ApiMetadata
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.pretty_print = False
+
+    def get_serializer(self):
+        return self.serializer_class()
 
     def initialize_request(self, request, *args, **kwargs):
         request = super().initialize_request(request, *args, **kwargs)
@@ -77,7 +80,6 @@ class SimpleSearchViewSet(ApiViewSet):
     Default ChatNoir search module.
     """
 
-    # metadata_class = SimpleSearchMetadata
     serializer_class = SimpleSearchRequestSerializer
     allowed_methods = ('GET', 'POST', 'OPTIONS')
     authentication_classes = (ApiKeyAuthentication,)
@@ -159,7 +161,7 @@ class ManageKeysViewSet(ApiViewSet):
 
 class ManageKeysInfoViewSet(ManageKeysViewSet):
     serializer_class = SimpleSearchRequestSerializer
-    allowed_methods = ('GET',)
+    allowed_methods = ('GET', 'OPTIONS')
 
     def list(self, request, **kwargs):
         try:
@@ -216,7 +218,7 @@ class ManageKeysCreateViewSet(ManageKeysViewSet):
 class ManageKeysUpdateViewSet(ManageKeysViewSet):
     serializer_class = ApiKeySerializer
     permission_classes = (HasKeyCreateRole,)
-    allowed_methods = ('PUT',)
+    allowed_methods = ('PUT', 'OPTIONS')
 
     @staticmethod
     def check_is_sub_key(child, parent):
