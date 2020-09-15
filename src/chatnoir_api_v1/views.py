@@ -51,8 +51,8 @@ class ApiViewSet(viewsets.ViewSet):
         super().__init__(*args, **kwargs)
         self.pretty_print = False
 
-    def get_serializer(self):
-        return self.serializer_class()
+    def get_serializer(self, **kwargs):
+        return self.serializer_class(**kwargs)
 
     def initialize_request(self, request, *args, **kwargs):
         request = super().initialize_request(request, *args, **kwargs)
