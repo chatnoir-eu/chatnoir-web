@@ -58,7 +58,7 @@ GET /api/v1/_manage_keys?apikey=<apikey>
     "user": {
         "country": "DE",
         "state": "TH",
-        "address": "Example Address,
+        "address": "Example Address",
         "organization": "Example Organization",
         "common_name": "John Doe",
         "zip_code": 00000
@@ -128,7 +128,7 @@ POST /api/v1/_manage_keys/create
         "common_name": "John Doe",
         "email": "email@example.com",
         "organization": "Example Organization",
-        "address": "Example Address,
+        "address": "Example Address",
         "zip_code": 00000
         "state": "TH",
         "country": "DE",
@@ -146,7 +146,7 @@ POST /api/v1/_manage_keys/create
 #### Response:
 ```
 {
-    "message": "API key created",
+    "message": "API key created.",
     "apikey": "<new-apikey>"
 }
 ```
@@ -201,7 +201,7 @@ PUT /api/v1/_manage_keys/update/<target-apikey>
         "common_name": "Jane Doe",
         "email": "email@example.com",
         "organization": "Example Organization",
-        "address": "Example Address,
+        "address": "Example Address",
         "zip_code": 00000
         "state": "WA",
         "country": "US",
@@ -219,7 +219,7 @@ PUT /api/v1/_manage_keys/update/<target-apikey>
 #### Response:
 ```
 {
-    "message": "API key updated",
+    "message": "API key updated.",
     "apikey": "<target-apikey>"
 }
 ```
@@ -261,7 +261,7 @@ PUT /api/v1/_manage_keys/revoke/<target-apikey>
 #### Response:
 ```
 {
-    "message": "API key revoked",
+    "message": "API key revoked.",
     "apikey": "<target-apikey>"
 }
 ```
