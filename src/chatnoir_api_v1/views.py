@@ -219,7 +219,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
 class ManageKeysCreateViewSet(ManageKeysViewSet):
     serializer_class = ApiKeySerializer
     permission_classes = (HasKeyCreateRole,)
-    allowed_methods = ('POST',)
+    allowed_methods = ('POST', 'OPTIONS')
 
     def post(self, request, **kwargs):
         request_data = request.data.copy()
