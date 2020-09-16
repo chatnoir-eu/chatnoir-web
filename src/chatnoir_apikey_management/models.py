@@ -89,7 +89,7 @@ class ApiKey(models.Model):
     limits_month = models.IntegerField(verbose_name=_('Request Limit Month'), null=True, blank=True)
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
     allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
-    comment = models.CharField(verbose_name=_('Comment'), max_length=255, null=True, blank=True)
+    comment = models.CharField(verbose_name=_('Comment'), max_length=255, null=False, blank=True)
     quota_used = models.BinaryField(blank=True, default=b'')
 
     def __str__(self):
@@ -131,12 +131,19 @@ class ApiKey(models.Model):
         cache.set(cache_key, resolved)
         return resolved
 
-    def is_sub_key_of(self, key):
+    def is_sub_key_of(self, key, strict=True):
+        """
+        Check if this key is a sub key of another key.
+
+        :param key: parent key
+        :param strict: don't treat the key as its own child
+        :return: True if ``key`` is a sub key
+        """
         if self.pk is None:
             return False
 
         if self.pk == key:
-            return True
+            return not strict
 
         parent = self.parent
         while self.parent:
@@ -260,7 +267,7 @@ class PendingApiUser(models.Model):
                         address=pending_user.address,
                         zip_code=pending_user.zip_code,
                         state=pending_user.state,
-                        country=pending_user.country
+                        country=pending_user.country,
                     )
                 )
                 api_key = ApiKey(api_key=generate_apikey(), parent=pending_user.passcode.issue_key, user=user)

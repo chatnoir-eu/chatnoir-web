@@ -43,6 +43,7 @@ user information for your API key.
     - `day`: daily limit (-1 for unlimited)
     - `week`: weekly limit (-1 for unlimited)
     - `month`: monthly limit (-1 for unlimited)
+- `comment`: optional comment stored with the key
 
 ### Example:
 #### Request:
@@ -70,7 +71,8 @@ GET /api/v1/_manage_keys?apikey=<apikey>
         "week": 10000,
         "month": 70000,
         "day": 310000
-    }
+    },
+    "comment": ""
 }
 ```
 
@@ -113,6 +115,7 @@ in the future than your own key's expiry date.
     - `month`: monthly limit (-1 for unlimited)
 - `remote_hosts`: allowed remote IP addresses for this key (empty for no restriction)
 - `expires`: optional expiry date of this key as ISO datetime
+- `comment`: optional comment to store with the key
 
 ### Response Data:
 - `message`: human-readable status message
@@ -186,6 +189,7 @@ It may take several minutes for the changes to go live.
     - `month`: monthly limit (-1 for unlimited)
 - `remote_hosts`: allowed remote IP addresses for this key (empty for no restriction)
 - `expires`: optional expiry date of this key as ISO datetime
+- `comment`: optional comment to store with the key
 
 ### Response Data:
 - `message`: human-readable status message

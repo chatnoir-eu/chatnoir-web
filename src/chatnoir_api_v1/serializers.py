@@ -209,9 +209,9 @@ class ApiKeySerializer(ApiSerializer):
         required=False
     )
     expires = serializers.DateTimeField(allow_null=True, required=False)
-    comment = serializers.CharField(required=False)
+    comment = serializers.CharField(allow_blank=True, required=False)
 
-    def save(self, parent=None, set_roles=True):
+    def save(self, parent=None):
         user, _ = ApiUser.objects.update_or_create(email=self.validated_data['user']['email'],
                                                    defaults=self.validated_data['user'])
 
@@ -223,7 +223,8 @@ class ApiKeySerializer(ApiSerializer):
             limits_month=limits.get('month'),
             revoked=False,
             expires=self.validated_data.get('expires'),
-            allowed_remote_hosts=','.join(self.validated_data.get('remote_hosts', ''))
+            allowed_remote_hosts=','.join(self.validated_data.get('remote_hosts', '')),
+            comment=self.validated_data.get('comment', '')
         )
 
         api_key = self.validated_data.get('apikey')
@@ -236,8 +237,7 @@ class ApiKeySerializer(ApiSerializer):
         else:
             api_key = ApiKey.objects.create(**api_key_defaults)
 
-        if set_roles:
-            api_key.roles.set(ApiKeyRole.objects.filter(role__in=self.validated_data.get('roles', [])),)
+        api_key.roles.set(ApiKeyRole.objects.filter(role__in=self.validated_data.get('roles', [])),)
 
         return api_key
 

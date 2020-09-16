@@ -208,7 +208,8 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
                     'day': limits[0],
                     'week': limits[1],
                     'month': limits[2],
-                }
+                },
+                'comment': api_key.comment
             })
 
         except ApiKey.DoesNotExist:
@@ -264,7 +265,7 @@ class ManageKeysUpdateViewSet(ManageKeysViewSet):
         request_data = ApiKeySerializer(data=request_data)
         request_data.is_valid(raise_exception=True)
 
-        api_key = request_data.save(set_roles=target_apikey != request.auth.api_key)
+        api_key = request_data.save()
 
         return Response({
             'message': _('API key updated.'),
