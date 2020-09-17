@@ -23,8 +23,12 @@ logger = logging.getLogger(__name__)
 class CacheDocument:
     _S3_RESOURCE = None
 
-    def __init__(self):
+    def __init__(self, post_process_html=True):
+        """
+        :param post_process_html: whether to post-process the documents HTML (e.g., rewrite links)
+        """
         self.warc_record = None
+        self.post_process_html = post_process_html
 
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
@@ -111,7 +115,7 @@ class CacheDocument:
                     doc.http_content_type in ('application/json', 'application/xhtml+xml'):
                 body = body.decode(doc.content_encoding, errors='replace')
 
-            if doc.http_content_type in ('text/html', 'application/xhtml+xml'):
+            if self.post_process_html and doc.http_content_type in ('text/html', 'application/xhtml+xml'):
                 body = self._post_process_html(body, doc.warc_target_uri, doc_index,
                                                doc.http_content_type == 'application/xhtml+xml')
 

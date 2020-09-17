@@ -51,8 +51,9 @@ def cache(request):
     if 'index' not in request.GET or request.GET.get('index') not in settings.SEARCH_INDEXES:
         raise Http404()
 
-    raw_mode = 'raw' in request.GET
-    plaintext_mode = 'plain' in request.GET
+    raw_mode = bool_param_set('raw', request.GET)
+    plaintext_mode = bool_param_set('plain', request.GET)
+    post_process_html = not bool_param_set('no-rewrite', request.GET)
     context = {
         'cache': {
             'index': request.GET.get('index'),
@@ -63,7 +64,7 @@ def cache(request):
         }
     }
 
-    cache_doc = CacheDocument()
+    cache_doc = CacheDocument(post_process_html)
     doc = None
     doc_id = request.GET.get('uuid')
     if not doc_id and request.GET.get('trec-id'):

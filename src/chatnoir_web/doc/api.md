@@ -205,8 +205,16 @@ The full HTML contents of a search result can be retrieved from
 ```
 GET /cache?uuid=$UUID&index=$INDEX&raw
 ```
+
 where `$UUID` is the document's UUID as returned by the search API and `$INDEX`
 is the index name this document is from. No API key is required for this request.
+
+By default, the returned HTML contents are post-processed in order to rewrite links, stylesheet URLs, meta tags, etc.
+If you want the original, unaltered HTML body, add the `no-rewrite` parameter to the URL:
+
+```
+GET /cache?uuid=$UUID&index=$INDEX&raw&no-rewrite
+```
 
 A plain text rendering with basic HTML-subset formatting can be retrieved from
 
