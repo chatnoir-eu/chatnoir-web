@@ -15,8 +15,6 @@ The following documentation resources are available:
 - [Architecture Overview](/doc/architecture/)
 
 
-### Legal and About
+### Legal
 
-- Terms of Service:
-    - [Deutsch](/doc/terms-de/)
-    - [English (translation)](/doc/terms/)
+- [Impressum / Privacy Policy](https://webis.de/legal.html) (German)
