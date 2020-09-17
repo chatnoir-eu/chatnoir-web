@@ -205,10 +205,29 @@ The full HTML contents of a search result can be retrieved from
 ```
 GET /cache?uuid=$UUID&index=$INDEX&raw
 ```
-Where `$UUID` is the document UUID returned by the search API and `$INDEX`
+where `$UUID` is the document's UUID as returned by the search API and `$INDEX`
 is the index name this document is from. No API key is required for this request.
 
 A plain text rendering with basic HTML-subset formatting can be retrieved from
+
 ```
 GET /cache?uuid=$UUID&index=$INDEX&raw&plain
+```
+
+### Document UUIDs
+
+Document UUIDs are derived from the original crawl's internal document IDs as follows:
+
+```
+UUID := UUID5(UUID::NameSpace_URL, $PREFIX + ":" + $ID)
+```
+
+`UUID::NameSpace_URL,` is the pre-defined URL namespace `6ba7b811-9dad-11d1-80b4-00c04fd430c8` (see: [RFC4122](https://tools.ietf.org/html/rfc4122#appendix-C)) and `$PREFIX` is a corpus-specific prefix (currently: `clueweb09`, `clueweb12`, or `commoncrawl`).
+
+For documents from one of the ClueWebs, `$ID` is the document's TREC-ID. For the Common Crawls, it is the value of the `WARC-Record-ID` header.
+
+For convenience, ClueWeb documents can also be retrieved directly by their TREC ID:
+
+```
+GET /cache?trec-id=$TREC-ID&index=$INDEX&raw
 ```
