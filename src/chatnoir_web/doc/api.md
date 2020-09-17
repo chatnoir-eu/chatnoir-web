@@ -216,7 +216,7 @@ If you want the original, unaltered HTML body, add the `no-rewrite` parameter to
 GET /cache?uuid=$UUID&index=$INDEX&raw&no-rewrite
 ```
 
-A plain text rendering with basic HTML-subset formatting can be retrieved from
+A plain text rendering with basic HTML-subset formatting can be retrieved by adding the `plain` parameter.
 
 ```
 GET /cache?uuid=$UUID&index=$INDEX&raw&plain
