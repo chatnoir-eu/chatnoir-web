@@ -114,8 +114,8 @@ class PhraseSearch(SimpleSearch):
 
 # noinspection DuplicatedCode
 class SerpContext(search_v1.SerpContext):
-    API_MINIMAL_FIELDS = {'score', '_id', 'snippet'}
-    API_FIELDS = API_MINIMAL_FIELDS | {'index', 'doi', 'title', 'abstract'}
+    API_MINIMAL_FIELDS = {'score', 'doi', 'anthology_id', 'title'}
+    API_FIELDS = API_MINIMAL_FIELDS | {'index', 'venue', 'year', 'snippet'}
 
     @property
     def results(self):
