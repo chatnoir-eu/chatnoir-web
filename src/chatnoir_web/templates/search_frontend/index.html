@@ -5,7 +5,7 @@
     <title>ChatNoir</title>
 
     {% load static %}
-    {% include 'header.html' %}
+    {% include 'search_frontend/include/header.html' %}
 </head>
 <body class="index-page">
 <div id="Main" class="container">
@@ -17,10 +17,10 @@
         </a>
     </div>
     <form role="search" action="{% url 'search:index' %}">
-        {% include 'search-field.html' %}
+        {% include 'search_frontend/include/search-field.html' %}
     </form>
 </div>
 
-{% include 'footer.html' %}
+{% include 'search_frontend/include/footer.html' %}
 </body>
 </html>

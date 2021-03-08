@@ -63,7 +63,7 @@ ROOT_URLCONF = 'chatnoir.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'chatnoir', 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'chatnoir_web', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -123,7 +123,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'chatnoir', 'static')
+    os.path.join(BASE_DIR, 'chatnoir_web', 'static')
 ]
 
 

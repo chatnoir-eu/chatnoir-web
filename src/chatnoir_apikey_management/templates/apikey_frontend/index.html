@@ -5,12 +5,12 @@
     <title>ChatNoir API Keys</title>
 
     {% load static %}
-    {% include 'header.html' %}
+    {% include 'search_frontend/include/header.html' %}
     <link href="{% static 'apikey_frontend/style.css' %}" rel="stylesheet" />
 </head>
 <body class="search-page">
     <div id="Main" class="container">
-        {% include 'search-header.html' %}
+        {% include 'search_frontend/include/search-header.html' %}
 
         <section id="ApiKeyContent">
             <h1>Welcome!</h1>
@@ -81,6 +81,6 @@
         </section>
     </div>
 
-    {% include 'footer.html' %}
+    {% include 'search_frontend/include/footer.html' %}
 </body>
 </html>

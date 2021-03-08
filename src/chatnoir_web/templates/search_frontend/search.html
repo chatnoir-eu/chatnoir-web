@@ -5,12 +5,12 @@
     <title>{% if search_query %}{{ search_query }} - {% endif %}ChatNoir</title>
 
     {% load static l10n chatnoir_tags %}
-    {% include 'header.html' %}
+    {% include 'search_frontend/include/header.html' %}
 </head>
 <body class="search-page">
-    {% include 'maintenance.html' %}
+    {% include 'search_frontend/include/maintenance.html' %}
     <div id="Main" class="container">
-        {% include 'search-header.html' %}
+        {% include 'search_frontend/include/search-header.html' %}
 
         <div class="search-info">
             {% if search_results %}<div class="num-results">Total results: {{ serp_context.total_results | localize }}{% if serp_context.terminated_early %}+{% endif %}
@@ -97,6 +97,6 @@
         </div>
     {% endif %}
 
-    {% include 'footer.html' %}
+    {% include 'search_frontend/include/footer.html' %}
 </body>
 </html>

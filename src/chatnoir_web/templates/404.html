@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Oops! Error: 500 Internal Server Error - ChatNoir</title>
+    <title>Oops! Error: 404 Not Found - ChatNoir</title>
 
     {% load static %}
-    {%  include 'header.html' %}
+    {%  include 'search_frontend/include/header.html' %}
 </head>
 <body class="search-page">
     <div id="Main" class="container error">
@@ -13,14 +13,15 @@
                 ChatNoir Logo
             </object>
             <div class="message">
-                <h1>Oops! This shouldn't happen!</h1>
-                <p>We experienced an internal error. Our server monkeys have been notified
-                    and are working hard to fix it. Please try again later.</p>
-                <p>(Error: 500 – Internal Server Error)</p>
+                <h1>Quo vadis?</h1>
+                <p>The requested URL could not be found on the server.</p>
+                <p>(Error: 404 – Not Found)</p>
+
+                <p><a href="https://www.chatnoir.eu/">Back to search…</a></p>
             </div>
         </section>
     </div>
 
-    {% include 'footer.html' %}
+    {% include 'search_frontend/include/footer.html' %}
 </body>
 </html>
