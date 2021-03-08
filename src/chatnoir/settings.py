@@ -120,7 +120,7 @@ USE_THOUSAND_SEPARATOR = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Static files (CSS, JavaScript, Images)
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'data', 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'chatnoir_web', 'static')

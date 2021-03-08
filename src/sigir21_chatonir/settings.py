@@ -7,7 +7,7 @@ from chatnoir.settings import *
 INSTALLED_APPS.append('sigir21_chatonir_web.apps.ChatoNirWebConfig')
 
 ROOT_URLCONF = 'sigir21_chatonir.urls'
-STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'sigir21_chatnoir_web', 'static'))
+# STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'sigir21_chatnoir_web', 'static'))
 TEMPLATES[0]['DIRS'] = [
     os.path.join(BASE_DIR, 'sigir21_chatonir_web', 'templates'),
     os.path.join(BASE_DIR, 'chatnoir', 'templates')
