@@ -168,6 +168,20 @@ class SimpleSearch(SearchBase):
         }
     ]
 
+    """Highlight fields for snippets"""
+    HIGHLIGHT_FIELDS = [
+        {
+            'name': 'title_lang.%lang%',
+            'fragment_size': 70,
+            'number_of_fragments': 1
+        },
+        {
+            'name': 'body_lang.%lang%',
+            'fragment_size': 300,
+            'number_of_fragments': 1
+        }
+    ]
+
     """Numeric query filters."""
     RANGE_FILTERS = [
         {
@@ -237,9 +251,10 @@ class SimpleSearch(SearchBase):
                     terminate_after=self.NODE_LIMIT,
                     track_total_hits=True,
                     explain=self.explain)
-             .highlight('title_lang.' + self.search_language, fragment_size=70, number_of_fragments=1)
-             .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1)
              .highlight_options(encoder='html'))
+
+        for h in self.HIGHLIGHT_FIELDS:
+            s = s.highlight(self.replace_lang_placeholder(h['name']), **{k: v for k, v in h.items() if k != 'name'})
 
         rescore_query = self._build_rescore_query(query_string)
         if rescore_query is not None:
