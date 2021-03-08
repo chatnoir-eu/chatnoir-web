@@ -79,7 +79,7 @@ class SimpleSearch(search_v1.SimpleSearch):
     NODE_LIMIT = 70000
 
     """Number of top documents to rescore."""
-    RESCORE_WINDOW = 400
+    RESCORE_WINDOW = 1000
 
     def search(self, query_string):
         response = self._build_search_request(query_string).execute()
