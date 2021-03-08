@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% if search_query %}{{ search_query }} - {% endif %}ChatoNir Anthology Search</title>
+
+    {% load static l10n chatnoir_tags %}
+    {% include 'search_frontend/include/header.html' %}
+</head>
+<body class="search-page">
+    {% include 'search_frontend/include/maintenance.html' %}
+    <div id="Main" class="container">
+        {% include 'search_frontend/include/search-header.html' %}
+
+        <div class="search-info">
+            {% if search_results %}<div class="num-results">Total results: {{ serp_context.total_results | localize }}{% if serp_context.terminated_early %}+{% endif %}
+                (retrieved in {{ serp_context.query_time | localize }} ms)</div>{% endif %}
+            <h1>Search results {% if search_results %}{{ serp_context.results_from | add:1 }}-{{ serp_context.results_to }} {% endif %}for <em>{{ search_query }}</em></h1>
+        </div>
+        <section id="SearchResults">
+            {% for result in search_results %}
+                <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.uuid }}"{% if result.explanation %} data-explanation="{{ result.explanation | json }}"{% endif %}>
+                    <header>
+                        <h2><a href="{{ result.anthology_uri }}">{{ result.title | safe }}</a></h2>
+                        <div class="meta">
+                            <a href="{% if result.doi %}https://doi.org/{{ result.doi }}{% else %}#{% endif %}" class="link">
+                                {% if result.doi %}{{ result.doi }}{% endif %}
+                                {% if result.venue %}{% if result.doi %} &middot;{% endif %} {{ result.venue }}{% endif %}
+                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                    <li role="presentation" class="result-anthology-link"><a role="menuitem" tabindex="-1" href="{{ result.anthology_uri }}">IR Anthology Link</a></li>
+                                    <li role="presentation" class="result-doi-link"><a role="menuitem" tabindex="-1" href="https://doi.org/{{ result.doi }}">DOI Link</a></li>
+                                    <li role="presentation" class="divider"></li>
+                                    <li role="presentation" class="dropdown-header">Document ID: {{ result.anthology_id }}</li>
+                                    <li role="presentation" class="dropdown-header">Score: {{ result.score | floatformat:3 }}</li>
+                                    <li role="presentation" class="divider"></li>
+                                    <li role="presentation" class="result-explain">
+                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}&explain#result-{{ result.uuid | urlencode }}">Explain</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </header>
+                    {% if not result.is_grouping_suggested %}{{ result.snippet | safe }}{% endif %}
+                </article>
+                {% if result.is_more_suggested %}
+                    <div class="more-from-host">
+                        <a href="{%  url 'search:index' %}?q=site:{{ result.target_hostname }}+{{ search_query | urlencode }}">More results from {{ result.target_hostname }}</a>
+                    </div>
+                {% endif %}
+
+            {% empty %}
+                <div class="no-results">No results found… ;-(</div>
+            {% endfor %}
+
+            {% if serp_context.pagination %}
+            <footer>
+                <ul class="pagination">
+                    {% for p in serp_context.pagination.pages %}
+                        <li{% if p.num == serp_context.pagination.current_page %} class="active"{% endif %}>
+                            <a href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.serp_context.explain %}&explain{% endif %}{% for i in serp_context.search.indexes %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
+                            {% if p.label_aria %}
+                                <span aria-hidden="true">{{ p.label }}</span>
+                                <span class="sr-only">{{ p.label_aria }}</span>
+                            {% else %}
+                                {{ p.label }}
+                            {% endif %}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </footer>
+        {% endif %}
+        </section>
+    </div>
+
+
+    {% if serp_context.explain %}
+        <div class="modal fade" id="ExplanationModal" tabindex="-1" role="dialog" aria-labelledby="ExplanationModal" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">&nbsp;</h4>
+                    </div>
+                    <div class="modal-body"><div id="ExplanationModalContent">&nbsp;</div></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% include 'search_frontend/include/footer.html' %}
+</body>
+</html>
