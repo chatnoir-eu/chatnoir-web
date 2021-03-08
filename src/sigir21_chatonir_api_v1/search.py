@@ -25,7 +25,7 @@ class SimpleSearch(search_v1.SimpleSearch):
         },
         {
             'name': 'abstract_lang.%lang%',
-            'boost': 30,
+            'boost': 60,
             'proximity_matching': True,
             'proximity_slop': 2,
             'proximity_boost': 20
@@ -43,7 +43,7 @@ class SimpleSearch(search_v1.SimpleSearch):
         },
         {
             'name': 'venue',
-            'boost': 5
+            'boost': 30
         },
         {
             'name': 'doi',
@@ -116,6 +116,7 @@ class PhraseSearch(SimpleSearch):
 class SerpContext(search_v1.SerpContext):
     API_MINIMAL_FIELDS = {'score', '_id', 'snippet'}
     API_FIELDS = API_MINIMAL_FIELDS | {'index', 'doi', 'title', 'abstract'}
+
     @property
     def results(self):
         """
