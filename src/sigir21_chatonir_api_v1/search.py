@@ -18,7 +18,8 @@ class SimpleSearch(search_v1.SimpleSearch):
         'lang': 'lang',
         'doi': 'doi',
         'author': 'authors',
-        'year<>': 'year'
+        'year<>': 'year',
+        'venue': 'venue'
     }
 
     """Default search fields."""
