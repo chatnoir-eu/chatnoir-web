@@ -5,6 +5,8 @@ Django settings for ChatNoir.
 import os
 from django.utils.log import DEFAULT_LOGGING
 
+APPLICATION_NAME = 'ChatNoir'
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALLOWED_HOSTS = ['*']
 X_FRAME_OPTIONS = 'SAMEORIGIN'

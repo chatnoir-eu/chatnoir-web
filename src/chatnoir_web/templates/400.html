@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Oops! Error: 400 Bad Request - ChatNoir</title>
+    {% load chatnoir_tags %}
+    <title>Oops! Error: 400 Bad Request - {% app_name %}</title>
 
     {% load static %}
     {%  include 'search_frontend/include/header.html' %}
@@ -9,7 +10,7 @@
 <body class="search-page">
     <div id="Main" class="container error">
         <section id="Error">
-            <object id="Logo" type="image/svg+xml" data="{% static '../static/img/chatnoir-cat-only.svg' %}">
+            <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir-cat-only.svg' %}">
                 ChatNoir Logo
             </object>
             <div class="message">

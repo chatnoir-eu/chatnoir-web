@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static chatnoir_tags %}
     <meta charset="utf-8">
-    <title>ChatNoir</title>
+    <title>{% app_name %}</title>
 
-    {% load static %}
     {% include 'search_frontend/include/header.html' %}
 </head>
 <body class="index-page">
@@ -12,7 +12,7 @@
     <div id="LogoWrapper">
         <a rel="home" href="{{ contextPath }}/" title="ChatNoir">
             <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir.svg' %}">
-                ChatNoir Logo
+                {% app_name %} Logo
             </object>
         </a>
     </div>

@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class ChatoNirWebConfig(AppConfig):
+class ChatonIRWebConfig(AppConfig):
     name = 'sigir21_chatonir_web'

@@ -1,10 +1,12 @@
 """
-Django settings for ChatoNir.
+Django settings for ChatonIR.
 """
 
 from chatnoir.settings import *
 
-INSTALLED_APPS.append('sigir21_chatonir_web.apps.ChatoNirWebConfig')
+APPLICATION_NAME = 'ChatonIR Anthology Search'
+
+INSTALLED_APPS.append('sigir21_chatonir_web.apps.ChatonIRWebConfig')
 
 ROOT_URLCONF = 'sigir21_chatonir.urls'
 # STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'sigir21_chatnoir_web', 'static'))

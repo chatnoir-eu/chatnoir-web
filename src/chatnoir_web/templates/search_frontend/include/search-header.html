@@ -1,11 +1,11 @@
-{% load static %}
+{% load static chatnoir_tags %}
 <script>document.body.className = 'js';</script>
 <form role="search" action="{%  url 'search:index' %}" method="get">
     <div id="SearchHeader" class="row">
         <div id="LogoWrapper" class="col-sm-2">
             <a rel="home" href="{%  url 'search:index' %}" title="ChatNoir">
                 <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir.svg' %}">
-                    ChatNoir Logo
+                    {% app_name %} Logo
                 </object>
                 <img src="{% static 'img/chatnoir-icon.svg' %}" id="LogoIcon" alt="ChatNoir Logo">
             </a>
