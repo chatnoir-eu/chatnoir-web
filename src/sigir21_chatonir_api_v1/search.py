@@ -1,7 +1,6 @@
 from chatnoir_api_v1 import search as search_v1
 
 
-# noinspection DuplicatedCode
 class SimpleSearch(search_v1.SimpleSearch):
     """
     Simple search (version 1).
@@ -89,12 +88,8 @@ class SimpleSearch(search_v1.SimpleSearch):
     """Number of top documents to rescore."""
     RESCORE_WINDOW = 1000
 
-    def search(self, query_string):
-        response = self._build_search_request(query_string).execute()
-        return SerpContext(self, response)
 
-
-class PhraseSearch(SimpleSearch):
+class PhraseSearch(search_v1.PhraseSearch):
     """Default for how far terms can be apart in a phrase."""
     DEFAULT_SLOP = 0
 
@@ -112,9 +107,6 @@ class PhraseSearch(SimpleSearch):
             'boost': 2.0
         }
     ]
-
-    """Collapse search results based on field"""
-    COLLAPSE_FIELD = 'doi'
 
     """Terminate search after this many results per node."""
     NODE_LIMIT = 4000
@@ -152,7 +144,7 @@ class SerpContext(search_v1.SerpContext):
             result = {
                 'score': hit.meta.score,
                 'index': result_index,
-                'authors': getattr(hit, 'authors', []),
+                'authors': list(getattr(hit, 'authors', [])),
                 'anthology_id': hit.meta.id,
                 'anthology_uri': f'https://ir.webis.de/anthology/{hit.meta.id}/',
                 'doi': getattr(hit, 'doi', None),
@@ -165,11 +157,7 @@ class SerpContext(search_v1.SerpContext):
 
             results.append(result)
 
-        if self.search.group_results_by_hostname:
-            return self.group_results(results)
-
         return results
 
-    @staticmethod
-    def group_results(results):
-        return results
+
+search_v1.SerpContext = SerpContext

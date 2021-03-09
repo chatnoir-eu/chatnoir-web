@@ -461,18 +461,12 @@ class PhraseSearch(SimpleSearch):
         }
     ]
 
-    """Collapse search results based on field"""
-    COLLAPSE_FIELD = 'warc_target_hostname.raw'
-
     """Terminate search after this many results per node."""
     NODE_LIMIT = 4000
 
     def __init__(self, indexes, search_from=0, num_results=10, explain=False, slop=None):
         super().__init__(indexes, search_from, num_results, explain)
         self.slop = slop or self.DEFAULT_SLOP
-
-    def _build_search_request(self, query_string):
-        return super()._build_search_request(query_string).extra(collapse={'field': self.COLLAPSE_FIELD})
 
     def _build_pre_query(self, query_string):
         pre_query = Q('bool', filter=[], must_not=[])
@@ -483,7 +477,7 @@ class PhraseSearch(SimpleSearch):
 
         pre_query.must = []
         main_fields = set()
-        for f in PhraseSearch.MAIN_FIELDS:
+        for f in self.MAIN_FIELDS:
             fname = self.replace_lang_placeholder(f['name'])
             main_fields.add(fname)
             pre_query.must.append(Q('match_phrase', **{fname: dict(
