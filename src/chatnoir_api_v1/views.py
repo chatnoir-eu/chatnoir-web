@@ -1,5 +1,5 @@
-from django.utils.translation import gettext as _
-from rest_framework import exceptions, routers, viewsets
+from django.utils.translation import gettext_lazy as _
+from rest_framework import routers, viewsets
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
 
@@ -31,12 +31,10 @@ def bool_param_set(name, request_params):
 
 
 class APIRoot(routers.APIRootView):
-    """
-    REST API for accessing ChatNoir search results.
-    """
+    __doc__ = _('%(name)s REST API') % {'name': settings.APPLICATION_NAME}
 
     def get_view_name(self):
-        return _('ChatNoir API')
+        return _(settings.APPLICATION_NAME)
 
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
@@ -96,9 +94,7 @@ class ApiViewSet(viewsets.ViewSet):
 
 
 class SimpleSearchViewSet(ApiViewSet):
-    """
-    Default ChatNoir search module.
-    """
+    __doc__ = _('Default %(name)s search API') % {'name': settings.APPLICATION_NAME}
 
     serializer_class = SimpleSearchRequestSerializer
     allowed_methods = ('GET', 'POST', 'OPTIONS')
@@ -149,9 +145,7 @@ class SimpleSearchViewSet(ApiViewSet):
 
 
 class PhraseSearchViewSet(SimpleSearchViewSet):
-    """
-    ChatNoir exact phrase search module.
-    """
+    __doc__ = _('%(name)s exact phrase search API') % {'name': settings.APPLICATION_NAME}
 
     serializer_class = PhraseSearchRequestSerializer
 
@@ -169,9 +163,7 @@ class PhraseSearchViewSet(SimpleSearchViewSet):
 
 
 class ManageKeysViewSet(ApiViewSet):
-    """
-    API key management endpoint.
-    """
+    __doc__ = _('%(name)s API key management API') % {'name': settings.APPLICATION_NAME}
 
     authentication_classes = (ApiKeyAuthentication,)
 
@@ -180,6 +172,8 @@ class ManageKeysViewSet(ApiViewSet):
 
 
 class ManageKeysInfoViewSet(ManageKeysViewSet):
+    __doc__ = ManageKeysViewSet.__doc__
+
     serializer_class = SimpleSearchRequestSerializer
     allowed_methods = ('GET', 'OPTIONS')
 
@@ -217,6 +211,8 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
 
 
 class ManageKeysCreateViewSet(ManageKeysViewSet):
+    __doc__ = ManageKeysViewSet.__doc__
+
     serializer_class = ApiKeySerializer
     permission_classes = (HasKeyCreateRole,)
     allowed_methods = ('POST', 'OPTIONS')
@@ -237,6 +233,8 @@ class ManageKeysCreateViewSet(ManageKeysViewSet):
 
 
 class ManageKeysUpdateViewSet(ManageKeysViewSet):
+    __doc__ = ManageKeysViewSet.__doc__
+
     serializer_class = ApiKeySerializer
     permission_classes = (HasKeyCreateRole,)
     allowed_methods = ('PUT', 'OPTIONS')
@@ -274,6 +272,8 @@ class ManageKeysUpdateViewSet(ManageKeysViewSet):
 
 
 class ManageKeysRevokeViewSet(ManageKeysUpdateViewSet):
+    __doc__ = ManageKeysUpdateViewSet.__doc__
+
     serializer_class = ApiKeyRevocationSerializer
 
     def put(self, request, target_apikey=None, **kwargs):
