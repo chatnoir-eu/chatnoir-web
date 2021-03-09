@@ -261,8 +261,8 @@ class SimpleSearch(SearchBase):
             s = s.extra(rescore=dict(
                 window_size=self.RESCORE_WINDOW,
                 query=dict(
-                    query_weight=0.0,
-                    rescore_query_weight=1.0,
+                    query_weight=0.01,
+                    rescore_query_weight=0.99,
                     score_mode='total',
                     rescore_query=rescore_query.to_dict()
                 )
