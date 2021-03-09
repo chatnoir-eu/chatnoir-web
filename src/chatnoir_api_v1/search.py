@@ -283,34 +283,33 @@ class SimpleSearch(SearchBase):
         query_string = re.sub(r'(?!\B"[^"]*) OR (?![^"]*"\B)', ' | ', query_string)
 
         filter_query = Q('bool', filter=[])
+        query_string_orig = query_string
         for filter_keyword in self.QUERY_FILTERS:
+            for filter_match in re.finditer(
+                    rf'(?:^|(?<=\s))({re.escape(filter_keyword)}):\s*((\S+)(?=$|\s))', query_string_orig):
 
-            filter_match = re.search(r'(?:^|\s)({}):\s*((\S+)(?:$|\s))'.format(re.escape(filter_keyword)), query_string)
-            if not filter_match:
-                continue
+                # Remove filter from query string
+                query_string = query_string.replace(query_string_orig[filter_match.start():filter_match.end()], '', 1)
+                filter_value = filter_match.group(3)
 
-            # Remove filter from query string
-            query_string = query_string[:filter_match.start(1)] + query_string[filter_match.end(2):]
-            filter_value = filter_match.group(3)
+                # Build filter term
+                filter_field = self.QUERY_FILTERS[filter_keyword]
 
-            # Build filter term
-            filter_field = self.QUERY_FILTERS[filter_keyword]
+                # Special case: index
+                if filter_field == '#index':
+                    self._indexes_unvalidated = [i.strip() for i in filter_value.split(',')]
+                    continue
 
-            # Special case: index
-            if filter_field == '#index':
-                self._indexes_unvalidated = [i.strip() for i in filter_value.split(',')]
-                continue
+                # Special case: hostname
+                if filter_field == 'warc_target_hostname.raw':
+                    self.group_results_by_hostname = False
 
-            # Special case: hostname
-            if filter_field == 'warc_target_hostname.raw':
-                self.group_results_by_hostname = False
+                # Special case: language
+                if filter_field == 'lang':
+                    self.search_language = filter_value
+                    self.user_lang_override = True
 
-            # Special case: language
-            if filter_field == 'lang':
-                self.search_language = filter_value
-                self.user_lang_override = True
-
-            filter_query.filter.append(Q('term', **{filter_field: filter_value}))
+                filter_query.filter.append(Q('match', **{filter_field: filter_value}))
 
         query_string = query_string.strip()
         return query_string, filter_query
