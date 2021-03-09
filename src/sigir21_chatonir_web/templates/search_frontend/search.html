@@ -28,11 +28,11 @@
                             {% endif %}
                             {% if result.venue %}
                                 {% if result.authors  %}<span>&middot;</span>{% endif %}
-                                <span>{{ result.venue }}</span>
+                                <a href="{%  url 'search:index' %}?q=venue%3A{{ result.venue | urlencode }}">{{ result.venue }}</a>
                             {% endif %}
                             {% if result.year %}
                                 {% if result.authors or result.venue %}<span>&middot;</span>{% endif %}
-                                <span>{{ result.year | stringformat:"s" }}</span>
+                                <a href="{%  url 'search:index' %}?q=year%3A{{ result.year | urlencode }}">{{ result.year | stringformat:"s" }}</a>
                             {% endif %}
                             {% if result.doi %}
                                 {% if result.authors or result.venue or result.year %}<span>&middot;</span>{% endif %}
