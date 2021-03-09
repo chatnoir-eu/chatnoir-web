@@ -294,14 +294,15 @@ class SimpleSearch(SearchBase):
             filter_field = self.QUERY_FILTERS[filter_keyword]
 
             is_range = filter_keyword.endswith('<>')
-            value_match = r'\S+' if not is_range else r'\d+'
-            filter_keyword = filter_keyword.rstrip('<>')
+            value_match = r'("[^"]+"|[^"]\S*)' if not is_range else r'(\d+)'
+            filter_keyword = filter_keyword.strip('<>')
+            kw_esc = re.escape(filter_keyword)
 
             for filter_match in re.finditer(
-                    rf'(?:^|(?<=\s))({re.escape(filter_keyword)})([<>]=?|[=:])\s*({value_match})(?:$|\s)',
+                    rf'(?:^|(?<=\s))({kw_esc})([<>]=?|[=:])\s*{value_match}(?:$|\s)',
                     query_string_orig):
-
                 filter_value = filter_match.group(3).strip()
+
                 if is_range and not filter_value.isdigit():
                     continue
 
@@ -328,7 +329,8 @@ class SimpleSearch(SearchBase):
                             ('lte' if filter_match.group(2).startswith('<') else 'gte'): filter_value}
                         }))
                 else:
-                    filter_query.filter.append(Q('match', **{filter_field: filter_value}))
+                    query_type = 'match_phrase' if ' ' in filter_value else 'match'
+                    filter_query.filter.append(Q(query_type, **{filter_field: filter_value.strip('"')}))
 
             query_string_orig = query_string.strip()
 
