@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>{% if search_query %}{{ search_query }} - {% endif %}ChatoNir Anthology Search</title>
 
-    {% load static l10n chatnoir_tags %}
+    {% load static l10n chatnoir_tags chatonir_tags %}
     {% include 'search_frontend/include/header.html' %}
 </head>
 <body class="search-page">
@@ -23,10 +23,22 @@
                     <header>
                         <h2><a href="{{ result.anthology_uri }}">{{ result.title | safe }}</a></h2>
                         <div class="meta">
-                            <a href="{% if result.doi %}https://doi.org/{{ result.doi }}{% else %}#{% endif %}" class="link">
-                                {% if result.doi %}{{ result.doi }}{% endif %}
-                                {% if result.venue %}{% if result.doi %} &middot;{% endif %} {{ result.venue }}{% endif %}
-                            </a>
+                            {% if result.authors %}
+                                <span>{{ result.authors | author_list:True | safe }}</span>
+                            {% endif %}
+                            {% if result.venue %}
+                                {% if result.authors  %}<span>&middot;</span>{% endif %}
+                                <span>{{ result.venue }}</span>
+                            {% endif %}
+                            {% if result.year %}
+                                {% if result.authors or result.venue %}<span>&middot;</span>{% endif %}
+                                <span>{{ result.year | stringformat:"s" }}</span>
+                            {% endif %}
+                            {% if result.doi %}
+                                {% if result.authors or result.venue or result.year %}<span>&middot;</span>{% endif %}
+                                <a href="{% if result.doi %}https://doi.org/{{ result.doi }}{% else %}#{% endif %}" class="link">{{ result.doi }}</a>
+                            {% endif %}
+
                             <div class="dropdown">
                                 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
                                     <span class="caret"></span>
@@ -35,8 +47,11 @@
                                     <li role="presentation" class="result-anthology-link"><a role="menuitem" tabindex="-1" href="{{ result.anthology_uri }}">IR Anthology Link</a></li>
                                     <li role="presentation" class="result-doi-link"><a role="menuitem" tabindex="-1" href="https://doi.org/{{ result.doi }}">DOI Link</a></li>
                                     <li role="presentation" class="divider"></li>
-                                    <li role="presentation" class="dropdown-header">Document ID: {{ result.anthology_id }}</li>
+                                    <li role="presentation" class="dropdown-header">Anthology ID: {{ result.anthology_id }}</li>
                                     <li role="presentation" class="dropdown-header">Score: {{ result.score | floatformat:3 }}</li>
+                                    <li role="presentation" class="dropdown-header">Author{% if result.authors|length != 1 %}s{% endif %}: {{ result.authors | author_list }}
+                                    <li role="presentation" class="dropdown-header">Venue: {{ result.venue | default:"unknown" }}</li>
+                                    <li role="presentation" class="dropdown-header">Year: {{ result.year | stringformat:"s" | default:"unknown" }}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
                                         <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}&explain#result-{{ result.uuid | urlencode }}">Explain</a>

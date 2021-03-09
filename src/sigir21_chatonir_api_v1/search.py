@@ -11,7 +11,8 @@ class SimpleSearch(search_v1.SimpleSearch):
     QUERY_FILTERS = {
         'index': '#index',
         'lang': 'lang',
-        'doi': 'doi'
+        'doi': 'doi',
+        'author': 'authors'
     }
 
     """Default search fields."""
@@ -115,7 +116,7 @@ class PhraseSearch(SimpleSearch):
 # noinspection DuplicatedCode
 class SerpContext(search_v1.SerpContext):
     API_MINIMAL_FIELDS = {'score', 'doi', 'anthology_id', 'title'}
-    API_FIELDS = API_MINIMAL_FIELDS | {'index', 'venue', 'year', 'snippet'}
+    API_FIELDS = API_MINIMAL_FIELDS | {'index', 'authors', 'venue', 'year', 'snippet'}
 
     @property
     def results(self):
@@ -144,6 +145,7 @@ class SerpContext(search_v1.SerpContext):
             result = {
                 'score': hit.meta.score,
                 'index': result_index,
+                'authors': getattr(hit, 'authors', []),
                 'anthology_id': hit.meta.id,
                 'anthology_uri': f'https://ir.webis.de/anthology/{hit.meta.id}/',
                 'doi': getattr(hit, 'doi', None),
