@@ -7,12 +7,18 @@ class SimpleSearch(search_v1.SimpleSearch):
     Simple search (version 1).
     """
 
-    """Available user query filters."""
+    """
+    Available user query filters.
+    
+    Assumes string matching by default. Add "<>" to the name to enable numeric range queries (e.g. "year<>").
+    #index is a special placeholder value for user-selected index names.
+    """
     QUERY_FILTERS = {
         'index': '#index',
         'lang': 'lang',
         'doi': 'doi',
-        'author': 'authors'
+        'author': 'authors',
+        'year<>': 'year'
     }
 
     """Default search fields."""

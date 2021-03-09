@@ -115,7 +115,12 @@ class SimpleSearch(SearchBase):
     Simple search (version 1).
     """
 
-    """Available user query filters."""
+    """
+    Available user query filters.
+    
+    Assumes string matching by default. Add "<>" to the name to enable numeric range queries (e.g. "year<>").
+    #index is a special placeholder value for user-selected index names.
+    """
     QUERY_FILTERS = {
         'site': 'warc_target_hostname.raw',
         'lang': 'lang',
@@ -281,19 +286,27 @@ class SimpleSearch(SearchBase):
 
         query_string = re.sub(r'(?!\B"[^"]*) AND (?![^"]*"\B)', ' +', query_string)
         query_string = re.sub(r'(?!\B"[^"]*) OR (?![^"]*"\B)', ' | ', query_string)
+        query_string_orig = query_string
 
         filter_query = Q('bool', filter=[])
-        query_string_orig = query_string
+
         for filter_keyword in self.QUERY_FILTERS:
+            filter_field = self.QUERY_FILTERS[filter_keyword]
+
+            is_range = filter_keyword.endswith('<>')
+            value_match = r'\S+' if not is_range else r'\d+'
+            filter_keyword = filter_keyword.rstrip('<>')
+
             for filter_match in re.finditer(
-                    rf'(?:^|(?<=\s))({re.escape(filter_keyword)}):\s*((\S+)(?:$|\s))', query_string_orig):
+                    rf'(?:^|(?<=\s))({re.escape(filter_keyword)})([<>]=?|[=:])\s*({value_match})(?:$|\s)',
+                    query_string_orig):
+
+                filter_value = filter_match.group(3).strip()
+                if is_range and not filter_value.isdigit():
+                    continue
 
                 # Remove filter from query string
                 query_string = query_string.replace(query_string_orig[filter_match.start():filter_match.end()], '', 1)
-                filter_value = filter_match.group(3).strip()
-
-                # Build filter term
-                filter_field = self.QUERY_FILTERS[filter_keyword]
 
                 # Special case: index
                 if filter_field == '#index':
@@ -309,7 +322,15 @@ class SimpleSearch(SearchBase):
                     self.search_language = filter_value
                     self.user_lang_override = True
 
-                filter_query.filter.append(Q('match', **{filter_field: filter_value}))
+                if is_range and filter_match.group(2) in ('<', '<=', '>', '>='):
+                    filter_query.filter.append(
+                        Q('range', **{filter_field: {
+                            ('lte' if filter_match.group(2).startswith('<') else 'gte'): filter_value}
+                        }))
+                else:
+                    filter_query.filter.append(Q('match', **{filter_field: filter_value}))
+
+            query_string_orig = query_string.strip()
 
         query_string = query_string.strip()
         return query_string, filter_query
