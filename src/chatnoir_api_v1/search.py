@@ -286,11 +286,11 @@ class SimpleSearch(SearchBase):
         query_string_orig = query_string
         for filter_keyword in self.QUERY_FILTERS:
             for filter_match in re.finditer(
-                    rf'(?:^|(?<=\s))({re.escape(filter_keyword)}):\s*((\S+)(?=$|\s))', query_string_orig):
+                    rf'(?:^|(?<=\s))({re.escape(filter_keyword)}):\s*((\S+)(?:$|\s))', query_string_orig):
 
                 # Remove filter from query string
                 query_string = query_string.replace(query_string_orig[filter_match.start():filter_match.end()], '', 1)
-                filter_value = filter_match.group(3)
+                filter_value = filter_match.group(3).strip()
 
                 # Build filter term
                 filter_field = self.QUERY_FILTERS[filter_keyword]
