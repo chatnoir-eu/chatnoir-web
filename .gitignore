@@ -8,6 +8,7 @@ secret.py
 db.sqlite3
 media
 venv/
+src/data
 
 ### IDEs and temporary files
 .idea

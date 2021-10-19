@@ -1,8 +1,8 @@
 {% extends "rest_framework/base.html" %}
-{% load i18n %}
+{% load i18n chatnoir_tags %}
 
 {% block branding %}
     <a class="navbar-brand" rel="nofollow" href="{% url 'api_v1:api-root' %}">
-        {% trans 'ChatNoir REST API' %}
+        {{ name }}
     </a>
 {% endblock %}

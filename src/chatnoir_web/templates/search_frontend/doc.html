@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static chatnoir_tags %}
     <meta charset="utf-8">
-    <title>{{ meta.title }} - ChatNoir Documentation</title>
+    <title>{{ meta.title }} - {% app_name %} Documentation</title>
 
-    {% load static %}
-    {% include 'header.html' %}
+    {% include 'search_frontend/include/header.html' %}
     <link href="{% static 'css/prism.min.css' %}" rel="stylesheet">
 </head>
 <body class="search-page">
     <div id="Main" class="container">
-        {% include 'search-header.html' %}
+        {% include 'search_frontend/include/search-header.html' %}
 
         {% if not is_index %}
         <section>
@@ -32,7 +32,7 @@
         </section>
     </div>
 
-    {% include 'footer.html' %}
+    {% include 'search_frontend/include/footer.html' %}
     <script src="{% static 'js/prism.min.js' %}"></script>
     <script>
         $("pre > code").each((index, el) => {

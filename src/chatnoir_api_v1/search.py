@@ -115,7 +115,12 @@ class SimpleSearch(SearchBase):
     Simple search (version 1).
     """
 
-    """Available user query filters."""
+    """
+    Available user query filters.
+    
+    Assumes string matching by default. Add "<>" to the name to enable numeric range queries (e.g. "year<>").
+    #index is a special placeholder value for user-selected index names.
+    """
     QUERY_FILTERS = {
         'site': 'warc_target_hostname.raw',
         'lang': 'lang',
@@ -165,6 +170,20 @@ class SimpleSearch(SearchBase):
             'name': 'warc_target_hostname.raw',
             'fuzzy_matching': True,
             'boost': 10
+        }
+    ]
+
+    """Highlight fields for snippets"""
+    HIGHLIGHT_FIELDS = [
+        {
+            'name': 'title_lang.%lang%',
+            'fragment_size': 70,
+            'number_of_fragments': 1
+        },
+        {
+            'name': 'body_lang.%lang%',
+            'fragment_size': 300,
+            'number_of_fragments': 1
         }
     ]
 
@@ -237,17 +256,18 @@ class SimpleSearch(SearchBase):
                     terminate_after=self.NODE_LIMIT,
                     track_total_hits=True,
                     explain=self.explain)
-             .highlight('title_lang.' + self.search_language, fragment_size=70, number_of_fragments=1)
-             .highlight('body_lang.' + self.search_language, fragment_size=300, number_of_fragments=1)
              .highlight_options(encoder='html'))
+
+        for h in self.HIGHLIGHT_FIELDS:
+            s = s.highlight(self.replace_lang_placeholder(h['name']), **{k: v for k, v in h.items() if k != 'name'})
 
         rescore_query = self._build_rescore_query(query_string)
         if rescore_query is not None:
             s = s.extra(rescore=dict(
                 window_size=self.RESCORE_WINDOW,
                 query=dict(
-                    query_weight=0.0,
-                    rescore_query_weight=1.0,
+                    query_weight=0.01,
+                    rescore_query_weight=0.99,
                     score_mode='total',
                     rescore_query=rescore_query.to_dict()
                 )
@@ -266,36 +286,53 @@ class SimpleSearch(SearchBase):
 
         query_string = re.sub(r'(?!\B"[^"]*) AND (?![^"]*"\B)', ' +', query_string)
         query_string = re.sub(r'(?!\B"[^"]*) OR (?![^"]*"\B)', ' | ', query_string)
+        query_string_orig = query_string
 
         filter_query = Q('bool', filter=[])
+
         for filter_keyword in self.QUERY_FILTERS:
-
-            filter_match = re.search(r'(?:^|\s)({}):\s*((\S+)(?:$|\s))'.format(re.escape(filter_keyword)), query_string)
-            if not filter_match:
-                continue
-
-            # Remove filter from query string
-            query_string = query_string[:filter_match.start(1)] + query_string[filter_match.end(2):]
-            filter_value = filter_match.group(3)
-
-            # Build filter term
             filter_field = self.QUERY_FILTERS[filter_keyword]
 
-            # Special case: index
-            if filter_field == '#index':
-                self._indexes_unvalidated = [i.strip() for i in filter_value.split(',')]
-                continue
+            is_range = filter_keyword.endswith('<>')
+            value_match = r'("[^"]+"|[^"]\S*)' if not is_range else r'(\d+)'
+            filter_keyword = filter_keyword.strip('<>')
+            kw_esc = re.escape(filter_keyword)
 
-            # Special case: hostname
-            if filter_field == 'warc_target_hostname.raw':
-                self.group_results_by_hostname = False
+            for filter_match in re.finditer(
+                    rf'(?:^|(?<=\s))({kw_esc})([<>]=?|[=:])\s*{value_match}(?:$|\s)',
+                    query_string_orig):
+                filter_value = filter_match.group(3).strip()
 
-            # Special case: language
-            if filter_field == 'lang':
-                self.search_language = filter_value
-                self.user_lang_override = True
+                if is_range and not filter_value.isdigit():
+                    continue
 
-            filter_query.filter.append(Q('term', **{filter_field: filter_value}))
+                # Remove filter from query string
+                query_string = query_string.replace(query_string_orig[filter_match.start():filter_match.end()], '', 1)
+
+                # Special case: index
+                if filter_field == '#index':
+                    self._indexes_unvalidated = [i.strip() for i in filter_value.split(',')]
+                    continue
+
+                # Special case: hostname
+                if filter_field == 'warc_target_hostname.raw':
+                    self.group_results_by_hostname = False
+
+                # Special case: language
+                if filter_field == 'lang':
+                    self.search_language = filter_value
+                    self.user_lang_override = True
+
+                if is_range and filter_match.group(2) in ('<', '<=', '>', '>='):
+                    filter_query.filter.append(
+                        Q('range', **{filter_field: {
+                            ('lte' if filter_match.group(2).startswith('<') else 'gte'): filter_value}
+                        }))
+                else:
+                    query_type = 'match_phrase' if ' ' in filter_value else 'match'
+                    filter_query.filter.append(Q(query_type, **{filter_field: filter_value.strip('"')}))
+
+            query_string_orig = query_string.strip()
 
         query_string = query_string.strip()
         return query_string, filter_query
@@ -424,18 +461,12 @@ class PhraseSearch(SimpleSearch):
         }
     ]
 
-    """Collapse search results based on field"""
-    COLLAPSE_FIELD = 'warc_target_hostname.raw'
-
     """Terminate search after this many results per node."""
     NODE_LIMIT = 4000
 
     def __init__(self, indexes, search_from=0, num_results=10, explain=False, slop=None):
         super().__init__(indexes, search_from, num_results, explain)
         self.slop = slop or self.DEFAULT_SLOP
-
-    def _build_search_request(self, query_string):
-        return super()._build_search_request(query_string).extra(collapse={'field': self.COLLAPSE_FIELD})
 
     def _build_pre_query(self, query_string):
         pre_query = Q('bool', filter=[], must_not=[])
@@ -446,7 +477,7 @@ class PhraseSearch(SimpleSearch):
 
         pre_query.must = []
         main_fields = set()
-        for f in PhraseSearch.MAIN_FIELDS:
+        for f in self.MAIN_FIELDS:
             fname = self.replace_lang_placeholder(f['name'])
             main_fields.add(fname)
             pre_query.must.append(Q('match_phrase', **{fname: dict(

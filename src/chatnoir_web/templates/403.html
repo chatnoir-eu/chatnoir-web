@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Oops! Error: 403 Forbidden - ChatNoir</title>
+    {% load chatnoir_tags %}
+    <title>Oops! Error: 403 Forbidden - {% app_name %}</title>
 
     {% load static %}
-    {%  include 'header.html' %}
+    {%  include 'search_frontend/include/header.html' %}
 </head>
 <body class="search-page">
     <div id="Main" class="container error">
         <section id="Error">
-            <object id="Logo" type="image/svg+xml" data="{% static '../static/img/chatnoir-cat-only.svg' %}">
+            <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir-cat-only.svg' %}">
                 ChatNoir Logo
             </object>
             <div class="message">
@@ -22,6 +23,6 @@
         </section>
     </div>
 
-    {% include 'footer.html' %}
+    {% include 'search_frontend/include/footer.html' %}
 </body>
 </html>

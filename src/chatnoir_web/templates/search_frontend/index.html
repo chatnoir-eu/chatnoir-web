@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static chatnoir_tags %}
     <meta charset="utf-8">
-    <title>ChatNoir</title>
+    <title>{% app_name %}</title>
 
-    {% load static %}
-    {% include 'header.html' %}
+    {% include 'search_frontend/include/header.html' %}
 </head>
 <body class="index-page">
 <div id="Main" class="container">
     <div id="LogoWrapper">
         <a rel="home" href="{{ contextPath }}/" title="ChatNoir">
             <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir.svg' %}">
-                ChatNoir Logo
+                {% app_name %} Logo
             </object>
         </a>
     </div>
     <form role="search" action="{% url 'search:index' %}">
-        {% include 'search-field.html' %}
+        {% include 'search_frontend/include/search-field.html' %}
     </form>
 </div>
 
-{% include 'footer.html' %}
+{% include 'search_frontend/include/footer.html' %}
 </body>
 </html>

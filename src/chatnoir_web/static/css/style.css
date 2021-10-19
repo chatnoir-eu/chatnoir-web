@@ -388,16 +388,20 @@ a {
     margin: -.1rem 0 -.4rem 0;
 }
 
-.meta .link {
-    display: inline-block;
+.meta a, .meta span {
     font-weight: normal;
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 80%;
     color: #006621;
+}
+
+.meta > a, .meta > span {
+    display: inline-block;
+    max-width: 80%;
+    overflow: hidden;
     padding-left: 2px;  /* don't cut off glyphs */
     margin-left: -2px;
+    margin-top: .2em;
 }
 
 .meta .dropdown {

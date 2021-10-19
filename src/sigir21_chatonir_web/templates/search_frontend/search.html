@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% load static l10n chatnoir_tags %}
+    {% load static l10n chatnoir_tags chatonir_tags %}
     <meta charset="utf-8">
     <title>{% if search_query %}{{ search_query }} - {% endif %}{% app_name %}</title>
 
@@ -21,23 +21,37 @@
             {% for result in search_results %}
                 <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.uuid }}"{% if result.explanation %} data-explanation="{{ result.explanation | json }}"{% endif %}>
                     <header>
-                        <h2><a href="{%  url 'search:cache' %}?uuid={{ result.uuid | urlencode }}&index={{ result.index | urlencode }}&q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}">{{ result.title | safe }}</a></h2>
+                        <h2><a href="{{ result.anthology_uri }}">{{ result.title | safe }}</a></h2>
                         <div class="meta">
-                            <a href="{{ result.target_uri }}" class="link">{% if result.target_hostname %}{{ result.target_hostname }}{{ result.target_path }}{% endif %}</a>
+                            {% if result.authors %}
+                                <span>{{ result.authors | author_list:True | safe }}</span>
+                            {% endif %}
+                            {% if result.venue %}
+                                {% if result.authors  %}<span>&middot;</span>{% endif %}
+                                <a href="{%  url 'search:index' %}?q=venue%3A{{ result.venue | urlencode }}">{{ result.venue }}</a>
+                            {% endif %}
+                            {% if result.year %}
+                                {% if result.authors or result.venue %}<span>&middot;</span>{% endif %}
+                                <a href="{%  url 'search:index' %}?q=year%3A{{ result.year | urlencode }}">{{ result.year | stringformat:"s" }}</a>
+                            {% endif %}
+                            {% if result.doi %}
+                                {% if result.authors or result.venue or result.year %}<span>&middot;</span>{% endif %}
+                                <a href="{% if result.doi %}https://doi.org/{{ result.doi }}{% else %}#{% endif %}" class="link">{{ result.doi }}</a>
+                            {% endif %}
+
                             <div class="dropdown">
                                 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                                    <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{ result.target_uri }}">Web Link</a></li>
-                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{%  url 'search:cache' %}?uuid={{ result.uuid | urlencode }}&amp;index={{ result.index | urlencode }}&amp;plain">Plaintext</a></li>
+                                    <li role="presentation" class="result-anthology-link"><a role="menuitem" tabindex="-1" href="{{ result.anthology_uri }}">IR Anthology Link</a></li>
+                                    <li role="presentation" class="result-doi-link"><a role="menuitem" tabindex="-1" href="https://doi.org/{{ result.doi }}">DOI Link</a></li>
                                     <li role="presentation" class="divider"></li>
-                                    <li role="presentation" class="dropdown-header">Index: {% if result.display_index %}{{ result.display_index }}{% else %}{{ result.index }}{% endif %}</li>
-                                    <li role="presentation" class="dropdown-header">Document ID: {{ result.uuid }}</li>
-                                    {% if result.trec_id %}<li role="presentation" class="dropdown-header">TREC ID: {{ result.trec_id }}</li>{% endif %}
+                                    <li role="presentation" class="dropdown-header">Anthology ID: {{ result.anthology_id }}</li>
                                     <li role="presentation" class="dropdown-header">Score: {{ result.score | floatformat:3 }}</li>
-                                    <li role="presentation" class="dropdown-header">Page Rank: {% if result.page_rank %}{{ result.page_rank | floatformat:3 }}{% else %}none{% endif %}</li>
-                                    <li role="presentation" class="dropdown-header">Spam Rank: {% if result.spam_rank %}{{ result.spam_rank }}{% else %}none{% endif %}</li>
+                                    <li role="presentation" class="dropdown-header">Author{% if result.authors|length != 1 %}s{% endif %}: {{ result.authors | author_list }}
+                                    <li role="presentation" class="dropdown-header">Venue: {{ result.venue | default:"unknown" }}</li>
+                                    <li role="presentation" class="dropdown-header">Year: {{ result.year | stringformat:"s" | default:"unknown" }}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
                                         <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}&explain#result-{{ result.uuid | urlencode }}">Explain</a>

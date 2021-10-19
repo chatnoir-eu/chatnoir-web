@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static chatnoir_tags %}
     <meta charset="utf-8">
-    <title>ChatNoir Cached Webpage</title>
+    <title>{% app_name %} Cached Webpage</title>
 
-    {% load static %}
-    {% include 'header.html' %}
+    {% include 'search_frontend/include/header.html' %}
 </head>
 <body class="cache-page">
-    {% include 'maintenance.html' %}
+    {% include 'search_frontend/include/maintenance.html' %}
     <div id="Main" class="container">
         <div id="CacheHeader">
             <div id="LogoWrapper">
@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    {% include 'footer.html' %}
+    {% include 'search_frontend/include/footer.html' %}
 
     <script>
         let meta = $('#CacheMeta');
