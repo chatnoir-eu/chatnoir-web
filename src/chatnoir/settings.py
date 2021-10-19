@@ -125,6 +125,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 STATIC_ROOT = os.path.join(BASE_DIR, 'data', 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'chatnoir_ui', 'dist'),
     os.path.join(BASE_DIR, 'chatnoir_web', 'static')
 ]
 
