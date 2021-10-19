@@ -2,7 +2,7 @@ from django.urls import include, path, reverse_lazy
 from django.contrib import admin
 from django.views.generic import RedirectView
 
-app_name = 'main'
+app_name = 'chatnoir'
 
 urlpatterns = [
     path(r'', include('chatnoir_web.urls')),

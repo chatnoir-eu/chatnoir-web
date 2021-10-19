@@ -20,7 +20,7 @@
                     {% if forloop.last %}
                     {{ crumb.title }}
                     {% else %}
-                    <a href="{% url 'search:doc' %}{{ crumb.path }}">{{ crumb.title }}</a> »
+                    <a href="{% url 'chatnoir_web:doc' %}{{ crumb.path }}">{{ crumb.title }}</a> »
                     {% endif %}
                 {% endfor %}
             </div>

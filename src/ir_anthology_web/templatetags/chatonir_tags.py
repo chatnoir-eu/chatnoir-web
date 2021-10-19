@@ -13,7 +13,7 @@ def author_list(authors, link_targets=False):
     authors_last = [a.split(' ')[-1] for a in authors]
 
     if link_targets:
-        link_base = f'{reverse("search:index")}?q=author%3A'
+        link_base = f'{reverse("chatnoir_web:index")}?q=author%3A'
         authors_last = [
             f'<a href="{"".join((link_base, "%22", url_quote(authors[i].lower()), "%22"))}">{html_escape(al)}</a>'
             for i, al in enumerate(authors_last)]

@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from . import views
 
-app_name = 'api_v1'
+app_name = 'chatnoir_api_v1'
 
 router_v1 = routers.DefaultRouter(trailing_slash=False)
 router_v1.APIRootView = views.APIRoot

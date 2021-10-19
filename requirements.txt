@@ -5,8 +5,6 @@ django>=3.1
 djangorestframework
 elasticsearch
 elasticsearch-dsl
-mistune==2.0.0a5
-psycopg2-binary
 python-frontmatter
 typing
 uwsgi

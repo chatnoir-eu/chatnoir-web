@@ -21,7 +21,7 @@
             {% for result in search_results %}
                 <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.uuid }}"{% if result.explanation %} data-explanation="{{ result.explanation | json }}"{% endif %}>
                     <header>
-                        <h2><a href="{%  url 'search:cache' %}?uuid={{ result.uuid | urlencode }}&index={{ result.index | urlencode }}&q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}">{{ result.title | safe }}</a></h2>
+                        <h2><a href="{%  url 'chatnoir_web:cache' %}?uuid={{ result.uuid | urlencode }}&index={{ result.index | urlencode }}&q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}">{{ result.title | safe }}</a></h2>
                         <div class="meta">
                             <a href="{{ result.target_uri }}" class="link">{% if result.target_hostname %}{{ result.target_hostname }}{{ result.target_path }}{% endif %}</a>
                             <div class="dropdown">
@@ -30,7 +30,7 @@
                                 </button>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                                     <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{ result.target_uri }}">Web Link</a></li>
-                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{%  url 'search:cache' %}?uuid={{ result.uuid | urlencode }}&amp;index={{ result.index | urlencode }}&amp;plain">Plaintext</a></li>
+                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{%  url 'chatnoir_web:cache' %}?uuid={{ result.uuid | urlencode }}&amp;index={{ result.index | urlencode }}&amp;plain">Plaintext</a></li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="dropdown-header">Index: {% if result.display_index %}{{ result.display_index }}{% else %}{{ result.index }}{% endif %}</li>
                                     <li role="presentation" class="dropdown-header">Document ID: {{ result.uuid }}</li>
@@ -40,7 +40,7 @@
                                     <li role="presentation" class="dropdown-header">Spam Rank: {% if result.spam_rank %}{{ result.spam_rank }}{% else %}none{% endif %}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}&explain#result-{{ result.uuid | urlencode }}">Explain</a>
+                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'chatnoir_web:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}&explain#result-{{ result.uuid | urlencode }}">Explain</a>
                                     </li>
                                 </ul>
                             </div>
@@ -50,7 +50,7 @@
                 </article>
                 {% if result.is_more_suggested %}
                     <div class="more-from-host">
-                        <a href="{%  url 'search:index' %}?q=site:{{ result.target_hostname }}+{{ search_query | urlencode }}">More results from {{ result.target_hostname }}</a>
+                        <a href="{%  url 'chatnoir_web:index' %}?q=site:{{ result.target_hostname }}+{{ search_query | urlencode }}">More results from {{ result.target_hostname }}</a>
                     </div>
                 {% endif %}
 
@@ -63,7 +63,7 @@
                 <ul class="pagination">
                     {% for p in serp_context.pagination.pages %}
                         <li{% if p.num == serp_context.pagination.current_page %} class="active"{% endif %}>
-                            <a href="{%  url 'search:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.serp_context.explain %}&explain{% endif %}{% for i in serp_context.search.indexes %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
+                            <a href="{%  url 'chatnoir_web:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.serp_context.explain %}&explain{% endif %}{% for i in serp_context.search.indexes %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
                             {% if p.label_aria %}
                                 <span aria-hidden="true">{{ p.label }}</span>
                                 <span class="sr-only">{{ p.label_aria }}</span>

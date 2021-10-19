@@ -12,7 +12,7 @@
     <div id="Main" class="container">
         <div id="CacheHeader">
             <div id="LogoWrapper">
-                <a rel="home" href="{%  url 'search:index' %}" title="ChatNoir">
+                <a rel="home" href="{%  url 'chatnoir_web:index' %}" title="ChatNoir">
                     <img src="{% static 'img/chatnoir.svg' %}" id="Logo" alt="ChatNoir Logo">
                 </a>
             </div>
@@ -25,16 +25,16 @@
                 </div>
                 <p>
                 {% if cache.search_query %}
-                    <a href="{%  url 'search:index' %}?q={{ cache.search_query | urlencode }}&index={{ cache.index }}{% if cache.search_page %}&p={{ cache.search_page }}{% endif %}" class="back">Back to search</a> –
+                    <a href="{%  url 'chatnoir_web:index' %}?q={{ cache.search_query | urlencode }}&index={{ cache.index }}{% if cache.search_page %}&p={{ cache.search_page }}{% endif %}" class="back">Back to search</a> –
                 {% endif %}
                     <a href="{{ cache.meta.warc_target_uri }}" class="weblink" target="_blank">View original web page</a> –
-                    <a href="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}" class="html"{% if not cache.is_plaintext_mode %} style="display: none"{% endif %}>View original HTML</a>
-                    <a href="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;plain" class="plaintext"{% if cache.is_plaintext_mode %} style="display: none"{% endif %}>View plain text</a>
+                    <a href="{%  url 'chatnoir_web:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}" class="html"{% if not cache.is_plaintext_mode %} style="display: none"{% endif %}>View original HTML</a>
+                    <a href="{%  url 'chatnoir_web:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;plain" class="plaintext"{% if cache.is_plaintext_mode %} style="display: none"{% endif %}>View plain text</a>
                 </p>
             </div>
         </div>
         <div id="CacheResult">
-            <iframe src="{%  url 'search:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;raw{% if cache.is_plaintext_mode %}&amp;plain{% endif %}"></iframe>
+            <iframe src="{%  url 'chatnoir_web:cache' %}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;raw{% if cache.is_plaintext_mode %}&amp;plain{% endif %}"></iframe>
         </div>
     </div>
 
