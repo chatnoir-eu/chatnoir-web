@@ -83,17 +83,15 @@ WSGI_APPLICATION = 'chatnoir.wsgi.application'
 
 
 # Database
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'data', 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
 
 # Password validation
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -126,7 +124,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'chatnoir_ui', 'dist'),
+    os.path.join(BASE_DIR, '..', 'chatnoir_ui', 'dist'),
     os.path.join(BASE_DIR, 'chatnoir_web', 'static')
 ]
 
@@ -135,7 +133,7 @@ STATICFILES_DIRS = [
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
-        'STATS_FILE': os.path.join(BASE_DIR, 'chatnoir_ui', 'webpack-stats.json'),
+        'STATS_FILE': os.path.join(BASE_DIR, '..', 'chatnoir_ui', 'webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'IGNORE': [r'.+\.hot-update.js', r'.+\.map'],
     }
@@ -143,7 +141,6 @@ WEBPACK_LOADER = {
 
 
 # Search settings (override me)
-
 ELASTICSEARCH_PROPERTIES = {
     'hosts': ['localhost:9200'],
     'retry_on_timeout': True,

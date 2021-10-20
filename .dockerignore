@@ -5,7 +5,7 @@
 **/*.pyc
 **/local_settings.py
 *.sqlite3
-src/data/
-**/node_modules/
-**/dist/
-**/webpack-stats.json
+
+chatnoir_ui/dist/
+chatnoir_ui/node_modules/
+chatnoir_ui/webpack-stats.json

@@ -10,14 +10,35 @@ media
 venv/
 src/data
 
+### NPM, Webpack
+node_modules
+dist/
+webpack-stats.json
+
+### Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
 ### IDEs and temporary files
 .idea
 .swp
 *~
 *.tmp
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 ### OS-specific
 .directory
 desktop.ini
 Thumbs.db
 .DS_Store
+
+### local env files
+.env.local
+.env.*.local
