@@ -6,7 +6,7 @@ import os
 from django.utils.log import DEFAULT_LOGGING
 
 APPLICATION_NAME = 'ChatNoir'
-
+DEBUG = False
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALLOWED_HOSTS = ['*']
 X_FRAME_OPTIONS = 'SAMEORIGIN'
@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'webpack_loader',
     'rest_framework'
 ]
 
@@ -122,12 +123,23 @@ USE_THOUSAND_SEPARATOR = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Static files (CSS, JavaScript, Images)
-STATIC_ROOT = os.path.join(BASE_DIR, 'data', 'static')
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'chatnoir_ui', 'dist'),
     os.path.join(BASE_DIR, 'chatnoir_web', 'static')
 ]
+
+
+# Webpack loader
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': not DEBUG,
+        'STATS_FILE': os.path.join(BASE_DIR, 'chatnoir_ui', 'webpack-stats.json'),
+        'POLL_INTERVAL': 0.1,
+        'IGNORE': [r'.+\.hot-update.js', r'.+\.map'],
+    }
+}
 
 
 # Search settings (override me)

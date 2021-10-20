@@ -16,7 +16,7 @@ from chatnoir_api_v1.views import bool_param_set
 
 def index(request):
     if not request.GET.get('q'):
-        return render(request, 'search_frontend/index.html')
+        return render(request, 'index.html')
 
     query_string = request.GET.get('q')
 
@@ -37,7 +37,7 @@ def index(request):
         'serp_context': serp_context,
         'search_results': serp_context.results
     }
-    return render(request, 'search_frontend/search.html', context)
+    return render(request, 'search.html', context)
 
 
 def webis_uuid(prefix, doc_id):
@@ -76,7 +76,7 @@ def cache(request):
     elif request.GET.get('url'):
         doc = cache_doc.retrieve_by_filter(request.GET['index'], warc_target_uri=request.GET['url'])
         if not doc:
-            return render(request, 'search_frontend/cache-redirect.html', {'uri': request.GET['url']})
+            return render(request, 'cache-redirect.html', {'uri': request.GET['url']})
 
     if not doc:
         raise Http404()
@@ -95,7 +95,7 @@ def cache(request):
     if raw_mode:
         return HttpResponse(doc['body'], content_type, 200)
 
-    return render(request, 'search_frontend/cache.html', context)
+    return render(request, 'cache.html', context)
 
 
 def doc(request, subpath=''):
@@ -116,7 +116,7 @@ def doc(request, subpath=''):
     cache_key = '.'.join((__name__, 'doc', subpath))
     context = django_cache.get(cache_key)
     if context:
-        return render(request, 'search_frontend/doc.html', context)
+        return render(request, 'doc.html', context)
 
     source_doc = frontmatter.load(doc_path)
     rendered = mistune.html(source_doc.content)
@@ -136,4 +136,4 @@ def doc(request, subpath=''):
         'doc_content': rendered
     }
     django_cache.set(cache_key, context, timeout=settings.DOC_PAGE_CACHE_TIMEOUT)
-    return render(request, 'search_frontend/doc.html', context)
+    return render(request, 'doc.html', context)

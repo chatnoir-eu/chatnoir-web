@@ -6,3 +6,6 @@
 **/local_settings.py
 *.sqlite3
 src/data/
+**/node_modules/
+**/dist/
+**/webpack-stats.json
