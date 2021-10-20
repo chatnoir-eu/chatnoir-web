@@ -11,12 +11,11 @@ module.exports = {
     pages: {
         index: {
             entry: path.join(__dirname, 'src', 'main.js'),
-            template: path.join(__dirname, 'src', 'index.html')
+            title: 'ChatNoir'
         }
     },
 
     devServer: {
-        public: 'localhost:8080',
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
@@ -27,6 +26,9 @@ module.exports = {
             new BundleTracker({
                 filename: path.join(__dirname, 'webpack-stats.json')
             }),
-        ]
-    },
+        ],
+        cache: {
+            type: 'filesystem',
+        }
+    }
 }

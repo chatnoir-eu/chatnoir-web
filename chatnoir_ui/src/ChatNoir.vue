@@ -17,6 +17,9 @@ export default {
     components: {
         SearchField,
         WebisFooter
+    },
+    mounted() {
+        document.title = 'ChatNoir'
     }
 }
 </script>
