@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import WebisFooter from "@/components/foo/WebisFooter";
+import WebisFooter from "@/components/WebisFooter";
 
 export default {
     name: 'ChatNoirApp',
