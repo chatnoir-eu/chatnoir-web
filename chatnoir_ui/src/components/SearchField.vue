@@ -1,6 +1,6 @@
 <template>
-<div :class="[$style['search-field'], {focussed: focussed}]">
-    <input type="search" name="search" placeholder="Search…" @focus="focussed = true" @blur="focussed = false">
+<div :class="$style['search-field']">
+    <input type="search" name="search" placeholder="Search…" class="text-field">
     <button type="submit">
         <svg aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
             <path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"></path>
@@ -10,13 +10,6 @@
 </template>
 
 <script>
-export default {
-    data() {
-        return {
-            focussed: false
-        }
-    }
-}
 </script>
 
 <style module>
@@ -25,46 +18,34 @@ export default {
     @apply relative;
     @apply inline-block;
     @apply my-3 mx-5;
-    @apply text-gray-800;
+
+    input[type="search"] {
+        @apply w-full;
+        @apply px-6 py-3;
+        @apply mx-2 my-1;
+    }
+
+    button {
+        @apply absolute;
+        @apply top-0 right-0;
+        @apply mr-5 mt-5;
+        @apply outline-none;
+        @apply text-red-400;
+
+        svg {
+            @apply fill-current;
+            @apply h-4;
+        }
+    }
+
+    &:hover button, button:hover,
+    &:focus-within button, button:focus{
+        @apply text-red-500;
+    }
+
+    &:focus-within input[type="search"] {
+        @apply shadow-md;
+    }
 }
 
-.search-field input[type="search"] {
-    @apply w-full;
-    @apply border border-gray-300;
-    @apply bg-white;
-    @apply py-3 pl-6 pr-12;
-    @apply rounded-full;
-    @apply shadow-inner;
-    @apply shadow-sm;
-    @apply hover:border-red-300;
-    @apply focus:shadow-md focus:border-red-400 focus:outline-none;
-}
-
-.search-field button[type="submit"] {
-    @apply absolute;
-    @apply top-0 right-0;
-    @apply mr-6 mt-4;
-}
-
-.search-field button[type="submit"] svg {
-    @apply fill-current;
-    @apply text-red-400;
-    @apply h-4;
-}
-
-.search-field:hover input[type="search"] {
-    @apply border-red-400;
-    @apply shadow-md;
-}
-
-.search-field:hover button[type="submit"] svg .search-field.focussed button[type="submit"] svg {
-    @apply text-red-500;
-}
-
-input[type="search"]::-webkit-search-decoration,
-input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-results-button,
-input[type="search"]::-webkit-search-results-decoration {
-    display: none;
-}
 </style>

@@ -1,3 +1,156 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html {
+        @apply text-gray-700;
+    }
+
+    a {
+        @apply text-red-600;
+        @apply underline hover:no-underline focus:no-underline;
+    }
+
+    input[type="search"]::-webkit-search-decoration,
+    input[type="search"]::-webkit-search-cancel-button,
+    input[type="search"]::-webkit-search-results-button,
+    input[type="search"]::-webkit-search-results-decoration {
+        display: none;
+    }
+
+    input, button, select, textarea, optgroup, label {
+        @apply text-gray-700;
+        @apply align-middle;
+    }
+
+    button, input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"], label {
+        @apply cursor-pointer;
+    }
+
+    label {
+        @apply mr-4;
+    }
+}
+
+@layer components {
+    .btn, .text-field, .chk, .radio {
+        @apply shadow-sm;
+        @apply outline-none;
+    }
+
+    .btn, .text-field {
+        @apply border border-gray-300 rounded-full;
+        @apply m-2;
+        @apply px-6 py-2;
+        @apply bg-white;
+        @apply text-gray-600;
+
+        &:hover {
+            @appy border-gray-500;
+            @apply text-gray-700;
+        }
+
+        &:focus {
+            @apply text-gray-800;
+        }
+    }
+
+    .text-field {
+        @apply shadow-inner;
+
+        &:hover, &:focus {
+            @apply shadow-md;
+        }
+    }
+
+    .btn {
+        @apply text-gray-800;
+        @apply bg-gray-200;
+        @apply border-gray-200;
+        @apply w-auto;
+
+        &:hover, &:focus {
+            @apply bg-gray-300;
+            @apply border-gray-300;
+            @apply text-gray-900;
+        }
+
+        &:active {
+            @apply shadow-inner;
+            @apply border-gray-400;
+        }
+
+        &.primary {
+            @apply bg-red-400;
+            @apply border-red-400;
+            @apply text-white;
+
+            &:hover, &:focus {
+                @apply border-red-500;
+                @apply bg-red-500;
+            }
+
+            &:active {
+                @apply shadow-inner;
+                @apply border-red-700;
+            }
+        }
+    }
+
+    .chk, .radio {
+        @apply appearance-none;
+        @apply border border-red-400 rounded-sm;
+        @apply h-6 w-6;
+        @apply mx-3;
+        @apply align-middle;
+        @apply relative;
+
+        &:checked {
+            @apply bg-red-400;
+        }
+
+        &:hover, &:focus {
+            @apply border-red-500;
+        }
+
+        &:checked:hover, &:checked:focus {
+            @apply bg-red-500;
+        }
+
+        &:active {
+            @apply shadow-inner;
+            @apply border-red-700;
+        }
+    }
+
+    .chk:checked::before {
+        @apply border-white;
+        @apply absolute;
+        @apply transform rotate-45;
+        @apply box-border;
+        content: "";
+        border-bottom-width: .2rem;
+        border-right-width: .2rem;
+        width: .6rem;
+        height: 1rem;
+        bottom: calc(50% - .4rem);
+        left: calc(50% - .26rem);
+    }
+
+    .radio {
+        @apply rounded-full;
+
+        &:checked::before {
+            @apply bg-white;
+            @apply absolute;
+            @apply rounded-full;
+            @apply box-border;
+            content: "";
+            width:.75rem;
+            height: .75rem;
+            top: calc(50% - .75rem / 2);
+            left: calc(50% - .75rem / 2);
+        }
+    }
+}

@@ -1,6 +1,6 @@
 <template>
 
-<footer :class="$style.footer" class="h-30 bg-gray-100 text-gray-600 text-xs">
+<footer :class="$style.footer">
     <div class="max-w-screen-xl mx-auto p-6 flex justify-between">
         <div>
             <a :href="pubLink">Cite</a>
@@ -32,17 +32,26 @@ export default {
 </script>
 
 <style module>
-.sep {
-    @apply px-2;
+
+.footer {
+    background: #f7f7f7;
+    color: #666;
+    @apply text-xs;
+
+    .sep {
+        @apply px-2;
+    }
+
+    a {
+        color: inherit;
+        @apply no-underline;
+        @apply hover:underline;
+    }
+
+    svg {
+        fill: #777;
+        @apply inline-block;
+    }
 }
 
-.footer a {
-    @apply hover:underline;
-}
-
-.footer svg {
-    @apply fill-current;
-    @apply text-gray-500;
-    @apply inline-block;
-}
 </style>
