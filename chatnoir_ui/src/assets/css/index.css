@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+    @import url('fonts.css');
+
     html {
         @apply text-gray-700;
+        font-size: 17px;
     }
 
     a {

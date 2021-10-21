@@ -1,9 +1,14 @@
 <template>
 
-<section id="app" class="flex flex-col h-screen justify-between">
-  <search-field/>
+<section id="app" class="flex flex-col h-screen">
+    <main class="flex-grow flex flex-row items-center w-full">
+        <div class="block mx-auto max-w-full mt-12 mb-32 sm:mb-56">
+            <img alt="ChatNoir Logo" aria-hidden="true" src="./assets/img/chatnoir.svg" class="h-40 block mx-auto">
+            <search-field/>
+        </div>
+    </main>
 
-  <webis-footer/>
+    <webis-footer/>
 </section>
 
 </template>
