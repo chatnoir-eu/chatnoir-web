@@ -1,6 +1,6 @@
 <template>
 <div :class="$style['search-field']">
-    <input type="search" name="search" placeholder="Search…" class="text-field" role="searchbox" autofocus autocomplete="off"
+    <input type="search" name="q" placeholder="Search…" class="text-field" role="searchbox" autofocus autocomplete="off"
            v-bind="$attrs" @keyup="changed()" ref="search-field">
     <button type="submit">
         <svg aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
