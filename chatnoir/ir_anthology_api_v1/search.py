@@ -118,13 +118,13 @@ class SerpContext(search_v1.SerpContext):
     API_FIELDS = API_MINIMAL_FIELDS | {'index', 'authors', 'venue', 'year', 'snippet'}
 
     @property
-    def results(self):
+    def hits(self):
         """
         Result list from the given hits list.
         """
 
         results = []
-        for hit in self.hits:
+        for hit in self.response.hits:
             full_text_key = 'full_text_lang.' + self.search.search_language
             abstract_key = 'abstract_lang.' + self.search.search_language
 
@@ -135,7 +135,7 @@ class SerpContext(search_v1.SerpContext):
             if not title:
                 title = '[ no title available ]'
 
-            result_index = self.index_name_to_shorthand(hit.meta.index)
+            result_index = self._index_name_to_shorthand(hit.meta.index)
 
             explanation = None
             if hasattr(hit.meta, 'explanation'):

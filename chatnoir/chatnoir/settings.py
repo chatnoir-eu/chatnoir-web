@@ -10,7 +10,7 @@ DEBUG = False
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALLOWED_HOSTS = ['*']
 X_FRAME_OPTIONS = 'SAMEORIGIN'
-
+CSRF_USE_SESSIONS = True
 
 # Application definition
 

@@ -1,7 +1,7 @@
 import math
 import re
 from abc import ABC, abstractmethod
-from collections import defaultdict, deque
+from collections import defaultdict, deque, Iterable
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -230,7 +230,7 @@ class SimpleSearch(SearchBase):
 
     def search(self, query_string):
         response = self._build_search_request(query_string).execute()
-        return SerpContext(self, response)
+        return SerpContext(query_string, self, response)
 
     def _build_search_request(self, query_string):
         """
@@ -498,6 +498,22 @@ class PhraseSearch(SimpleSearch):
         return None
 
 
+# noinspection PyPep8Naming
+class serp_api_meta(property):
+    """
+    Property indicating a basic response metadata property.
+    """
+    pass
+
+
+# noinspection PyPep8Naming
+class serp_api_meta_extra(property):
+    """
+    Property indicating an extended response metadata property.
+    """
+    pass
+
+
 class SerpContext:
     API_MINIMAL_FIELDS = {'score', 'uuid', 'target_uri', 'snippet'}
     API_FIELDS = API_MINIMAL_FIELDS | {'index', 'trec_id', 'target_hostname', 'page_rank', 'spam_rank', 'title'}
@@ -506,28 +522,46 @@ class SerpContext:
     Results page context with processed results.
     """
 
-    def __init__(self, search: SearchBase, response: Response):
+    def __init__(self, query_string: str, search: SearchBase, response: Response):
         """
+        :param query_string: original query string
         :param search: SimpleSearch object
         :param response: Elasticsearch DSL response
         """
+        self._query_string = query_string
         self.search = search
         self.response = response
-        self.hits = response.hits
-        self.results_from = self.search.search_from
-        self.results_size = len(self.hits)
-        self.pagination_size = 10
-        self.max_page = int(math.ceil(10000 / self.search.num_results))
-        self.explain = self.search.explain
+
+    def to_dict(self, hits=True, meta=True, meta_extra=False):
+        """
+        Return a single dict representation of this SERP context.
+
+        :param hits: include (filtered) hit list
+        :param meta: include basic meta data
+        :param meta_extra: include extended meta data
+        :return: dict representation
+        """
+        d = {}
+        if meta:
+            d['meta'] = self.meta
+        if meta_extra:
+            d['meta_extra'] = self.meta_extra
+        if hits:
+            d['hits'] = self.hits_filtered
+
+        return d
 
     @property
-    def results(self):
+    def hits(self):
         """
-        Result list from the given hits list.
+        List of search result hits.
+
+        Entries in this list contain all available fields, independent of the current search mode,
+        hence it should not be used as an API response. Use :attr:`hits_filtered` instead.
         """
 
         results = []
-        for hit in self.hits:
+        for hit in self.response.hits:
             body_key = 'body_lang.' + self.search.search_language
             meta_desc_key = 'meta_desc_lang.' + self.search.search_language
 
@@ -538,7 +572,7 @@ class SerpContext:
             if not title:
                 title = '[ no title available ]'
 
-            result_index = self.index_name_to_shorthand(hit.meta.index)
+            result_index = self._index_name_to_shorthand(hit.meta.index)
             target_uri = hit.warc_target_uri
 
             if result_index == 'cw09':
@@ -574,21 +608,38 @@ class SerpContext:
         return results
 
     @property
-    def results_api(self):
+    def hits_filtered(self):
         """
-        Result list stripped of internal fields suitable to be presented as an API response.
+        Key-filtered search results hit.
+
+        The list is stripped of internal fields or fields not compatible with the current search mode,
+        so it is suitable to be used directly in API responses.
         """
-        results = self.results
+        hits = self.hits
         fields = self.API_FIELDS.copy() if not self.search.minimal_response else self.API_MINIMAL_FIELDS.copy()
         if self.search.explain:
             fields.add('explanation')
 
-        for i in range(len(results)):
-            results[i] = {k: v for k, v in results[i].items() if k in fields}
+        for i in range(len(hits)):
+            hits[i] = {k: v for k, v in hits[i].items() if k in fields}
 
-        return results
+        return hits
 
-    def index_name_to_shorthand(self, index_name):
+    @property
+    def meta(self):
+        """
+        JSON-serializable object of basic search result meta data.
+        """
+        return {k: getattr(self, k) for k in dir(self) if isinstance(getattr(type(self), k, None), serp_api_meta)}
+
+    @property
+    def meta_extra(self):
+        """
+        JSON-serializable object of extended search result meta data.
+        """
+        return {k: getattr(self, k) for k in dir(self) if isinstance(getattr(type(self), k, None), serp_api_meta_extra)}
+
+    def _index_name_to_shorthand(self, index_name):
         """
         Inversely resolve internal index name to defined shorthand name.
 
@@ -628,24 +679,66 @@ class SerpContext:
 
         return grouped_results
 
-    @property
+    @serp_api_meta
+    def query_time(self):
+        return self.response.took
+
+    @serp_api_meta
+    def total_results(self):
+        return self.response.hits.total.value
+
+    @serp_api_meta
+    def indices(self):
+        return list(self.search.indexes.keys())
+
+    @serp_api_meta_extra
+    def query_string(self):
+        """
+        Original search query string.
+        """
+        return self._query_string
+
+    @serp_api_meta_extra
+    def pagination_size(self):
+        """
+        Number of hits per page.
+        """
+        return 10
+
+    @serp_api_meta_extra
+    def results_from(self):
+        """Index number of the first result."""
+        return self.search.search_from
+
+    @serp_api_meta_extra
     def results_to(self):
         """Index number of the last result."""
         return self.results_from + self.results_size
 
-    @property
-    def total_results(self):
-        return self.hits.total.value
+    @serp_api_meta_extra
+    def results_size(self):
+        """Number of results returned on this page."""
+        return len(self.response.hits)
 
-    @property
+    @serp_api_meta_extra
+    def max_page(self):
+        """
+        Maximum allowed page number for pagination.
+        """
+        return int(math.ceil(10000 / self.search.num_results))
+
+    @serp_api_meta_extra
+    def explain(self):
+        """
+        Whether to explain results.
+        """
+        return self.search.explain
+
+    @serp_api_meta_extra
     def terminated_early(self):
         return hasattr(self.response, 'terminated_early') and self.response.terminated_early
 
-    @property
-    def query_time(self):
-        return self.response.took
-
-    @property
+    @serp_api_meta_extra
     def pagination(self):
         current_page = min(self.search.page_num + 1, self.max_page)
         first_page = max(1, current_page - self.pagination_size // 2)
@@ -664,10 +757,5 @@ class SerpContext:
             'first_page': first_page,
             'last_page': last_page,
             'current_page': current_page,
-            'pages': pages
+            'pages': list(pages)
         }
-
-    @property
-    def available_indexes(self):
-        return [dict(v, **{'name': i, 'selected': i in self.search.indexes})
-                for i, v in settings.SEARCH_INDEXES.items()]

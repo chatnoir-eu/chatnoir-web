@@ -126,14 +126,7 @@ class SimpleSearchViewSet(ApiViewSet):
 
         # keep API response compatible
         indexes_key = 'indices' if (request.auth and request.auth.is_legacy_key) else 'indexes'
-        return Response({
-            'meta': {
-                'query_time': serp_ctx.query_time,
-                'total_results': serp_ctx.total_results,
-                indexes_key: list(serp_ctx.search.indexes.keys())
-            },
-            'results': serp_ctx.results_api
-        })
+        return Response(serp_ctx.to_dict(hits=True, meta=True, meta_extra=False))
 
     def post(self, request, **kwargs):
         params = SimpleSearchRequestSerializer(data=self._get_request_params(request))

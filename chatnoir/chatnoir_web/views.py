@@ -3,9 +3,11 @@ import uuid
 
 from django.core.cache import cache as django_cache
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import HttpResponse, render
 from django.utils.translation import gettext as _
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_http_methods, require_safe
 import frontmatter
 import mistune
 
@@ -14,10 +16,14 @@ from chatnoir_api_v1.search import SimpleSearch
 from chatnoir_api_v1.views import bool_param_set
 
 
+@require_safe
 def index(request):
-    if not request.GET.get('q'):
-        return render(request, 'index.html')
+    return render(request, 'index.html')
 
+
+@require_http_methods(['POST'])
+@csrf_protect
+def search(request):
     query_string = request.GET.get('q')
 
     page_num = request.GET.get('p', '0')
@@ -32,12 +38,7 @@ def index(request):
     search.explain = bool_param_set('explain', request.GET)
     serp_context = search.search(query_string)
 
-    context = {
-        'search_query': query_string,
-        'serp_context': serp_context,
-        'search_results': serp_context.results
-    }
-    return render(request, 'search.html', context)
+    return JsonResponse(serp_context.to_dict(hits=True, meta=True, meta_extra=True))
 
 
 def webis_uuid(prefix, doc_id):
