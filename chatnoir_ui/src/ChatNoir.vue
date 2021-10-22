@@ -2,8 +2,8 @@
 
 <section id="app" class="flex flex-col h-screen">
     <main class="flex-grow flex flex-row items-center w-full">
-        <div class="block mx-auto max-w-full mt-12 mb-32 sm:mb-56">
-            <img alt="ChatNoir Logo" aria-hidden="true" src="./assets/img/chatnoir.svg" class="h-40 block mx-auto">
+        <div class="block mx-auto max-w-full mt-12 mb-32 sm:mb-56 text-center">
+            <cat-logo class="block"/>
             <search-field/>
         </div>
     </main>
@@ -18,18 +18,20 @@
 </template>
 
 <script>
+import CatLogo from "@/components/CatLogo";
 import SearchField from "@/components/SearchField";
 import WebisFooter from "@/components/WebisFooter";
 
 export default {
     name: 'ChatNoirApp',
     components: {
+        CatLogo,
         SearchField,
         WebisFooter
     },
     mounted() {
         document.title = 'ChatNoir'
-    }
+    },
 }
 </script>
 
