@@ -2,9 +2,9 @@
 
 <section id="app" class="flex flex-col h-screen">
     <main class="flex-grow flex flex-row items-center w-full">
-        <div class="block mx-auto max-w-full mt-12 mb-32 sm:mb-56 text-center">
-            <cat-logo class="block"/>
-            <search-field/>
+        <div class="block mx-auto max-w-full mt-10 mb-32 sm:mb-64 text-center">
+            <cat-logo class="block" ref="cat-logo"/>
+            <search-field @changed="$refs['cat-logo'].purr()" />
         </div>
     </main>
 
@@ -31,7 +31,7 @@ export default {
     },
     mounted() {
         document.title = 'ChatNoir'
-    },
+    }
 }
 </script>
 
