@@ -8,7 +8,11 @@
         </div>
     </main>
 
-    <webis-footer/>
+    <webis-footer
+        copyright-start-year="2012"
+        contact-fragment="#bevendorff"
+        :additional-links="[{href: 'https://webis.de/publications.html?q=bevendorff_2018', anchor: 'Cite'}]"
+    />
 </section>
 
 </template>
