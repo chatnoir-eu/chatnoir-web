@@ -4,8 +4,8 @@
 -->
 
 <template>
-<search-view v-if="$route.query.q"/>
-<index-view v-else/>
+<index-view v-if="!$route.query.q"/>
+<search-view v-else/>
 </template>
 
 <script>

@@ -10,7 +10,10 @@ DEBUG = False
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALLOWED_HOSTS = ['*']
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 CSRF_USE_SESSIONS = True
+CSRF_HEADER_NAME = 'HTTP_X_TOKEN'
+CSRF_HEADER_SET_NAME = 'X-Token'
 
 # Application definition
 
@@ -24,18 +27,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'webpack_loader',
     'rest_framework'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 REST_FRAMEWORK = {
@@ -124,7 +129,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '..', 'chatnoir_ui', 'dist'),
     os.path.join(BASE_DIR, 'chatnoir_web', 'static')
 ]
 

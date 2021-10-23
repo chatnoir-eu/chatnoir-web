@@ -40,3 +40,5 @@ Before you can run the backend, you need to create a local configuration file (s
 ```bash
 ./manage.py runserver
 ```
+
+The web UI served by the Django server runs at `localhost:8080`. The Node development server runs at `localhost:8080`. You can use either one, but communication between front- end backend will only work properly with the former due to CORS- and CSRF protections. As long as the Node server is running also in the background, the frontend when served via Django on port `8000` will behave just as if served via Node. If you start only the Django server and not the Node development server, you will have to recompile the frontend manually with `npm run build` and reload the page in order so see changes.

@@ -3,7 +3,8 @@ import uuid
 
 from django.core.cache import cache as django_cache
 from django.conf import settings
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponseBadRequest, JsonResponse
+from django.middleware.csrf import get_token, rotate_token, CSRF_SESSION_KEY
 from django.shortcuts import HttpResponse, render
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_protect
@@ -21,10 +22,29 @@ def index(request):
     return render(request, 'index.html')
 
 
+def onetime_csrf(func):
+    """
+    Decorator for views that force CSRF token to be invalidated after use.
+    """
+    func = csrf_protect(func)
+
+    def wrapper(request):
+        if CSRF_SESSION_KEY in request.session:
+            del request.session[CSRF_SESSION_KEY]
+        rotate_token(request)
+        response = func(request)
+        return response
+
+    return wrapper
+
+
 @require_http_methods(['POST'])
-@csrf_protect
+@onetime_csrf
 def search(request):
     query_string = request.GET.get('q')
+
+    if not query_string:
+        return HttpResponseBadRequest('Missing search query.')
 
     page_num = request.GET.get('p', '0')
     if page_num is None or not page_num.isnumeric():
@@ -38,7 +58,8 @@ def search(request):
     search.explain = bool_param_set('explain', request.GET)
     serp_context = search.search(query_string)
 
-    return JsonResponse(serp_context.to_dict(hits=True, meta=True, meta_extra=True))
+    return JsonResponse(serp_context.to_dict(hits=True, meta=True, meta_extra=True),
+                        headers={settings.CSRF_HEADER_SET_NAME: get_token(request)})
 
 
 def webis_uuid(prefix, doc_id):
@@ -50,7 +71,7 @@ def webis_uuid(prefix, doc_id):
 
 def cache(request):
     if 'index' not in request.GET or request.GET.get('index') not in settings.SEARCH_INDEXES:
-        raise Http404()
+        raise Http404
 
     raw_mode = bool_param_set('raw', request.GET)
     plaintext_mode = bool_param_set('plain', request.GET)
@@ -80,7 +101,7 @@ def cache(request):
             return render(request, 'cache-redirect.html', {'uri': request.GET['url']})
 
     if not doc:
-        raise Http404()
+        raise Http404
 
     context['cache']['uuid'] = doc['meta'].meta.id
     context['cache']['meta'] = doc['meta']
@@ -105,14 +126,14 @@ def doc(request, subpath=''):
     doc_path = os.path.realpath(os.path.join(basedir, subpath))
 
     if os.path.commonpath((basedir, doc_path)) != basedir:
-        raise Http404()
+        raise Http404
 
     if os.path.isdir(doc_path):
         doc_path = os.path.join(doc_path, 'index')
 
     doc_path += '.md'
     if not os.path.isfile(doc_path):
-        raise Http404()
+        raise Http404
 
     cache_key = '.'.join((__name__, 'doc', subpath))
     context = django_cache.get(cache_key)

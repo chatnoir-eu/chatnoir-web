@@ -15,7 +15,7 @@
 </noscript>
 <section id="app"></section>
 <script>
-    const CSRF_TOKEN = '{{ csrf_token }}'
+window.TOKEN = '{{ csrf_token }}'
 </script>
 {% if search_results %}
 <script>

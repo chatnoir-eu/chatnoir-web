@@ -1,5 +1,9 @@
 SECRET_KEY = 'RANDOM STRING'
 
+CORS_ALLOWED_ORIGINS = [
+    'http://example.com'
+]
+
 # Configure database backend here
 DATABASES = {
     'default': {

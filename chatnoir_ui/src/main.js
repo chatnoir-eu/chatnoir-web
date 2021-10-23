@@ -4,4 +4,4 @@ import router from './routes'
 
 import './assets/css/index.css'
 
-createApp(ChatNoirApp).use(router).mount('#app')
+export default createApp(ChatNoirApp).use(router).mount('#app')
