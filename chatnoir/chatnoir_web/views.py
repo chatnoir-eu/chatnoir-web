@@ -7,7 +7,7 @@ from django.http import Http404, HttpResponseBadRequest, JsonResponse
 from django.middleware.csrf import get_token, rotate_token, CSRF_SESSION_KEY
 from django.shortcuts import HttpResponse, render
 from django.utils.translation import gettext as _
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_http_methods, require_safe
 import frontmatter
 import mistune
@@ -29,11 +29,11 @@ def onetime_csrf(func):
     func = csrf_protect(func)
 
     def wrapper(request):
-        if CSRF_SESSION_KEY in request.session:
-            del request.session[CSRF_SESSION_KEY]
-        rotate_token(request)
-        response = func(request)
-        return response
+        if request.method not in ['HEAD', 'GET', 'OPTIONS', 'TRACE']:
+            if CSRF_SESSION_KEY in request.session:
+                del request.session[CSRF_SESSION_KEY]
+            rotate_token(request)
+        return func(request)
 
     return wrapper
 

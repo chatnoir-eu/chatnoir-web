@@ -41,9 +41,9 @@ function searchSubmit() {
     queryString.value = searchFieldRef.value.value
 }
 
-async function request(query) {
-    const baseUrl = window.location.origin + route.path
-    const backend = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'search'
+async function request(vue) {
+    const baseUrl = process.env.VUE_APP_BACKEND_ADDRESS + route.path.substr(1)
+    const backend = baseUrl +'search'
 
     const requestOptions = {
         method: 'POST',

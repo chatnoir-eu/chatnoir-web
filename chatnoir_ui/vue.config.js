@@ -18,17 +18,17 @@ module.exports = {
     devServer: {
         headers: {
             'Access-Control-Allow-Origin': '*',
-        },
+        }
     },
 
     configureWebpack: {
         plugins: [
             new BundleTracker({
                 filename: path.join(__dirname, 'webpack-stats.json')
-            }),
+            })
         ],
         cache: {
-            type: 'filesystem',
+            type: 'filesystem'
         }
     }
 }

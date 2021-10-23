@@ -1,8 +1,13 @@
 SECRET_KEY = 'RANDOM STRING'
 
-CORS_ALLOWED_ORIGINS = [
-    'http://example.com'
-]
+DEBUG = False
+
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CSRF_TRUSTED_ORIGINS = [
+        'localhost:8080',
+        '127.0.0.1:8080'
+    ]
 
 # Configure database backend here
 DATABASES = {

@@ -13,7 +13,17 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 CSRF_USE_SESSIONS = True
 CSRF_HEADER_NAME = 'HTTP_X_TOKEN'
-CSRF_HEADER_SET_NAME = 'X-Token'
+CSRF_HEADER_SET_NAME = 'x-token'
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    CSRF_HEADER_SET_NAME
+)
 
 # Application definition
 
@@ -34,8 +44,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -71,7 +81,9 @@ ROOT_URLCONF = 'chatnoir.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'chatnoir_web', 'templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'chatnoir_web', 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,6 +141,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, '..', 'chatnoir_ui', 'dist'),
     os.path.join(BASE_DIR, 'chatnoir_web', 'static')
 ]
 
