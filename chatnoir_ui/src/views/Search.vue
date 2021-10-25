@@ -1,22 +1,24 @@
 <!--
     Search page view.
 -->
-
 <template>
-
-<div class='mx-auto max-w-full'>
-Search Results.
+<div class="mx-auto max-w-full">
+    Search Results.
 </div>
-
 </template>
 
-<script>
+<script setup>
+import { onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+
 function buildQueryString(params) {
     return Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')
 }
 
-async function request(vue) {
-    const baseUrl = window.location.origin + vue.$route.path
+const route = useRoute()
+
+async function request() {
+    const baseUrl = window.location.origin + route.path
     const backend = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'search'
 
     const requestOptions = {
@@ -28,24 +30,19 @@ async function request(vue) {
         body: JSON.stringify({})
     };
 
-    const response = await fetch(backend + '?' + buildQueryString(vue.$route.query), requestOptions)
+    const response = await fetch(backend + '?' + buildQueryString(route.query), requestOptions)
     window.TOKEN = response.headers.get('X-Token')
     return response.json()
 }
 
-export default {
-    mounted() {
+onMounted(() => {
+    request(this).then(r => {
+        console.log(r)
+
         request(this).then(r => {
             console.log(r)
-
-            request(this).then(r => {
-                console.log(r)
-            })
         })
-    }
-}
+    })
+})
+
 </script>
-
-<style>
-
-</style>

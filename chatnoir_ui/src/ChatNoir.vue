@@ -1,8 +1,7 @@
 <template>
-
 <section id="app" class="flex flex-col h-screen">
     <main class="flex-grow w-full">
-        <router-view/>
+        <router-view />
     </main>
 
     <webis-footer
@@ -11,20 +10,8 @@
         :additional-links="[{href: 'https://webis.de/publications.html?q=bevendorff_2018', anchor: 'Cite'}]"
     />
 </section>
-
 </template>
 
-<script>
-import WebisFooter from '@/components/WebisFooter';
-
-export default {
-    name: 'ChatNoirApp',
-    components: {
-        WebisFooter
-    },
-}
+<script setup>
+import WebisFooter from '@/components/WebisFooter'
 </script>
-
-<style>
-
-</style>

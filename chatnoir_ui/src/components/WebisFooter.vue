@@ -1,11 +1,10 @@
 <template>
-
 <footer :class="$style.footer" role="contentinfo" aria-label="Footer">
     <div class="max-w-screen-xl mx-auto p-6 pt-7 sm:flex justify-between text-center sm:text-left">
         <div class="mb-3 sm:m-0">
-            <span  v-for="(item, index) of additionalLinks" :key="item.href">
+            <span v-for="(item, index) of additionalLinks" :key="item.href">
                 <a :class="$style.group" :href="item.href">{{ item.anchor }}</a>
-                <span :class="$style.sep" v-if="index !== additionalLinks.length - 1">•</span>
+                <span v-if="index !== additionalLinks.length - 1" :class="$style.sep">•</span>
             </span>
         </div>
         <div>
@@ -25,20 +24,18 @@
         </div>
     </div>
 </footer>
-
 </template>
 
-<script>
-export default {
-    props: {
-        copyrightStartYear: String,
-        contactFragment: String,
-        additionalLinks: {
-            type: Array,
-            validator: (p) => p.every(e => typeof e.href === 'string' && typeof e.anchor === 'string')
-        }
+<script setup>
+defineProps({
+    copyrightStartYear: {type: String, default: ''},
+    contactFragment: {type: String, default: ''},
+    additionalLinks: {
+        type: Array,
+        default: () => [],
+        validator: (p) => p.every(e => typeof e.href === 'string' && typeof e.anchor === 'string')
     }
-}
+})
 </script>
 
 <style module>

@@ -1,6 +1,7 @@
 <template>
 <span :class="$style['chatnoir-logo']" aria-hidden="true" role="img">
-    <object type="image/svg+xml" :data="require('@/assets/img/chatnoir.svg').default" ref="chatnoir-logo" @load="attachEvents()">
+    <object ref="chatnoir-logo" type="image/svg+xml"
+            :data="require('@/assets/img/chatnoir.svg').default" @load="attachEvents()">
         <img src="@/assets/img/chatnoir.svg" alt="ChatNoir Logo">
     </object>
 </span>
