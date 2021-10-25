@@ -3,7 +3,7 @@
     <form :class="$style.search" :action="action" :method="method"
           @submit.prevent="$emit('update:modelValue', currentValue)">
         <input ref="searchInput" type="search" name="q" placeholder="Search…"
-               class="text-field" role="searchbox" autofocus autocomplete="off" spellcheck="false"
+               class="text-field" role="searchbox" autocomplete="off" spellcheck="false"
                v-bind="$attrs" :value="modelValue"
                @input="currentValue = $event.target.value" @keyup="emit('keyup', $event)">
         <button type="submit">

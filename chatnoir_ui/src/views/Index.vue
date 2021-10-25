@@ -29,7 +29,6 @@ onMounted(() => {
 
 const router = useRouter()
 watch(queryString, (newValue) => {
-    console.log(newValue)
     router.push({name: 'IndexSearch', query: {q: newValue}})
 })
 </script>
