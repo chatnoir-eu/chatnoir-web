@@ -3,21 +3,45 @@
 -->
 <template>
 <div class="mx-auto max-w-full">
-    Search Results.
+    <header :class="$style['search-header']">
+        <div :class="$style.logo">
+            <router-link to="/">
+                <cat-logo ref="catLogoElement" key="cat-logo" />
+            </router-link>
+        </div>
+        <form :class="$style.search" @submit.prevent="searchSubmit()">
+            <search-field ref="searchFieldRef" :value="queryString" @change="$refs.catLogoElement.purr()" />
+        </form>
+    </header>
+
+    <keep-alive>
+        <div ref="resultElement"></div>
+    </keep-alive>
 </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+import CatLogo from '@/components/CatLogo';
+import SearchField from '@/components/SearchField';
+
+const route = useRoute()
+const router = useRouter()
+const queryString = ref(null)
+const searchFieldRef = ref(null)
+const resultElement = ref(null)
 
 function buildQueryString(params) {
     return Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')
 }
 
-const route = useRoute()
+function searchSubmit() {
+    queryString.value = searchFieldRef.value.value
+}
 
-async function request() {
+async function request(query) {
     const baseUrl = window.location.origin + route.path
     const backend = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'search'
 
@@ -35,14 +59,37 @@ async function request() {
     return response.json()
 }
 
-onMounted(() => {
-    request(this).then(r => {
-        console.log(r)
+function processResults(resultObj) {
+    resultElement.value.innerText = JSON.stringify(resultObj)
+}
 
-        request(this).then(r => {
-            console.log(r)
-        })
-    })
+watch(queryString, async () => {
+    const queryObj = Object.assign({}, route.query)
+    queryObj.q = queryString.value
+    await router.push({name: 'IndexSearch', query: queryObj})
+
+    if (queryString.value) {
+        const results = await request(queryString.value)
+        processResults(results)
+    }
+})
+
+onMounted(() => {
+    searchFieldRef.value.focus()
+    if (route.query.q) {
+        queryString.value = route.query.q
+    }
 })
 
 </script>
+
+<style module>
+.search-header {
+    @apply flex flex-row items-center;
+}
+
+.logo {
+    @apply w-32 mr-3;
+}
+
+</style>
