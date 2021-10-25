@@ -6,16 +6,17 @@
     <header :class="$style['search-header']">
         <div :class="$style.logo">
             <router-link to="/">
-                <cat-logo ref="catLogoElement" key="cat-logo" />
+                <cat-logo ref="catLogoElement" />
             </router-link>
         </div>
-        <form :class="$style.search" @submit.prevent="searchSubmit()">
-            <search-field ref="searchFieldRef" :value="queryString" @change="$refs.catLogoElement.purr()" />
-        </form>
+
+        <keep-alive>
+            <search-field ref="searchFieldRef" key="search-box" v-model="queryString" @change="$refs.catLogoElement.purr()" />
+        </keep-alive>
     </header>
 
     <keep-alive>
-        <div ref="resultElement"></div>
+        <div ref="resultElement" key="search-results"></div>
     </keep-alive>
 </div>
 </template>
@@ -37,11 +38,7 @@ function buildQueryString(params) {
     return Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')
 }
 
-function searchSubmit() {
-    queryString.value = searchFieldRef.value.value
-}
-
-async function request(vue) {
+async function request() {
     const baseUrl = process.env.VUE_APP_BACKEND_ADDRESS + route.path.substr(1)
     const backend = baseUrl +'search'
 
@@ -64,9 +61,11 @@ function processResults(resultObj) {
 }
 
 watch(queryString, async () => {
-    const queryObj = Object.assign({}, route.query)
-    queryObj.q = queryString.value
-    await router.push({name: 'IndexSearch', query: queryObj})
+    if (queryString.value !== route.query.q) {
+        const queryObj = Object.assign({}, route.query)
+        queryObj.q = queryString.value
+        await router.push({name: 'IndexSearch', query: queryObj})
+    }
 
     if (queryString.value) {
         const results = await request(queryString.value)

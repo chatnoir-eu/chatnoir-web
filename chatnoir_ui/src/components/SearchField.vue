@@ -1,12 +1,15 @@
 <template>
 <div :class="$style['search-field']">
-    <div>
-        <input ref="searchInput" type="search" name="q" placeholder="Search…" class="text-field" role="searchbox" autofocus autocomplete="off"
-               v-bind="$attrs" @input="value = $event.target.value" @keyup="emit('keyup')">
+    <form :class="$style.search" :action="action" :method="method"
+          @submit.prevent="$emit('update:modelValue', currentValue)">
+        <input ref="searchInput" type="search" name="q" placeholder="Search…"
+               class="text-field" role="searchbox" autofocus autocomplete="off" spellcheck="false"
+               v-bind="$attrs" :value="modelValue"
+               @input="currentValue = $event.target.value" @keyup="emit('keyup', $event)">
         <button type="submit">
-            <inline-svg :src="require('@/assets/icons/search.svg').default" arial-label="Search" focusable="false" />
+            <inline-svg :src="require('@/assets/icons/search.svg').default" arial-label="Search" />
         </button>
-    </div>
+    </form>
 </div>
 </template>
 
@@ -17,36 +20,36 @@ export default {
 </script>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { ref, toRef, watch } from 'vue';
 import InlineSvg from 'vue-inline-svg';
 
-const emit = defineEmits(['change', 'keyup'])
+const emit = defineEmits(['update:modelValue', 'change', 'keyup'])
 const searchInput = ref(null)
-const value = ref('')
+const currentValue = ref('')
+const props = defineProps({
+    action: {type: String, default:''},
+    method: {type: String, default: "GET"},
+    modelValue: {type: String, default: ''}
+})
 
 function focus() {
     searchInput.value.focus()
 }
 
-function setValue(newValue) {
-    value.value = newValue
-}
+watch(toRef(props, 'modelValue'), (newValue) => {
+    currentValue.value = newValue
+})
 
-onMounted(() => {
-    value.value = searchInput.value.value
-
-    watch(value, (newValue, oldValue) => {
-        if (newValue !== oldValue) {
-            searchInput.value.value = newValue
-            emit('change', {newValue, oldValue})
-        }
-    })
+watch(currentValue, (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+        searchInput.value.value = newValue
+        emit('change', newValue)
+    }
 })
 
 defineExpose({
     focus,
-    value,
-    setValue
+    currentValue
 })
 </script>
 
@@ -56,7 +59,7 @@ defineExpose({
     @apply max-w-full;
     @apply inline-block;
 
-    & > div {
+    & > form {
         @apply box-border;
         @apply py-3 px-5;
         @apply relative;

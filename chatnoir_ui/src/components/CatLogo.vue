@@ -1,5 +1,5 @@
 <template>
-<span ref="chatNoirLogoContainer" :class="$style['chatnoir-logo']" aria-hidden="true" role="img">
+<span :class="$style['chatnoir-logo']" aria-hidden="true" role="img">
     <inline-svg :src="require('@/assets/img/chatnoir.svg').default" @loaded="logoElement = $event" />
 </span>
 </template>
@@ -12,6 +12,9 @@ const purrTimeout = ref(null)
 const logoElement = ref(null)
 
 function purr() {
+    if (!logoElement.value) {
+        return
+    }
     if (purrTimeout.value !== null) {
         clearTimeout(purrTimeout.value)
     }
