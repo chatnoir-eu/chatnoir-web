@@ -181,11 +181,6 @@ SEARCH_INDICES = {
         'compat_search_versions': [1]
     }
 }
-SEARCH_DEFAULT_INDICES = {
-    # search version: default index
-    1: 'index_shorthand_name'
-}
-
 
 # Api settings
 API_ADMIN_ROLE = 'admin'
