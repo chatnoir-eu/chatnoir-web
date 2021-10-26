@@ -25,7 +25,7 @@ import SearchField from '@/components/SearchField';
 const router = useRouter()
 const route = useRoute()
 const searchFieldRef = ref(null)
-const searchModel = ref(null)
+const searchModel = ref({})
 
 function search() {
     router.push({name: 'IndexSearch', query: searchFieldRef.value.modelToQueryString()})

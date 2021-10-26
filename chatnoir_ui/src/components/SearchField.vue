@@ -2,7 +2,7 @@
 <div class="text-left max-w-full inline-block relative" :class="$style['search-field']">
     <form class="box-border py-3 px-5 relative"
           :action="action" :method="method" @submit.prevent="emitModelUpdate(true)">
-        <input ref="searchInput" v-model="queryString"
+        <input ref="searchInput" v-model="searchModel.query"
                class="text-field w-full px-6 py-3 pr-20 m-0"
                type="search" name="q" placeholder="Search…"
                role="searchbox" autocomplete="off" spellcheck="false"
@@ -13,7 +13,7 @@
             <inline-svg :src="require('@/assets/icons/settings.svg').default" arial-label="Options" />
         </button>
         <options-drop-down
-            v-model="optionsModel"
+            v-model="searchModel.indices"
             :visible="showOptions"
             :ref-element="$refs.optionsButton"
             @close="showOptions = false"
@@ -33,7 +33,7 @@ export default {
 </script>
 
 <script setup>
-import { onMounted, ref, toRef, watch } from 'vue';
+import { onMounted, reactive, ref, toRef, watch } from 'vue';
 import InlineSvg from 'vue-inline-svg';
 
 import OptionsDropDown from './OptionsDropDown'
@@ -45,31 +45,29 @@ const props = defineProps({
     method: {type: String, default: "GET"},
     modelValue: {
         type: Object,
-        default: () => { return {query: '', indices: []} },
+        default: () => {},
         validator(value) {
-            return typeof value.query === 'string' && value.indices.every((e) => e.id && e.name)
+            return !Object.keys(value).length || (value.query !== undefined && value.indices && value.indices.length)
         }
     }
 })
 
 const route = useRoute()
 const searchInput = ref(null)
-const queryString = ref('')
 const showOptions = ref(false)
-const optionsModel = ref([])
+const searchModel = reactive({
+    query: '',
+    indices: []
+})
 
 function focus() {
     searchInput.value.focus()
 }
 
 function emitModelUpdate(submit = false) {
-    const ctx = {
-        query: queryString.value,
-        indices: optionsModel.value
-    }
-    emit('update:modelValue', ctx)
+    emit('update:modelValue', searchModel)
     if (submit) {
-        emit('submit', ctx)
+        emit('submit', searchModel)
     }
 }
 
@@ -84,11 +82,12 @@ function updateModelFromQueryString() {
         indices = [route.query.index]
     }
 
-    emit('update:modelValue', {
+    Object.assign(searchModel, {
         query: route.query.q || '',
         indices: window.DATA.indices.map((i) => Object.assign(
             {}, i, {selected: !indices.length ? i.selected : indices.includes(i.id)}))
     })
+    emitModelUpdate()
 }
 
 /**
@@ -97,31 +96,25 @@ function updateModelFromQueryString() {
  * @returns {{} | {q: string, index: *[]}}
  */
 function modelToQueryString() {
-    if (!props.modelValue) {
-        return {}
-    }
-    let indices = props.modelValue.indices.filter((e) => e.selected).map((e) => e.id)
+    let indices = searchModel.indices.filter((e) => e.selected).map((e) => e.id)
     return {
-        q: props.modelValue.query,
+        q: searchModel.query,
         index: indices.length === 1 ? indices[0] : indices
     }
 }
 
 watch(toRef(props, 'modelValue'), (newValue) => {
-    queryString.value = newValue.query
-    optionsModel.value = newValue.indices || []
+    Object.assign(searchModel, newValue)
 })
 
-watch(queryString, (newValue, oldValue) => {
-    if (newValue !== oldValue) {
-        emit('change', newValue)
+watch(searchModel, (newValue, oldValue) => {
+    if (newValue.query !== oldValue.query) {
+        emit('change', newValue.query)
         emitModelUpdate()
     }
-})
 
-watch(optionsModel, (newValue, oldValue) => {
-    if (newValue !== oldValue) {
-        emit('option-change', newValue)
+    if (newValue.indices !== oldValue.indices) {
+        emit('option-change', newValue.indices)
         emitModelUpdate()
     }
 })
@@ -132,7 +125,7 @@ defineExpose({
 })
 
 onMounted(() => {
-    if (!props.modelValue) {
+    if (!searchModel.query) {
         updateModelFromQueryString()
     }
 })

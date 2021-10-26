@@ -50,7 +50,7 @@ function toggleAllIndices(on) {
 }
 
 function toggleIndex(pos, on) {
-    const mv = props.modelValue
+    const mv = Object.assign({}, props.modelValue)
     mv[pos].selected = on
     emit('update:modelValue', mv)
 }

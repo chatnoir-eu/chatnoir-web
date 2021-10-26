@@ -31,7 +31,7 @@ import SearchField from '@/components/SearchField';
 
 const route = useRoute()
 const router = useRouter()
-const searchModel = ref(null)
+const searchModel = ref({})
 const searchFieldRef = ref(null)
 const resultElement = ref(null)
 
@@ -67,6 +67,9 @@ async function requestResults() {
  */
 function processResults(resultObj) {
     resultElement.value.innerText = JSON.stringify(resultObj)
+
+    // Update index selection
+    searchModel.value.indices = resultObj.meta_extra.indices_all
 }
 
 /**
@@ -81,7 +84,6 @@ async function search(initialLoad = false) {
             await router.push({name: 'IndexSearch', query: routeQuery})
         }
     }
-
     if (searchModel.value.query) {
         const results = await requestResults()
         processResults(results)
