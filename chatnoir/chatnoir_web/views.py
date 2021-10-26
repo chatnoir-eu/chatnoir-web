@@ -22,7 +22,6 @@ def index(request):
     s = SimpleSearch(indices=request.GET.getlist('index'))
     allowed_indices = s.allowed_indices
     selected_indices = s.selected_indices
-    print(allowed_indices)
 
     ctx = dict(
         indices=[dict(id=k, name=v.get('display_name'), selected=k in selected_indices)

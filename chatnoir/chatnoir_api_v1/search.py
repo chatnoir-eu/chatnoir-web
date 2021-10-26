@@ -43,8 +43,11 @@ class SearchBase(ABC):
     @property
     def allowed_indices(self):
         """Allowed and compatible indices."""
-        return {k: settings.SEARCH_INDICES[k] for k in settings.SEARCH_INDICES
-                if self.SEARCH_VERSION in settings.SEARCH_INDICES[k]['compat_search_versions']}
+        indices = {k: settings.SEARCH_INDICES[k] for k in settings.SEARCH_INDICES
+                   if self.SEARCH_VERSION in settings.SEARCH_INDICES[k]['compat_search_versions']}
+        if not indices:
+            raise RuntimeError('No indices configured for selected search version.')
+        return indices
 
     @property
     def selected_indices(self):
@@ -53,6 +56,10 @@ class SearchBase(ABC):
         indices = {k: allowed[k] for k in self._indices_unvalidated if k in allowed}
         if not indices:
             indices = {k: v for k, v in allowed.items() if v.get('default')}
+
+        if not indices:
+            raise RuntimeError('No default index configured,')
+
         return indices
 
     @property
