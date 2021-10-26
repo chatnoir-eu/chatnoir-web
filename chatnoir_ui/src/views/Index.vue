@@ -7,7 +7,7 @@
         <cat-logo ref="catLogoElement" class="block h-40" />
 
         <keep-alive>
-            <search-field ref="searchFieldRef" key="search-box" v-model="queryString" @change="$refs.catLogoElement.purr()" />
+            <search-field ref="searchFieldRef" key="search-box" v-model="formData" @change="$refs.catLogoElement.purr()" />
         </keep-alive>
     </div>
 </div>
@@ -21,14 +21,14 @@ import CatLogo from '@/components/CatLogo';
 import SearchField from '@/components/SearchField';
 
 const searchFieldRef = ref(null)
-const queryString = ref('')
+const formData = ref({q: '', index: []})
 
 onMounted(() => {
     searchFieldRef.value.focus()
 })
 
 const router = useRouter()
-watch(queryString, (newValue) => {
-    router.push({name: 'IndexSearch', query: {q: newValue}})
+watch(formData, (newValue) => {
+    router.push({name: 'IndexSearch', query: newValue})
 })
 </script>

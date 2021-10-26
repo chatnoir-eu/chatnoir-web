@@ -11,7 +11,7 @@
         </div>
 
         <keep-alive>
-            <search-field ref="searchFieldRef" key="search-box" v-model="queryString" @change="$refs.catLogoElement.purr()" />
+            <search-field ref="searchFieldRef" key="search-box" v-model="formData" @change="$refs.catLogoElement.purr()" />
         </keep-alive>
     </header>
 
@@ -30,11 +30,11 @@ import SearchField from '@/components/SearchField';
 
 const route = useRoute()
 const router = useRouter()
-const queryString = ref(null)
+const formData = ref({q: '', index: []})
 const searchFieldRef = ref(null)
 const resultElement = ref(null)
 
-function buildQueryString(params) {
+function buildformData(params) {
     return Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')
 }
 
@@ -51,7 +51,7 @@ async function request() {
         body: JSON.stringify({})
     };
 
-    const response = await fetch(backend + '?' + buildQueryString(route.query), requestOptions)
+    const response = await fetch(backend + '?' + buildformData(route.query), requestOptions)
     window.TOKEN = response.headers.get('X-Token')
     return response.json()
 }
@@ -60,15 +60,13 @@ function processResults(resultObj) {
     resultElement.value.innerText = JSON.stringify(resultObj)
 }
 
-watch(queryString, async () => {
-    if (queryString.value !== route.query.q) {
-        const queryObj = Object.assign({}, route.query)
-        queryObj.q = queryString.value
-        await router.push({name: 'IndexSearch', query: queryObj})
+watch(formData, async () => {
+    if (formData.value.q !== route.query.q) {
+        await router.push({name: 'IndexSearch', query: formData.value})
     }
 
-    if (queryString.value) {
-        const results = await request(queryString.value)
+    if (formData.value.q) {
+        const results = await request(formData.value.q)
         processResults(results)
     }
 })
@@ -76,7 +74,7 @@ watch(queryString, async () => {
 onMounted(() => {
     searchFieldRef.value.focus()
     if (route.query.q) {
-        queryString.value = route.query.q
+        formData.value = route.query
     }
 })
 

@@ -1,12 +1,23 @@
 <template>
-<div :class="$style['search-field']">
+<div class="text-left" :class="$style['search-field']">
     <form :class="$style.search" :action="action" :method="method"
-          @submit.prevent="$emit('update:modelValue', currentValue)">
+          @submit.prevent="emitSubmit()">
         <input ref="searchInput" type="search" name="q" placeholder="Search…"
                class="text-field" role="searchbox" autocomplete="off" spellcheck="false"
-               v-bind="$attrs" :value="modelValue"
+               v-bind="$attrs" :value="modelValue.q"
                @input="currentValue = $event.target.value" @keyup="emit('keyup', $event)">
-        <button type="submit">
+
+        <button type="button" :class="$style['btn-settings']" @click="showOptions = !showOptions">
+            <inline-svg :src="require('@/assets/icons/settings.svg').default" arial-label="Options" />
+        </button>
+        <options-drop-down
+            v-model="optionsModel"
+            :visible="showOptions"
+            class="w-64 -mr-16 right-5 mt-1"
+            @close="showOptions = false"
+        />
+
+        <button type="submit" :class="$style['btn-submit']">
             <inline-svg :src="require('@/assets/icons/search.svg').default" arial-label="Search" />
         </button>
     </form>
@@ -23,21 +34,40 @@ export default {
 import { ref, toRef, watch } from 'vue';
 import InlineSvg from 'vue-inline-svg';
 
+import OptionsDropDown from './OptionsDropDown'
+
 const emit = defineEmits(['update:modelValue', 'change', 'keyup'])
-const searchInput = ref(null)
-const currentValue = ref('')
 const props = defineProps({
     action: {type: String, default:''},
     method: {type: String, default: "GET"},
-    modelValue: {type: String, default: ''}
+    modelValue: {
+        type: Object,
+        default: () => { return {q: '', index: []} },
+        validator(value) {
+            return typeof value.q === 'string' && ['object', 'string'].includes(typeof value.index)
+        }
+    }
 })
+
+const searchInput = ref(null)
+const currentValue = ref('')
+const showOptions = ref(false)
+const optionsModel = ref(window.DATA.indices)
 
 function focus() {
     searchInput.value.focus()
 }
 
+function emitSubmit() {
+    const queryObj = {
+        q: currentValue.value,
+        index: optionsModel.value.filter((e) => e.selected).map((e) => e.id)
+    }
+    emit('update:modelValue', queryObj)
+}
+
 watch(toRef(props, 'modelValue'), (newValue) => {
-    currentValue.value = newValue
+    currentValue.value = newValue.q
 })
 
 watch(currentValue, (newValue, oldValue) => {
@@ -49,7 +79,8 @@ watch(currentValue, (newValue, oldValue) => {
 
 defineExpose({
     focus,
-    currentValue
+    currentValue,
+    optionsModel
 })
 </script>
 
@@ -58,6 +89,7 @@ defineExpose({
     width: 40rem;
     @apply max-w-full;
     @apply inline-block;
+    @apply relative;
 
     & > form {
         @apply box-border;
@@ -68,6 +100,7 @@ defineExpose({
     input[type="search"] {
         @apply w-full;
         @apply px-6 py-3;
+        @apply pr-20;
         @apply m-0;
     }
 
@@ -75,7 +108,6 @@ defineExpose({
         @apply absolute;
         @apply outline-none;
         @apply text-gray-400;
-        @apply mr-10;
         height: 1rem;
         top: calc(50% - .5rem);
         right: 0;
@@ -86,8 +118,16 @@ defineExpose({
         }
     }
 
-    &:hover button, button:hover,
-    &:focus-within button, button:focus{
+    .btn-submit {
+        @apply mr-10;
+    }
+
+    .btn-settings {
+        @apply mr-20;
+    }
+
+    &:hover, &:focus-within .btn-submit,
+    button:hover, button:focus {
         @apply text-red;
     }
 
@@ -95,5 +135,4 @@ defineExpose({
         @apply shadow-md;
     }
 }
-
 </style>

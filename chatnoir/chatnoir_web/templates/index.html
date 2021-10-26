@@ -16,6 +16,9 @@
 <section id="app"></section>
 <script>
 window.TOKEN = '{{ csrf_token }}'
+window.DATA = {
+    indices: {{ indices | json | safe }}
+}
 </script>
 {% render_bundle "index" 'js' %}
 </body>

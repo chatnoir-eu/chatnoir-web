@@ -33,6 +33,8 @@
 
     label {
         @apply mr-4;
+        @apply mt-0.5;
+        @apply inline-block;
     }
 }
 
@@ -104,8 +106,8 @@
     .chk, .radio {
         @apply appearance-none;
         @apply border border-red-400 rounded-sm;
-        @apply h-6 w-6;
-        @apply mx-3;
+        @apply h-5 w-5;
+        @apply m-2;
         @apply align-middle;
         @apply relative;
 
@@ -135,10 +137,10 @@
         content: "";
         border-bottom-width: .2rem;
         border-right-width: .2rem;
-        width: .6rem;
-        height: 1rem;
+        width: .4rem;
+        height: .9rem;
         bottom: calc(50% - .4rem);
-        left: calc(50% - .26rem);
+        left: calc(50% - .2rem);
     }
 
     .radio {
@@ -150,10 +152,10 @@
             @apply rounded-full;
             @apply box-border;
             content: "";
-            width:.75rem;
-            height: .75rem;
-            top: calc(50% - .75rem / 2);
-            left: calc(50% - .75rem / 2);
+            width:.65rem;
+            height: .65rem;
+            top: calc(50% - .65rem / 2);
+            left: calc(50% - .65rem / 2);
         }
     }
 }

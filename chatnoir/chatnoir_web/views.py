@@ -7,7 +7,7 @@ from django.http import Http404, HttpResponseBadRequest, JsonResponse
 from django.middleware.csrf import get_token, rotate_token, CSRF_SESSION_KEY
 from django.shortcuts import HttpResponse, render
 from django.utils.translation import gettext as _
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods, require_safe
 import frontmatter
 import mistune
@@ -19,7 +19,12 @@ from chatnoir_api_v1.views import bool_param_set
 
 @require_safe
 def index(request):
-    return render(request, 'index.html')
+    ctx = dict(
+        indices=[dict(id=k, name=v.get('display_name'),
+                      selected=k in settings.SEARCH_DEFAULT_INDEXES[SimpleSearch.SEARCH_VERSION])
+                 for k, v in SimpleSearch.allowed_indexes.items()]
+    )
+    return render(request, 'index.html', ctx)
 
 
 def onetime_csrf(func):

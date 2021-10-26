@@ -1,7 +1,7 @@
 import math
 import re
 from abc import ABC, abstractmethod
-from collections import defaultdict, deque, Iterable
+from collections import defaultdict, deque
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -14,6 +14,8 @@ class SearchBase(ABC):
     Simple search base class.
     """
 
+    SEARCH_VERSION = None
+
     def __init__(self, indexes=None, search_from=0, num_results=10, explain=False):
         """
         :param indexes: list of indexes to search (will be validated and replaced with defaults if necessary)
@@ -25,10 +27,9 @@ class SearchBase(ABC):
             raise TypeError('indexes must be a list')
 
         if indexes is None:
-            indexes = {settings.SEARCH_DEFAULT_INDEXES[self.search_version]}
+            indexes = {settings.SEARCH_DEFAULT_INDEXES[self.SEARCH_VERSION]}
         self._indexes_unvalidated = set(indexes)
 
-        self.search_version = None
         self.search_language = 'en'
         self.group_results_by_hostname = True
         self.num_results = max(1, num_results)
@@ -39,11 +40,12 @@ class SearchBase(ABC):
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
 
+    @classmethod
     @property
-    def allowed_indexes(self):
+    def allowed_indexes(cls):
         """Allowed and compatible indexes."""
         return {i: settings.SEARCH_INDEXES[i] for i in settings.SEARCH_INDEXES
-                if self.search_version in settings.SEARCH_INDEXES[i]['compat_search_versions']}
+                if cls.SEARCH_VERSION in settings.SEARCH_INDEXES[i]['compat_search_versions']}
 
     @property
     def indexes(self):
@@ -51,7 +53,7 @@ class SearchBase(ABC):
         allowed = self.allowed_indexes
         indexes = {i: allowed[i] for i in self._indexes_unvalidated if i in allowed}
         if not indexes:
-            default_index = settings.SEARCH_DEFAULT_INDEXES[self.search_version]
+            default_index = settings.SEARCH_DEFAULT_INDEXES[self.SEARCH_VERSION]
             indexes = {default_index: settings.SEARCH_INDEXES[default_index]}
 
         return indexes
@@ -114,6 +116,8 @@ class SimpleSearch(SearchBase):
     """
     Simple search (version 1).
     """
+
+    SEARCH_VERSION = 1
 
     """
     Available user query filters.
@@ -225,7 +229,6 @@ class SimpleSearch(SearchBase):
 
     def __init__(self, indexes, search_from=0, num_results=10, explain=False):
         super().__init__(indexes, search_from, num_results, explain)
-        self.search_version = 1
         self.user_lang_override = False
 
     def search(self, query_string):
