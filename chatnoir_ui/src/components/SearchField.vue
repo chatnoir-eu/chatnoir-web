@@ -1,21 +1,22 @@
 <template>
 <div class="text-left" :class="$style['search-field']">
-    <form :class="$style.search" :action="action" :method="method"
-          @submit.prevent="emitSubmit()">
+    <form :class="$style.search" :action="action" :method="method" @submit.prevent="emitSubmit()">
         <input ref="searchInput" type="search" name="q" placeholder="Search…"
                class="text-field" role="searchbox" autocomplete="off" spellcheck="false"
                v-bind="$attrs" :value="modelValue.q"
                @input="currentValue = $event.target.value" @keyup="emit('keyup', $event)">
 
-        <button type="button" :class="$style['btn-settings']" @click="showOptions = !showOptions">
+        <button ref="optionsButtion" type="button" :class="$style['btn-settings']" @click="showOptions = !showOptions">
             <inline-svg :src="require('@/assets/icons/settings.svg').default" arial-label="Options" />
         </button>
-        <options-drop-down
-            v-model="optionsModel"
-            :visible="showOptions"
-            class="w-64 -mr-16 right-5 mt-1"
-            @close="showOptions = false"
-        />
+        <transition name="fade">
+            <options-drop-down
+                v-model="optionsModel"
+                :visible="showOptions"
+                :ref-element="$refs.optionsButtion"
+                @close="showOptions = false"
+            />
+        </transition>
 
         <button type="submit" :class="$style['btn-submit']">
             <inline-svg :src="require('@/assets/icons/search.svg').default" arial-label="Search" />

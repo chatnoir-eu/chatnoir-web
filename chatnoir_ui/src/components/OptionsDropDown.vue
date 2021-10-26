@@ -1,23 +1,17 @@
 <template>
-<div ref="popup" :class="visible ? 'block' : 'hidden'"
-     class="bg-gray-100 border border-gray-300 p-5 text-black absolute rounded-lg shadow shadow-lg z-50"
->
-    <div class="w-8 overflow-hidden inline-block absolute -top-5 left-1/2 -ml-3">
-        <div class="bg-gray-100 border border-gray-300 h-5 w-5 rotate-45 transform origin-bottom-left"></div>
-    </div>
-
+<div ref="popup" class="popup tail-top invisible w-max transform">
     <fieldset>
-        <legend class="font-bold mb-1">
+        <legend class="font-bold mb-1.5">
             Select Indices:
         </legend>
-        <ul class="pl-4">
-            <li>
+        <ul class="pl-3 pb-1">
+            <li class="pb-1">
                 <input id="select-all" class="chk ml-0" type="checkbox" :checked="allChecked()"
                        @click="toggleAllIndices($event.target.checked)">
                 <label for="select-all">(Select All)</label>
             </li>
             <li v-for="(idx, pos) in modelValue" :key="idx.id">
-                <input :id="idx.id" name="index" class="chk ml-0" type="checkbox"
+                <input :id="idx.id" name="index" class="chk ml-0 pb-1" type="checkbox"
                        :checked="idx.selected" :value="idx.id"
                        @click="toggleIndex(pos, $event.target.checked)">
                 <label :for="idx.id">{{ idx.name }}</label>
@@ -33,7 +27,8 @@ import { onMounted, onUnmounted, ref, toRef, watch } from 'vue';
 const emit = defineEmits(['update:modelValue', 'close'])
 const props = defineProps({
     modelValue: {type: Object, default: () => {}},
-    visible: {type: Boolean, default: false}
+    visible: {type: Boolean, default: false},
+    refElement: {type: Object, default: null}
 })
 const popup = ref(null)
 
@@ -61,8 +56,8 @@ function toggleIndex(pos, on) {
 }
 
 function closeOnClick(e) {
-    if (popup.value.style.display === 'none') {
-        return;
+    if (!popup.value || popup.value.style.display === 'none') {
+        return
     }
     if (!popup.value.contains(e.target)) {
         emit('close')
@@ -71,8 +66,25 @@ function closeOnClick(e) {
 }
 
 function toggleVisibility(visible) {
+    if (!popup.value) {
+        return
+    }
+
+    const animationClasses = ['opacity-0', 'invisible', '-translate-y-3']
+    popup.value.classList.add(...animationClasses)
+
     if (visible) {
         document.addEventListener('click', closeOnClick, true)
+        popup.value.classList.remove('invisible', 'hidden')
+
+        // Align offset with reference element
+        if (props.refElement) {
+            popup.value.style.left = `${props.refElement.offsetLeft - popup.value.clientWidth / 2 + 1}px`
+            popup.value.style.top = `calc(${props.refElement.offsetTop + props.refElement.offsetHeight}px + 1.3rem)`
+
+            popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
+            popup.value.classList.remove(...animationClasses)
+        }
     } else {
         document.removeEventListener('click', closeOnClick, true)
     }
@@ -93,4 +105,3 @@ onUnmounted(() => {
     toggleVisibility(false)
 })
 </script>
-
