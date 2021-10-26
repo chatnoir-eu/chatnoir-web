@@ -692,6 +692,13 @@ class SerpContext:
         return list(self.search.selected_indices.keys())
 
     @serp_api_meta_extra
+    def indices_all(self):
+        all_indices = self.search.allowed_indices
+        selected_indices = self.search.selected_indices
+        return [dict(id=k, name=v.get('display_name'), selected=k in selected_indices)
+                for k, v in all_indices.items()]
+
+    @serp_api_meta_extra
     def query_string(self):
         """
         Original search query string.

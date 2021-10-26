@@ -7,28 +7,31 @@
         <cat-logo ref="catLogoElement" class="block h-40" />
 
         <keep-alive>
-            <search-field ref="searchFieldRef" key="search-box" v-model="formData" @change="$refs.catLogoElement.purr()" />
+            <search-field
+                ref="searchFieldRef" key="search-box"
+                v-model="searchModel" @submit="search()" @change="$refs.catLogoElement.purr()" />
         </keep-alive>
     </div>
 </div>
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from "vue";
-import { useRouter } from 'vue-router'
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from 'vue-router'
 
 import CatLogo from '@/components/CatLogo';
 import SearchField from '@/components/SearchField';
 
+const router = useRouter()
+const route = useRoute()
 const searchFieldRef = ref(null)
-const formData = ref({q: '', index: []})
+const searchModel = ref(null)
+
+function search() {
+    router.push({name: 'IndexSearch', query: searchFieldRef.value.modelToQueryString()})
+}
 
 onMounted(() => {
     searchFieldRef.value.focus()
-})
-
-const router = useRouter()
-watch(formData, (newValue) => {
-    router.push({name: 'IndexSearch', query: newValue})
 })
 </script>

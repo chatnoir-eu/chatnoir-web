@@ -5,12 +5,12 @@
             Select Indices:
         </legend>
         <ul class="pl-3 pb-1">
-            <li class="pb-1">
+            <li class="pb-0.5">
                 <input id="select-all" class="chk ml-0" type="checkbox" :checked="allChecked()"
                        @click="toggleAllIndices($event.target.checked)">
                 <label for="select-all">(Select All)</label>
             </li>
-            <li v-for="(idx, pos) in modelValue" :key="idx.id">
+            <li v-for="(idx, pos) in modelValue" :key="idx.id" class="pb-0.5">
                 <input :id="idx.id" name="index" class="chk ml-0 pb-1" type="checkbox"
                        :checked="idx.selected" :value="idx.id"
                        @click="toggleIndex(pos, $event.target.checked)">

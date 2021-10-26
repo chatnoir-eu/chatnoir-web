@@ -3,15 +3,16 @@
 -->
 <template>
 <div class="mx-auto max-w-full">
-    <header :class="$style['search-header']">
-        <div :class="$style.logo">
+    <header class="flex flex-row items-center">
+        <div class="w-32 mr-3">
             <router-link to="/">
                 <cat-logo ref="catLogoElement" />
             </router-link>
         </div>
 
         <keep-alive>
-            <search-field ref="searchFieldRef" key="search-box" v-model="formData" @change="$refs.catLogoElement.purr()" />
+            <search-field ref="searchFieldRef" key="search-box2"
+                          v-model="searchModel" @submit="search()" @change="$refs.catLogoElement.purr()" />
         </keep-alive>
     </header>
 
@@ -22,7 +23,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import CatLogo from '@/components/CatLogo';
@@ -30,15 +31,18 @@ import SearchField from '@/components/SearchField';
 
 const route = useRoute()
 const router = useRouter()
-const formData = ref({q: '', index: []})
+const searchModel = ref(null)
 const searchFieldRef = ref(null)
 const resultElement = ref(null)
 
-function buildformData(params) {
+function buildQueryString(params) {
     return Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&')
 }
 
-async function request() {
+/**
+ * Request search result JSON from the server.
+ */
+async function requestResults() {
     const baseUrl = process.env.VUE_APP_BACKEND_ADDRESS + route.path.substr(1)
     const backend = baseUrl +'search'
 
@@ -51,42 +55,41 @@ async function request() {
         body: JSON.stringify({})
     };
 
-    const response = await fetch(backend + '?' + buildformData(route.query), requestOptions)
+    const response = await fetch(backend + '?' + buildQueryString(route.query), requestOptions)
     window.TOKEN = response.headers.get('X-Token')
     return response.json()
 }
 
+/**
+ * Process and display search results.
+ *
+ * @param resultObj result JSON
+ */
 function processResults(resultObj) {
     resultElement.value.innerText = JSON.stringify(resultObj)
 }
 
-watch(formData, async () => {
-    if (formData.value.q !== route.query.q) {
-        await router.push({name: 'IndexSearch', query: formData.value})
+/**
+ * Initiate a search request.
+ *
+ * @param initialLoad whether this is the initial page load (will not manipulate routes)
+ */
+async function search(initialLoad = false) {
+    if (!initialLoad) {
+        const routeQuery = searchFieldRef.value.modelToQueryString()
+        if (JSON.stringify(routeQuery) !== JSON.stringify(route.query)) {
+            await router.push({name: 'IndexSearch', query: routeQuery})
+        }
     }
 
-    if (formData.value.q) {
-        const results = await request(formData.value.q)
+    if (searchModel.value.query) {
+        const results = await requestResults()
         processResults(results)
     }
-})
+}
 
 onMounted(() => {
     searchFieldRef.value.focus()
-    if (route.query.q) {
-        formData.value = route.query
-    }
+    search(true)
 })
-
 </script>
-
-<style module>
-.search-header {
-    @apply flex flex-row items-center;
-}
-
-.logo {
-    @apply w-32 mr-3;
-}
-
-</style>
