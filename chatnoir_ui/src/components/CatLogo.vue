@@ -1,6 +1,7 @@
 <template>
-<span :class="$style['chatnoir-logo']" aria-hidden="true" role="img">
-    <inline-svg :src="require('@/assets/img/chatnoir.svg').default" @loaded="logoElement = $event" />
+<span aria-hidden="true" role="img">
+    <inline-svg class="inline-block h-full w-auto max-w-full"
+                :src="require('@/assets/img/chatnoir.svg').default" @loaded="logoElement = $event" />
 </span>
 </template>
 
@@ -36,12 +37,3 @@ defineExpose({
     purr
 })
 </script>
-
-<style module>
-.chatnoir-logo {
-    object, svg, img {
-        @apply inline-block;
-        @apply h-full w-auto max-w-full;
-    }
-}
-</style>

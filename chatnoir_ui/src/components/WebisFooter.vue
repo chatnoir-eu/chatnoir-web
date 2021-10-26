@@ -39,7 +39,6 @@ defineProps({
 </script>
 
 <style module>
-
 .footer {
     background: #f7f7f7;
     color: #666;
@@ -63,5 +62,4 @@ defineProps({
         @apply align-middle;
     }
 }
-
 </style>
