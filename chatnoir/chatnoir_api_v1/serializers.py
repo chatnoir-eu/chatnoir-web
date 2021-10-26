@@ -58,8 +58,8 @@ class SimpleSearchRequestSerializer(AuthenticatedApiSerializer):
     index = OptionalListField(
         child=serializers.CharField(),
         required=False,
-        initial=(settings.SEARCH_DEFAULT_INDEXES[1],),
-        default=(settings.SEARCH_DEFAULT_INDEXES[1],),
+        initial=[k for k, v in settings.SEARCH_INDICES.items() if v.get('default')],
+        default=[k for k, v in settings.SEARCH_INDICES.items() if v.get('default')],
         validators=(validate_index_names,),
         help_text=_('Index name or list of index names to search')
     )
@@ -105,9 +105,9 @@ class ResultMetaSerializer(ApiSerializer):
     total_results = serializers.IntegerField(
         help_text=_('Total number of results')
     )
-    indexes = serializers.ListField(
+    indices = serializers.ListField(
         child=serializers.CharField(),
-        help_text=_('List of indexes that were searched')
+        help_text=_('List of indices that were searched')
     )
 
 

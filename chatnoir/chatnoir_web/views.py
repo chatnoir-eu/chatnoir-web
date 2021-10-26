@@ -19,10 +19,14 @@ from chatnoir_api_v1.views import bool_param_set
 
 @require_safe
 def index(request):
+    s = SimpleSearch(indices=request.GET.getlist('index'))
+    allowed_indices = s.allowed_indices
+    selected_indices = s.selected_indices
+    print(allowed_indices)
+
     ctx = dict(
-        indices=[dict(id=k, name=v.get('display_name'),
-                      selected=k in settings.SEARCH_DEFAULT_INDEXES[SimpleSearch.SEARCH_VERSION])
-                 for k, v in SimpleSearch.allowed_indexes.items()]
+        indices=[dict(id=k, name=v.get('display_name'), selected=k in selected_indices)
+                 for k, v in allowed_indices.items()]
     )
     return render(request, 'index.html', ctx)
 
@@ -75,7 +79,7 @@ def webis_uuid(prefix, doc_id):
 
 
 def cache(request):
-    if 'index' not in request.GET or request.GET.get('index') not in settings.SEARCH_INDEXES:
+    if 'index' not in request.GET or request.GET.get('index') not in settings.SEARCH_INDICES:
         raise Http404
 
     raw_mode = bool_param_set('raw', request.GET)
@@ -96,7 +100,7 @@ def cache(request):
     doc_id = request.GET.get('uuid')
     if not doc_id and request.GET.get('trec-id'):
         # Retrieve by internal document ID, which is usually faster than searching for the warc_trec_id term
-        doc_id = webis_uuid(settings.SEARCH_INDEXES[request.GET['index']]['warc_uuid_prefix'], request.GET['trec-id'])
+        doc_id = webis_uuid(settings.SEARCH_INDICES[request.GET['index']]['warc_uuid_prefix'], request.GET['trec-id'])
 
     if doc_id:
         doc = cache_doc.retrieve_by_uuid(request.GET['index'], doc_id)

@@ -27,16 +27,14 @@ ELASTICSEARCH_PROPERTIES = {
 }
 
 # Configure search indices here
-SEARCH_INDEXES = {
+SEARCH_INDICES = {
   'INDEX_SHORTHAND': {
       'index': 'INDEX_NAME',
       'warc_index': '',
       'warc_bucket': '',
       'warc_uuid_prefix': '',
       'display_name': '',
-      'compat_search_versions': [1]
+      'compat_search_versions': [1],
+      'default': True
   }
-}
-SEARCH_DEFAULT_INDEXES = {
-  1: 'INDEX_SHORTHAND'
 }

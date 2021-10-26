@@ -123,9 +123,6 @@ class SimpleSearchViewSet(ApiViewSet):
 
     def _process_search(self, search_obj, request, params):
         serp_ctx = search_obj.search(params.data['query'])
-
-        # keep API response compatible
-        indexes_key = 'indices' if (request.auth and request.auth.is_legacy_key) else 'indexes'
         return Response(serp_ctx.to_dict(hits=True, meta=True, meta_extra=False))
 
     def post(self, request, **kwargs):

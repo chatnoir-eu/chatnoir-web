@@ -16,19 +16,19 @@ class SearchBase(ABC):
 
     SEARCH_VERSION = None
 
-    def __init__(self, indexes=None, search_from=0, num_results=10, explain=False):
+    def __init__(self, indices=None, search_from=0, num_results=10, explain=False):
         """
-        :param indexes: list of indexes to search (will be validated and replaced with defaults if necessary)
+        :param indices: list of indices to search (will be validated and replaced with defaults if necessary)
         :param search_from: start search at this result index
         :param num_results: number of results to return
         :param explain: explain result scores
         """
-        if indexes is not None and type(indexes) not in (tuple, list):
-            raise TypeError('indexes must be a list')
+        if indices is not None and type(indices) not in (tuple, list):
+            raise TypeError('indices must be a list')
 
-        if indexes is None:
-            indexes = {settings.SEARCH_DEFAULT_INDEXES[self.SEARCH_VERSION]}
-        self._indexes_unvalidated = set(indexes)
+        if indices is None:
+            indices = {settings.SEARCH_DEFAULT_INDICES[self.SEARCH_VERSION]}
+        self._indices_unvalidated = set(indices)
 
         self.search_language = 'en'
         self.group_results_by_hostname = True
@@ -40,23 +40,20 @@ class SearchBase(ABC):
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
 
-    @classmethod
     @property
-    def allowed_indexes(cls):
-        """Allowed and compatible indexes."""
-        return {i: settings.SEARCH_INDEXES[i] for i in settings.SEARCH_INDEXES
-                if cls.SEARCH_VERSION in settings.SEARCH_INDEXES[i]['compat_search_versions']}
+    def allowed_indices(self):
+        """Allowed and compatible indices."""
+        return {k: settings.SEARCH_INDICES[k] for k in settings.SEARCH_INDICES
+                if self.SEARCH_VERSION in settings.SEARCH_INDICES[k]['compat_search_versions']}
 
     @property
-    def indexes(self):
-        """Selected indexes."""
-        allowed = self.allowed_indexes
-        indexes = {i: allowed[i] for i in self._indexes_unvalidated if i in allowed}
-        if not indexes:
-            default_index = settings.SEARCH_DEFAULT_INDEXES[self.SEARCH_VERSION]
-            indexes = {default_index: settings.SEARCH_INDEXES[default_index]}
-
-        return indexes
+    def selected_indices(self):
+        """Selected indices."""
+        allowed = self.allowed_indices
+        indices = {k: allowed[k] for k in self._indices_unvalidated if k in allowed}
+        if not indices:
+            indices = {k: v for k, v in allowed.items() if v.get('default')}
+        return indices
 
     @property
     def page_num(self):
@@ -227,8 +224,8 @@ class SimpleSearch(SearchBase):
     """Number of top documents to rescore."""
     RESCORE_WINDOW = 400
 
-    def __init__(self, indexes, search_from=0, num_results=10, explain=False):
-        super().__init__(indexes, search_from, num_results, explain)
+    def __init__(self, indices=None, search_from=0, num_results=10, explain=False):
+        super().__init__(indices, search_from, num_results, explain)
         self.user_lang_override = False
 
     def search(self, query_string):
@@ -252,7 +249,7 @@ class SimpleSearch(SearchBase):
         pre_query.must_not.extend(user_filters.must_not)
 
         s = (Search()
-             .index([i['index'] for i in self.indexes.values()])
+             .index([i['index'] for i in self.selected_indices.values()])
              .query(pre_query)
              .extra(from_=self.search_from,
                     size=self.num_results,
@@ -314,7 +311,7 @@ class SimpleSearch(SearchBase):
 
                 # Special case: index
                 if filter_field == '#index':
-                    self._indexes_unvalidated = [i.strip() for i in filter_value.split(',')]
+                    self._indices_unvalidated = [i.strip() for i in filter_value.split(',')]
                     continue
 
                 # Special case: hostname
@@ -467,8 +464,8 @@ class PhraseSearch(SimpleSearch):
     """Terminate search after this many results per node."""
     NODE_LIMIT = 4000
 
-    def __init__(self, indexes, search_from=0, num_results=10, explain=False, slop=None):
-        super().__init__(indexes, search_from, num_results, explain)
+    def __init__(self, indices=None, search_from=0, num_results=10, explain=False, slop=None):
+        super().__init__(indices, search_from, num_results, explain)
         self.slop = slop or self.DEFAULT_SLOP
 
     def _build_pre_query(self, query_string):
@@ -649,7 +646,7 @@ class SerpContext:
         :param index_name: internal index name
         :return: shorthand or unmodified index name if not found
         """
-        for i, v in self.search.indexes.items():
+        for i, v in self.search.selected_indices.items():
             if v['index'] == index_name:
                 return i
         return index_name
@@ -692,7 +689,7 @@ class SerpContext:
 
     @serp_api_meta
     def indices(self):
-        return list(self.search.indexes.keys())
+        return list(self.search.selected_indices.keys())
 
     @serp_api_meta_extra
     def query_string(self):
