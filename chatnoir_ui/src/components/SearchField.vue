@@ -96,6 +96,7 @@ function updateModelFromQueryString() {
  * @returns {{} | {q: string, index: *[]}}
  */
 function modelToQueryString() {
+    console.log(searchModel.indices)
     let indices = searchModel.indices ? searchModel.indices.filter((e) => e.selected).map((e) => e.id) : []
     return {
         q: searchModel.query,

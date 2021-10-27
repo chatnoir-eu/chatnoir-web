@@ -22,11 +22,11 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, toRef, watch } from 'vue';
+import { onMounted, onUnmounted, ref, toRef, unref, watch } from 'vue';
 
 const emit = defineEmits(['update:modelValue', 'close'])
 const props = defineProps({
-    modelValue: {type: Object, default: () => {}},
+    modelValue: {type: Array, default: () => []},
     visible: {type: Boolean, default: false},
     refElement: {type: Object, default: null}
 })
@@ -42,7 +42,7 @@ function allChecked() {
 }
 
 function toggleAllIndices(on) {
-    const mv = props.modelValue
+    const mv = Array.from(props.modelValue)
     for (let idx in mv) {
         mv[idx].selected = on
     }
@@ -50,7 +50,7 @@ function toggleAllIndices(on) {
 }
 
 function toggleIndex(pos, on) {
-    const mv = Object.assign({}, props.modelValue)
+    const mv = Array.from(props.modelValue)
     mv[pos].selected = on
     emit('update:modelValue', mv)
 }
