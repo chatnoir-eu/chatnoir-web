@@ -12,7 +12,7 @@
 
     a {
         @apply text-red-600;
-        @apply underline hover:no-underline focus:no-underline;
+        @apply no-underline hover:underline focus:underline;
     }
 
     input[type="search"]::-webkit-search-decoration,
