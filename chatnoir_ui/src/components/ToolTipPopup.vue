@@ -27,6 +27,35 @@ function closeOnClick(e) {
     }
 }
 
+function reposition() {
+    if (!props.refElement) {
+        throw 'No reference object set'
+    }
+
+    const tailOffset = rem2Px(1.3)
+
+    let left = props.refElement.offsetLeft - (popup.value.clientWidth - props.refElement.clientWidth) / 2
+    let top = props.refElement.offsetTop + props.refElement.offsetHeight + tailOffset
+
+    // flip popup if scroll / document height insufficient
+    let refBr = props.refElement.getBoundingClientRect()
+    if (refBr.top + popup.value.offsetHeight + tailOffset > window.innerHeight
+        && refBr.top >= popup.value.offsetHeight + tailOffset) {
+        top = props.refElement.offsetTop - popup.value.offsetHeight - tailOffset
+
+        if (popup.value.classList.contains('tail-top')) {
+            popup.value.classList.remove('tail-top')
+            popup.value.classList.add('tail-bottom')
+        }
+    } else if (popup.value.classList.contains('tail-bottom')) {
+        popup.value.classList.remove('tail-bottom')
+        popup.value.classList.add('tail-top')
+    }
+
+    popup.value.style.left = `${left}px`
+    popup.value.style.top = `${top}px`
+}
+
 function toggleVisibility(visible) {
     if (!popup.value) {
         return
@@ -38,36 +67,12 @@ function toggleVisibility(visible) {
     if (visible) {
         document.addEventListener('click', closeOnClick, true)
         popup.value.classList.remove('invisible', 'hidden')
-
-        const tailOffset = rem2Px(1.3)
-
-        // Align offset with reference element
-        if (props.refElement) {
-            let left = props.refElement.offsetLeft - (popup.value.clientWidth - props.refElement.clientWidth) / 2
-            let top = props.refElement.offsetTop + props.refElement.offsetHeight + tailOffset
-
-            // flip popup if scroll / document height insufficient
-            let refBr = props.refElement.getBoundingClientRect()
-            if (refBr.top + popup.value.offsetHeight + tailOffset > window.innerHeight
-                && refBr.top >= popup.value.offsetHeight + tailOffset) {
-                top = props.refElement.offsetTop - popup.value.offsetHeight - tailOffset
-
-                if (popup.value.classList.contains('tail-top')) {
-                    popup.value.classList.remove('tail-top')
-                    popup.value.classList.add('tail-bottom')
-                }
-            } else if (popup.value.classList.contains('tail-bottom')) {
-                popup.value.classList.remove('tail-bottom')
-                popup.value.classList.add('tail-top')
-            }
-
-            popup.value.style.left = `${left}px`
-            popup.value.style.top = `${top}px`
-            popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
-            popup.value.classList.remove(...animationClasses)
-        }
+        reposition()
+        popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
+        popup.value.classList.remove(...animationClasses)
     } else {
         document.removeEventListener('click', closeOnClick, true)
+        setTimeout(() => popup.value.classList.add('hidden'), 450)
     }
 }
 
@@ -78,12 +83,16 @@ watch(toRef(props, 'visible'), (newValue, prevValue) => {
     toggleVisibility(newValue)
 })
 
+const resizeObserver = new ResizeObserver(reposition)
+
 onMounted(() => {
     toggleVisibility(props.visible)
+    resizeObserver.observe(popup.value)
 })
 
 onUnmounted(() => {
     toggleVisibility(false)
+    resizeObserver.unobserve(popup.value)
 })
 </script>
 
