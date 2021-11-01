@@ -66,3 +66,13 @@ export function abbreviateUrl(url, maxSegments = 3, maxLength = 40, replacement 
     let path = segments.join('/').substr(-maxLength)
     return [url.origin, replacement, path].join('/')
 }
+
+/**
+ * Convert rem units to px.
+ *
+ * @param rem rem units as float
+ * @returns {number} px value
+ */
+export function rem2Px(rem) {
+    return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
+}

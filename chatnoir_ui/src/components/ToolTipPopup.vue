@@ -7,7 +7,8 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, toRef, watch } from 'vue';
+import { onMounted, onUnmounted, ref, toRef, watch } from 'vue'
+import { rem2Px } from '@/common'
 
 const emit = defineEmits(['close'])
 const props = defineProps({
@@ -40,9 +41,24 @@ function toggleVisibility(visible) {
 
         // Align offset with reference element
         if (props.refElement) {
-            popup.value.style.left = `${props.refElement.offsetLeft - popup.value.clientWidth / 2 + 1}px`
-            popup.value.style.top = `calc(${props.refElement.offsetTop + props.refElement.offsetHeight}px + 1.3rem)`
+            let left = props.refElement.offsetLeft - (popup.value.clientWidth - props.refElement.clientWidth) / 2
+            let top = props.refElement.offsetTop + props.refElement.offsetHeight + rem2Px(1.3)
 
+            // flip popup if scroll / document height insufficient
+            if (props.refElement.getBoundingClientRect().top + popup.value.offsetHeight > window.innerHeight) {
+                top = props.refElement.offsetTop - popup.value.offsetHeight - rem2Px(1.3)
+
+                if (popup.value.classList.contains('tail-top')) {
+                    popup.value.classList.remove('tail-top')
+                    popup.value.classList.add('tail-bottom')
+                }
+            } else if (popup.value.classList.contains('tail-bottom')) {
+                popup.value.classList.remove('tail-bottom')
+                popup.value.classList.add('tail-top')
+            }
+
+            popup.value.style.left = `${left}px`
+            popup.value.style.top = `${top}px`
             popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
             popup.value.classList.remove(...animationClasses)
         }
