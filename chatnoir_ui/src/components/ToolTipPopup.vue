@@ -39,14 +39,18 @@ function toggleVisibility(visible) {
         document.addEventListener('click', closeOnClick, true)
         popup.value.classList.remove('invisible', 'hidden')
 
+        const tailOffset = rem2Px(1.3)
+
         // Align offset with reference element
         if (props.refElement) {
             let left = props.refElement.offsetLeft - (popup.value.clientWidth - props.refElement.clientWidth) / 2
-            let top = props.refElement.offsetTop + props.refElement.offsetHeight + rem2Px(1.3)
+            let top = props.refElement.offsetTop + props.refElement.offsetHeight + tailOffset
 
             // flip popup if scroll / document height insufficient
-            if (props.refElement.getBoundingClientRect().top + popup.value.offsetHeight > window.innerHeight) {
-                top = props.refElement.offsetTop - popup.value.offsetHeight - rem2Px(1.3)
+            let refBr = props.refElement.getBoundingClientRect()
+            if (refBr.top + popup.value.offsetHeight + tailOffset > window.innerHeight
+                && refBr.top >= popup.value.offsetHeight + tailOffset) {
+                top = props.refElement.offsetTop - popup.value.offsetHeight - tailOffset
 
                 if (popup.value.classList.contains('tail-top')) {
                     popup.value.classList.remove('tail-top')
