@@ -50,7 +50,7 @@ class SimpleSearch(search_v1.SimpleSearch):
         },
         {
             'name': 'authors',
-            'boost': 10
+            'boost': 50
         },
         {
             'name': 'venue',
