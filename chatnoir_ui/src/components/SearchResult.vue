@@ -45,10 +45,15 @@
 
                     <dt>Authors:</dt>
                     <dd>
-                        <span v-for="(a, i) in data.authors" :key="a">
+                        <span v-for="(a, i) in data.authors.slice(0, authorsShowMore ? data.authors.length : 6)" :key="a">
                             <a :href="getAuthorUrl(a)">{{ a.replace(/\s+/, '\u00a0') }}</a>
                             <span v-if="i !== data.authors.length - 1">,<br></span>
                         </span>
+
+                        <a v-if="data.authors.length > 6" href="#" class="block clear-left"
+                           @click.prevent="authorsShowMore = !authorsShowMore">
+                            {{ authorsShowMore ? 'Show less\u2026' : `+${data.authors.length - 6} more\u2026` }}
+                        </a>
                     </dd>
 
                     <dt>Venue:</dt>
@@ -73,6 +78,7 @@ import ToolTipPopup from '@/components/ToolTipPopup'
 import { abbreviateUrl, getQueryUrl } from '@/common';
 
 const optsShown = ref('')
+const authorsShowMore = ref(false)
 
 function log(m) { console.log(m) }
 const props = defineProps({
