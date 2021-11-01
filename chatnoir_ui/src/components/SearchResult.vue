@@ -27,12 +27,12 @@
                 <a :href="getQueryUrl(route, `year:${data.year}`)">{{ data.year }}</a>
             </span>
 
-            <button :ref="`opt-btn-${data.uuid}`" type="button" class="h-2.5 w-2.5 ml-3 text-center" @click="optsShown = data.uuid">
+            <button ref="detailsButton" type="button" class="h-2.5 w-2.5 ml-3 text-center" @click="detailsShown = !detailsShown">
                 <inline-svg :src="require('@/assets/icons/settings.svg').default" class="h-full mx-auto" arial-label="Options" />
             </button>
 
-            <ToolTipPopup :ref-element="$refs[`opt-btn-${data.uuid}`]" :visible="optsShown === data.uuid"
-                          class="tail-top max-w-md hidden" @close="optsShown = ''">
+            <ToolTipPopup :visible="detailsShown" :ref-element="$refs.detailsButton"
+                          class="tail-top max-w-md" @close="detailsShown = false">
                 <dl :class="$style['meta-details']">
                     <dt>Score:</dt>
                     <dd>{{ data.score.toFixed(2) }}</dd>
@@ -77,7 +77,7 @@ import InlineSvg from 'vue-inline-svg';
 import ToolTipPopup from '@/components/ToolTipPopup'
 import { abbreviateUrl, getQueryUrl } from '@/common';
 
-const optsShown = ref('')
+const detailsShown = ref(false)
 const authorsShowMore = ref(false)
 
 function log(m) { console.log(m) }

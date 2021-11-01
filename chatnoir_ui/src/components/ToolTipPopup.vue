@@ -1,5 +1,5 @@
 <template>
-<div ref="popup" class="tooltip-popup invisible w-max transform">
+<div ref="popup" class="tooltip-popup invisible hidden w-max transform">
     <div class="py-1 px-1.5">
         <slot />
     </div>
