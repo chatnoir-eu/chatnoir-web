@@ -108,14 +108,19 @@ watch(toRef(props, 'modelValue'), (newValue) => {
     Object.assign(searchModel, newValue)
 })
 
-watch(searchModel, (newValue, oldValue) => {
-    if (newValue.query !== oldValue.query) {
-        emit('change', newValue.query)
+watch(() => searchModel.query, (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+        emit('change', newValue)
         emitModelUpdate()
     }
 
-    if (newValue.indices !== oldValue.indices) {
-        emit('option-change', newValue.indices)
+    emit('option-change', newValue.indices)
+    emitModelUpdate()
+})
+
+watch(() => searchModel.indices, (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+        emit('option-change', newValue)
         emitModelUpdate()
     }
 })
