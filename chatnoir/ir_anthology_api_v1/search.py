@@ -1,4 +1,7 @@
+from urllib.parse import quote_plus
+
 from chatnoir_api_v1 import search as search_v1
+from chatnoir_api_v1.search import minimal, extended, explanation
 
 
 class SimpleSearch(search_v1.SimpleSearch):
@@ -114,9 +117,6 @@ class PhraseSearch(search_v1.PhraseSearch):
 
 # noinspection DuplicatedCode
 class SerpContext(search_v1.SerpContext):
-    API_MINIMAL_FIELDS = {'score', 'doi', 'anthology_id', 'title'}
-    API_FIELDS = API_MINIMAL_FIELDS | {'index', 'authors', 'venue', 'year', 'snippet'}
-
     @property
     def hits(self):
         """
@@ -137,22 +137,23 @@ class SerpContext(search_v1.SerpContext):
 
             result_index = self._index_name_to_shorthand(hit.meta.index)
 
-            explanation = None
+            expl = None
             if hasattr(hit.meta, 'explanation'):
-                explanation = hit.meta.explanation.to_dict()
+                expl = hit.meta.explanation.to_dict()
 
             result = {
-                'score': hit.meta.score,
-                'index': result_index,
-                'authors': list(getattr(hit, 'authors', [])),
-                'anthology_id': hit.meta.id,
-                'anthology_uri': f'https://ir.webis.de/anthology/{hit.meta.id}/',
-                'doi': getattr(hit, 'doi', None),
-                'venue': getattr(hit, 'venue', None),
-                'year': getattr(hit, 'year', None),
-                'title': title,
-                'snippet': snippet,
-                'explanation': explanation
+                'score': minimal(hit.meta.score),
+                'index': minimal(result_index),
+                'id': minimal(hit.meta.id),
+                'authors': extended(list(getattr(hit, 'authors', []))),
+                'internal_url': minimal(f'https://ir.webis.de/anthology/{quote_plus(hit.meta.id)}/'),
+                'external_uri': minimal(f'https://doi.org/{getattr(hit, "doi")}' if hasattr(hit, 'doi') else None),
+                'doi': minimal(getattr(hit, 'doi', None)),
+                'venue': extended(getattr(hit, 'venue', None)),
+                'year': extended(getattr(hit, 'year', None)),
+                'title': minimal(title),
+                'snippet': extended(snippet),
+                'explanation': explanation(expl)
             }
 
             results.append(result)

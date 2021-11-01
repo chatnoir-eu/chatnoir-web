@@ -521,10 +521,50 @@ class serp_api_meta_extra(property):
     pass
 
 
-class SerpContext:
-    API_MINIMAL_FIELDS = {'score', 'uuid', 'target_uri', 'snippet'}
-    API_FIELDS = API_MINIMAL_FIELDS | {'index', 'trec_id', 'target_hostname', 'page_rank', 'spam_rank', 'title'}
+# noinspection PyPep8Naming
+class api_value:
+    """
+    API response value wrapper.
+    """
+    def __init__(self, value):
+        self.value = value
 
+    @property
+    def type(self):
+        return type(self.value)
+
+    def __repr__(self):
+        return repr(self.value)
+
+    def __str__(self):
+        return str(self.value)
+
+
+# noinspection PyPep8Naming
+class minimal(api_value):
+    """
+    Minimal API response value wrapper.
+    """
+    pass
+
+
+# noinspection PyPep8Naming
+class extended(api_value):
+    """
+    Extended API response value wrapper.
+    """
+    pass
+
+
+# noinspection PyPep8Naming
+class explanation(extended):
+    """
+    Explanation field API response value wrapper.
+    """
+    pass
+
+
+class SerpContext:
     """
     Results page context with processed results.
     """
@@ -588,23 +628,23 @@ class SerpContext:
                 snippet = snippet.replace('\ufffd', '')
                 target_uri = target_uri.replace('\ufffd', '')
 
-            explanation = None
+            expl = None
             if hasattr(hit.meta, 'explanation'):
-                explanation = hit.meta.explanation.to_dict()
+                expl = hit.meta.explanation.to_dict()
 
             result = {
-                'score': hit.meta.score,
-                'uuid': hit.meta.id,
-                'index': result_index,
-                'trec_id': getattr(hit, 'warc_trec_id', None),
-                'target_hostname': getattr(hit, 'warc_target_hostname', None),
-                'target_uri': target_uri,
-                'page_rank': getattr(hit, 'page_rank', None),
-                'spam_rank': getattr(hit, 'spam_rank', None),
-                'title': title,
-                'snippet': snippet,
-                'target_path': urlparse(hit.warc_target_uri).path,
-                'explanation': explanation
+                'score': minimal(hit.meta.score),
+                'uuid': minimal(hit.meta.id),
+                'index': minimal(result_index),
+                'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
+                'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
+                'target_uri': minimal(target_uri),
+                'page_rank': extended(getattr(hit, 'page_rank', None)),
+                'spam_rank': extended(getattr(hit, 'spam_rank', None)),
+                'title': extended(title),
+                'snippet': minimal(snippet),
+                'target_path': minimal(urlparse(hit.warc_target_uri).path),
+                'explanation': explanation(expl)
             }
 
             results.append(result)
@@ -623,12 +663,14 @@ class SerpContext:
         so it is suitable to be used directly in API responses.
         """
         hits = self.hits
-        fields = self.API_FIELDS.copy() if not self.search.minimal_response else self.API_MINIMAL_FIELDS.copy()
+        types = {minimal}
+        if not self.search.minimal_response:
+            types.add(extended)
         if self.search.explain:
-            fields.add('explanation')
+            types.add(explanation)
 
         for i in range(len(hits)):
-            hits[i] = {k: v for k, v in hits[i].items() if k in fields}
+            hits[i] = {k: v.value for k, v in hits[i].items() if type(v) in types}
 
         return hits
 
