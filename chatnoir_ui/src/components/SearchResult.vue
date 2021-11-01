@@ -45,14 +45,15 @@
 
                     <dt>Authors:</dt>
                     <dd>
-                        <span v-for="(a, i) in data.authors.slice(0, authorsShowMore ? data.authors.length : 6)" :key="a">
+                        <span v-for="(a, i) in data.authors.slice(0, authorsShowMore || data.authors.length === maxAuthors + 1 ?
+                            data.authors.length : maxAuthors)" :key="a">
                             <a :href="getAuthorUrl(a)">{{ a.replace(/\s+/, '\u00a0') }}</a>
                             <span v-if="i !== data.authors.length - 1">,<br></span>
                         </span>
 
-                        <a v-if="data.authors.length > 6" href="#" class="block clear-left"
+                        <a v-if="data.authors.length > maxAuthors + 1" href="#" class="block clear-left"
                            @click.prevent="authorsShowMore = !authorsShowMore">
-                            {{ authorsShowMore ? 'Show less\u2026' : `+${data.authors.length - 6} more\u2026` }}
+                            {{ authorsShowMore ? 'Show less\u2026' : `+${data.authors.length - maxAuthors} more\u2026` }}
                         </a>
                     </dd>
 
@@ -77,6 +78,7 @@ import InlineSvg from 'vue-inline-svg';
 import ToolTipPopup from '@/components/ToolTipPopup'
 import { abbreviateUrl, getQueryUrl } from '@/common';
 
+const maxAuthors = 6
 const detailsShown = ref(false)
 const authorsShowMore = ref(false)
 
