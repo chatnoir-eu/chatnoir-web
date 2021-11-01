@@ -1,10 +1,10 @@
 <template>
-<div ref="popup" class="popup tail-top invisible w-max transform">
+<ToolTipPopup class="tail-top">
     <fieldset>
-        <legend class="font-bold mb-1.5">
+        <legend class="font-bold mb-2">
             Select Indices:
         </legend>
-        <ul class="pl-3 pb-1">
+        <ul class="pl-2">
             <li class="pb-0.5">
                 <input id="select-all" class="chk ml-0" type="checkbox" :checked="allChecked()"
                        @click="toggleAllIndices($event.target.checked)">
@@ -18,19 +18,16 @@
             </li>
         </ul>
     </fieldset>
-</div>
+</ToolTipPopup>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, toRef, unref, watch } from 'vue';
+import ToolTipPopup from '@/components/ToolTipPopup'
 
-const emit = defineEmits(['update:modelValue', 'close'])
+const emit = defineEmits(['update:modelValue'])
 const props = defineProps({
-    modelValue: {type: Array, default: () => []},
-    visible: {type: Boolean, default: false},
-    refElement: {type: Object, default: null}
+    modelValue: {type: Array, default: () => []}
 })
-const popup = ref(null)
 
 function allChecked() {
     for (let idx in props.modelValue) {
@@ -54,54 +51,4 @@ function toggleIndex(pos, on) {
     mv[pos].selected = on
     emit('update:modelValue', mv)
 }
-
-function closeOnClick(e) {
-    if (!popup.value || popup.value.style.display === 'none') {
-        return
-    }
-    if (!popup.value.contains(e.target)) {
-        emit('close')
-        e.stopPropagation()
-    }
-}
-
-function toggleVisibility(visible) {
-    if (!popup.value) {
-        return
-    }
-
-    const animationClasses = ['opacity-0', 'invisible', '-translate-y-3']
-    popup.value.classList.add(...animationClasses)
-
-    if (visible) {
-        document.addEventListener('click', closeOnClick, true)
-        popup.value.classList.remove('invisible', 'hidden')
-
-        // Align offset with reference element
-        if (props.refElement) {
-            popup.value.style.left = `${props.refElement.offsetLeft - popup.value.clientWidth / 2 + 1}px`
-            popup.value.style.top = `calc(${props.refElement.offsetTop + props.refElement.offsetHeight}px + 1.3rem)`
-
-            popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
-            popup.value.classList.remove(...animationClasses)
-        }
-    } else {
-        document.removeEventListener('click', closeOnClick, true)
-    }
-}
-
-watch(toRef(props, 'visible'), (newValue, prevValue) => {
-    if (newValue === prevValue) {
-        return
-    }
-    toggleVisibility(newValue)
-})
-
-onMounted(() => {
-    toggleVisibility(props.visible)
-})
-
-onUnmounted(() => {
-    toggleVisibility(false)
-})
 </script>

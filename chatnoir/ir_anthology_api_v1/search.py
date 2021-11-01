@@ -1,4 +1,5 @@
 from urllib.parse import quote_plus
+import uuid
 
 from chatnoir_api_v1 import search as search_v1
 from chatnoir_api_v1.search import minimal, extended, explanation
@@ -144,11 +145,12 @@ class SerpContext(search_v1.SerpContext):
             result = {
                 'score': minimal(hit.meta.score),
                 'index': minimal(result_index),
-                'id': minimal(hit.meta.id),
-                'authors': extended(list(getattr(hit, 'authors', []))),
-                'internal_url': minimal(f'https://ir.webis.de/anthology/{quote_plus(hit.meta.id)}/'),
+                'uuid': minimal(uuid.uuid5(uuid.NAMESPACE_URL, 'ir-anthology:' + hit.meta.id)),
+                'internal_uri': minimal(f'https://ir.webis.de/anthology/{quote_plus(hit.meta.id)}/'),
                 'external_uri': minimal(f'https://doi.org/{getattr(hit, "doi")}' if hasattr(hit, 'doi') else None),
+                'authors': extended(list(getattr(hit, 'authors', []))),
                 'doi': minimal(getattr(hit, 'doi', None)),
+                'anthology_id': minimal(hit.meta.id),
                 'venue': extended(getattr(hit, 'venue', None)),
                 'year': extended(getattr(hit, 'year', None)),
                 'title': minimal(title),

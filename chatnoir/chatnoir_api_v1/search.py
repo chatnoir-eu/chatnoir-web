@@ -636,14 +636,13 @@ class SerpContext:
                 'score': minimal(hit.meta.score),
                 'uuid': minimal(hit.meta.id),
                 'index': minimal(result_index),
-                'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
-                'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
                 'target_uri': minimal(target_uri),
+                'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
+                'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
                 'page_rank': extended(getattr(hit, 'page_rank', None)),
                 'spam_rank': extended(getattr(hit, 'spam_rank', None)),
-                'title': extended(title),
+                'title': minimal(title),
                 'snippet': minimal(snippet),
-                'target_path': minimal(urlparse(hit.warc_target_uri).path),
                 'explanation': explanation(expl)
             }
 
