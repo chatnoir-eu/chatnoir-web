@@ -16,6 +16,7 @@ const props = defineProps({
     refElement: {type: Object, default: null}
 })
 const popup = ref(null)
+let state = false
 
 function closeOnClick(e) {
     if (popup.value.contains(e.target)) {
@@ -57,7 +58,7 @@ function reposition() {
 }
 
 function toggleVisibility(visible) {
-    if (!popup.value) {
+    if (!popup.value || state === visible) {
         return
     }
 
@@ -75,6 +76,8 @@ function toggleVisibility(visible) {
         setTimeout(() => popup.value.classList.add('hidden'), 450)
         emit('close')
     }
+
+    state = visible
 }
 
 watch(toRef(props, 'visible'), (newValue, prevValue) => {
