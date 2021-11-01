@@ -63,12 +63,12 @@ function toggleVisibility(visible) {
 
     const animationClasses = ['opacity-0', 'invisible', '-translate-y-3']
     popup.value.classList.add(...animationClasses)
+    popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
 
     if (visible) {
         document.addEventListener('click', closeOnClick, true)
         popup.value.classList.remove('invisible', 'hidden')
         reposition()
-        popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
         popup.value.classList.remove(...animationClasses)
     } else {
         document.removeEventListener('click', closeOnClick, true)
