@@ -147,7 +147,8 @@ class SerpContext(search_v1.SerpContext):
                 'index': minimal(result_index),
                 'uuid': minimal(uuid.uuid5(uuid.NAMESPACE_URL, 'ir-anthology:' + hit.meta.id)),
                 'internal_uri': minimal(f'https://ir.webis.de/anthology/{quote_plus(hit.meta.id)}/'),
-                'external_uri': minimal(f'https://doi.org/{getattr(hit, "doi")}' if hasattr(hit, 'doi') else None),
+                'external_uri': minimal(f'https://doi.org/{getattr(hit, "doi")}'
+                                        if hasattr(hit, 'doi') else getattr(hit, 'url', None)),
                 'authors': extended(list(getattr(hit, 'authors', []))),
                 'doi': minimal(getattr(hit, 'doi', None)),
                 'anthology_id': minimal(hit.meta.id),

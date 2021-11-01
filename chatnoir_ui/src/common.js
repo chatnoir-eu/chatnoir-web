@@ -53,7 +53,8 @@ export function escapeHTML(text) {
  * @param maxLength: maximum path length in characters (full URL may be longer)
  * @param replacement: abbreviation replacement character
  */
-export function abbreviateUrl(url, maxSegments = 3, maxLength = 40, replacement = '\u22ef') {
+export function abbreviateUrl(url, maxSegments = 3, maxLength = 40,
+                              replacement = '\u2009\u2026\u2009') {
     url = new URL(url)
     url.search = ''
     url.hash = ''
