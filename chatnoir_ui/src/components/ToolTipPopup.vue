@@ -18,18 +18,18 @@ const props = defineProps({
 const popup = ref(null)
 
 function closeOnClick(e) {
-    if (!popup.value || popup.value.style.display === 'none') {
+    if (popup.value.contains(e.target)) {
         return
     }
-    if (!popup.value.contains(e.target)) {
-        emit('close')
+    if (props.refElement && props.refElement.contains(e.target)) {
         e.stopPropagation()
     }
+    toggleVisibility(false)
 }
 
 function reposition() {
     if (!props.refElement) {
-        throw 'No reference object set'
+        return
     }
 
     const tailOffset = rem2Px(1.3)
@@ -73,6 +73,7 @@ function toggleVisibility(visible) {
     } else {
         document.removeEventListener('click', closeOnClick, true)
         setTimeout(() => popup.value.classList.add('hidden'), 450)
+        emit('close')
     }
 }
 
@@ -81,6 +82,10 @@ watch(toRef(props, 'visible'), (newValue, prevValue) => {
         return
     }
     toggleVisibility(newValue)
+})
+
+watch(toRef(props, 'refElement'), () => {
+    reposition()
 })
 
 const resizeObserver = new ResizeObserver(reposition)
@@ -94,6 +99,11 @@ onUnmounted(() => {
     toggleVisibility(false)
     resizeObserver.unobserve(popup.value)
 })
+
+defineExpose([
+    reposition,
+    toggleVisibility
+])
 </script>
 
 <style>
