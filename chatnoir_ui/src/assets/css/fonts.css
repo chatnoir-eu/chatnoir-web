@@ -2,26 +2,26 @@
     font-family: 'Carlito';
     font-style: normal;
     font-weight: 400;
-    src: local('Carlito'), url('../fonts/carlito/Carlito-Regular.woff') format('woff');
+    src: url('../fonts/carlito/Carlito-Regular.woff') format('woff');
 }
 
 @font-face {
     font-family: 'Carlito';
     font-style: italic;
     font-weight: 400;
-    src: local('Carlito'), url('../fonts/carlito/Carlito-Italic.woff') format('woff');
+    src: url('../fonts/carlito/Carlito-Italic.woff') format('woff');
 }
 
 @font-face {
     font-family: 'Carlito';
     font-style: normal;
     font-weight: 700;
-    src: local('Carlito'), url('../fonts/carlito/Carlito-Bold.woff') format('woff');
+    src: url('../fonts/carlito/Carlito-Bold.woff') format('woff');
 }
 
 @font-face {
     font-family: 'Carlito';
     font-style: italic;
     font-weight: 700;
-    src: local('Carlito'), url('../fonts/carlito/Carlito-BoldItalic.woff') format('woff');
+    src: url('../fonts/carlito/Carlito-BoldItalic.woff') format('woff');
 }
