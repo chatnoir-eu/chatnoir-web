@@ -41,10 +41,10 @@
             <component :is="SearchResult" :data="result" />
         </div>
     </div>
-    <div v-if="!error && searchResultsMeta && searchResults.length === 0" class="max-w-3xl mx-auto text-center text-lg">
+    <div v-if="!error && searchResultsMeta && searchResults.length === 0" class="max-w-3xl mt-12 mx-auto text-center text-lg">
         No results found… ;-(
     </div>
-    <div v-if="error" class="max-w-3xl mx-auto py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">
+    <div v-if="error" class="max-w-3xl mx-auto mt-10 py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">
         Error processing your request. Got:<br>
         <strong>{{ error }}</strong><br>
         Please try again later.
