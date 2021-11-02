@@ -107,7 +107,7 @@ async function requestResults() {
         requestProgress.value = 25
         error.value = ''
         const response = await axios(requestOptions)
-        window.TOKEN = response.headers['X-Token']
+        window.TOKEN = response.headers['x-token']
         return response.data
     } catch (ex) {
         // probably CSRF token error, refresh page
