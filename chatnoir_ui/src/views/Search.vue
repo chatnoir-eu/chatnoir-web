@@ -23,8 +23,14 @@
             <component :is="SearchResult" :data="result" />
         </div>
     </div>
-    <div v-else class="max-w-3xl mx-auto text-center text-lg">
+    <div v-if="!error && searchResults.length === 0" class="max-w-3xl mx-auto text-center text-lg">
         No results found… ;-(
+    </div>
+    <!-- eslint-disable-next-line vue/no-v-html -->
+    <div v-if="error" class="max-w-3xl mx-auto py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">
+        Error processing your request. Got:<br>
+        <strong>{{ error }}</strong><br>
+        Please try again later.
     </div>
 
     <footer v-if="paginationModel.maxPage > 0" class="my-16 mx-auto max-w-3xl text-center">
@@ -54,6 +60,7 @@ const paginationModel = reactive({
     maxPage: 0,
     paginationSize: 0
 })
+const error = ref(null)
 
 /**
  * Request search result JSON from the server.
@@ -72,6 +79,14 @@ async function requestResults() {
     }
 
     const response = await fetch(backend + '?' + buildQueryString(route.query), requestOptions)
+    // probably CSRF token error, refresh page
+    if (response.status === 403 && location.hash !== '#reload') {
+        location.hash = 'reload'
+        location.reload()
+    } else if (response.status !== 200) {
+        error.value = `${response.status} ${response.statusText}`
+        return new Promise(() => {})
+    }
     window.TOKEN = response.headers.get('X-Token')
     return response.json()
 }
