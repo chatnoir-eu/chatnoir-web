@@ -43,6 +43,7 @@ const props = defineProps({
 
 function navigateToPage(p) {
     router.push({query: getPageQuery(p)})
+    window.scrollTo(0,0)
 }
 
 function getPageQuery(p) {
