@@ -23,6 +23,9 @@
             <component :is="SearchResult" :data="result" />
         </div>
     </div>
+    <div v-else class="max-w-3xl mx-auto text-center text-lg">
+        No results found… ;-(
+    </div>
 
     <footer v-if="paginationModel.maxPage > 0" class="my-16 mx-auto max-w-3xl text-center">
         <pagination v-model="paginationModel" />
