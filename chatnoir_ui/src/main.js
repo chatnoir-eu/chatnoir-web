@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import InlineSvg from 'vue-inline-svg';
+import InlineSvg from 'vue-inline-svg'
 import ChatNoirApp from '@/ChatNoir.vue'
 import router from '@/routes'
 

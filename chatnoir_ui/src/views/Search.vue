@@ -3,7 +3,7 @@
 -->
 <template>
 <div class="mx-auto max-w-full px-5">
-    <header class="border-b mb-5 pt-5 pb-3 -mx-5">
+    <header class="border-b mb-5 pt-5 -mx-5">
         <div class="flex flex-row items-center max-w-3xl mx-auto h-24 px-5">
             <div class="w-32 mr-3 hidden sm:block">
                 <router-link to="/">
@@ -16,6 +16,8 @@
                               v-model="searchModel" @submit="updateRoute()" @change="$refs.catLogoElement.purr()" />
             </keep-alive>
         </div>
+
+        <progress-bar :progress="requestProgress" class="mt-3" @complete="requestProgress = 0" />
     </header>
 
     <div v-if="searchResults.length" ref="resultsElement" key="search-results" class="max-w-3xl mx-auto">
@@ -57,11 +59,13 @@
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios'
 import { buildQueryString } from '@/common';
 
 import CatLogo from '@/components/CatLogo';
 import SearchField from '@/components/SearchField';
 import SearchResult from '@/components/SearchResult'
+import ProgressBar from '@/components/ProgressBar'
 import Pagination from '@/components/Pagination'
 
 const route = useRoute()
@@ -72,6 +76,7 @@ const resultsElement = ref(null)
 const searchResults = ref([])
 const searchResultsMeta = ref(null)
 const searchResultsMetaExtra = ref(null)
+const requestProgress = ref(0)
 const paginationModel = reactive({
     page: 0,
     maxPage: 0,
@@ -85,28 +90,35 @@ const error = ref(null)
 async function requestResults() {
     const baseUrl = process.env.VUE_APP_BACKEND_ADDRESS + route.path.substr(1)
     const backend = baseUrl +'search'
-
     const requestOptions = {
         method: 'POST',
+        url: backend + '?' + buildQueryString(route.query),
         headers: {
             'Content-Type': 'application/json',
             'X-Token': window.TOKEN
         },
-        body: JSON.stringify({})
+        data: {},
+        onDownloadProgress(e) {
+            requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
+        }
     }
 
-    const response = await fetch(backend + '?' + buildQueryString(route.query), requestOptions)
-    // probably CSRF token error, refresh page
-    if (response.status === 403 && location.hash !== '#reload') {
-        location.hash = 'reload'
-        location.reload()
-    } else if (response.status !== 200) {
-        error.value = `${response.status} ${response.statusText}`
+    try {
+        requestProgress.value = 25
+        error.value = ''
+        const response = await axios(requestOptions)
+        window.TOKEN = response.headers['X-Token']
+        return response.data
+    } catch (ex) {
+        // probably CSRF token error, refresh page
+        if (ex.response.status === 403 && location.hash !== '#reload') {
+            location.hash = 'reload'
+            location.reload()
+        } else if (ex.response.status !== 200) {
+            error.value = `${ex.response.status} ${ex.response.statusText}`
+        }
         return new Promise(() => {})
     }
-    error.value = ''
-    window.TOKEN = response.headers.get('X-Token')
-    return response.json()
 }
 
 /**

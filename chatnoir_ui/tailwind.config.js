@@ -5,6 +5,11 @@ module.exports = {
     ],
     darkMode: 'class',
     theme: {
+        extend: {
+            transitionProperty: {
+                'width': 'width'
+            }
+        },
         colors: {
             transparent: 'transparent',
             current: 'currentColor',
