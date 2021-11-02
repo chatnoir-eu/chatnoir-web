@@ -1,4 +1,5 @@
 import os
+from time import time
 import uuid
 
 from django.core.cache import cache as django_cache
@@ -30,24 +31,31 @@ def index(request):
     return render(request, 'index.html', ctx)
 
 
-def onetime_csrf(func):
+def time_limited_csrf(func):
     """
-    Decorator for views that force CSRF token to be invalidated after use.
+    Decorator for views that force CSRF token to be invalidated after five minutes.
     """
     func = csrf_protect(func)
 
     def wrapper(request):
         if request.method not in ['HEAD', 'GET', 'OPTIONS', 'TRACE']:
             if CSRF_SESSION_KEY in request.session:
-                del request.session[CSRF_SESSION_KEY]
-            rotate_token(request)
+                time_key = CSRF_SESSION_KEY + '_TIME'
+                if time_key not in request.session:
+                    request.session[time_key] = time()
+
+                if time() - request.session[time_key] > 5 * 60:
+                    del request.session[CSRF_SESSION_KEY]
+                    request.session[time_key] = time()
+                    rotate_token(request)
+
         return func(request)
 
     return wrapper
 
 
 @require_http_methods(['POST'])
-@onetime_csrf
+@time_limited_csrf
 def search(request):
     query_string = request.GET.get('q')
 
