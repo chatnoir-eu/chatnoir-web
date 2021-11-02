@@ -3,7 +3,7 @@
 -->
 <template>
 <div class="mx-auto max-w-full px-5">
-    <header class="border-b mb-10 pt-5 pb-3 -mx-5">
+    <header class="border-b mb-5 pt-5 pb-3 -mx-5">
         <div class="flex flex-row items-center max-w-3xl mx-auto h-24 px-5">
             <div class="w-32 mr-3 hidden sm:block">
                 <router-link to="/">
@@ -19,14 +19,29 @@
     </header>
 
     <div v-if="searchResults.length" ref="resultsElement" key="search-results" class="max-w-3xl mx-auto">
+        <div class="flex -mb-3 text-sm">
+            <div class="flex-grow">
+                Search results {{ numFormat(searchResultsMetaExtra.results_from + 1) }}–{{ numFormat(searchResultsMetaExtra.results_to) }}
+                for <em class="font-bold">“{{ searchResultsMetaExtra.query_string }}”</em>
+            </div>
+            <div>
+                Total results: {{ numFormat(searchResultsMeta.total_results) }}<span v-if="searchResultsMetaExtra.terminated_early">+</span>
+                <span v-if="searchResultsMeta.query_time < 1500">
+                    (retrieved in {{ numFormat(searchResultsMeta.query_time) }}&thinsp;ms)
+                </span>
+                <span v-else>
+                    (retrieved in {{ numFormat(searchResultsMeta.query_time / 1000, { minimumFractionDigits: 1 }) }}&thinsp;s)
+                </span>
+            </div>
+        </div>
+
         <div v-for="result in searchResults" :key="result.uuid">
             <component :is="SearchResult" :data="result" />
         </div>
     </div>
-    <div v-if="!error && searchResults.length === 0" class="max-w-3xl mx-auto text-center text-lg">
+    <div v-if="!error && searchResultsMeta && searchResults.length === 0" class="max-w-3xl mx-auto text-center text-lg">
         No results found… ;-(
     </div>
-    <!-- eslint-disable-next-line vue/no-v-html -->
     <div v-if="error" class="max-w-3xl mx-auto py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">
         Error processing your request. Got:<br>
         <strong>{{ error }}</strong><br>
@@ -55,6 +70,8 @@ const searchModel = ref({})
 const searchFieldRef = ref(null)
 const resultsElement = ref(null)
 const searchResults = ref([])
+const searchResultsMeta = ref(null)
+const searchResultsMetaExtra = ref(null)
 const paginationModel = reactive({
     page: 0,
     maxPage: 0,
@@ -87,6 +104,7 @@ async function requestResults() {
         error.value = `${response.status} ${response.statusText}`
         return new Promise(() => {})
     }
+    error.value = ''
     window.TOKEN = response.headers.get('X-Token')
     return response.json()
 }
@@ -97,7 +115,13 @@ async function requestResults() {
  * @param resultObj result JSON
  */
 function processResults(resultObj) {
+    if (Object.keys(resultObj).length === 0) {
+        return
+    }
+
     searchResults.value = resultObj.hits
+    searchResultsMeta.value = resultObj.meta
+    searchResultsMetaExtra.value = resultObj.meta_extra
     paginationModel.page = resultObj.meta_extra.current_page
     paginationModel.maxPage = resultObj.meta_extra.max_page
     paginationModel.paginationSize = resultObj.meta_extra.pagination_size
@@ -121,6 +145,10 @@ async function search() {
         const results = await requestResults()
         processResults(results)
     }
+}
+
+function numFormat(num, opts) {
+    return num.toLocaleString('en-US', opts)
 }
 
 onMounted(() => {
