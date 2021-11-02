@@ -1,17 +1,20 @@
 <template>
-<div>
-    <a v-for="p in pagesBefore()" :key="p.label" :href="getPageUrl(p.num)" class="px-2 h-4 inline-block align-middle"
+<nav class="text-lg" aria-label="Pagination" role="navigation">
+    <a v-for="p in pagesBefore()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
        @click.prevent="navigateToPage(p.num)">
-        <inline-svg v-if="p.icon" :src="p.icon" :arial-label="p.label" :title="p.label" class="h-full inline-block -mt-1" />
-        <span v-else>{{ p.label }}</span>
+        <inline-svg v-if="p.icon" :src="p.icon" :arial-label="p.label" :title="p.label" />
+        <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
     </a>
-    <span class="px-2 h-4 inline-block align-middle">{{ modelValue.page }}</span>
-    <a v-for="p in pagesAfter()" :key="p.label" :href="getPageUrl(p.num)" class="px-2 h-4 inline-block align-middle"
+    <span :class="$style['page-button']" class="text-gray-800 font-bold text-2xl pt-0.5"
+          :aria-label="`Page ${modelValue.page} (Current)`" aria-current="page">
+        {{ modelValue.page }}
+    </span>
+    <a v-for="p in pagesAfter()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
        @click.prevent="navigateToPage(p.num)">
-        <inline-svg v-if="p.icon" :src="p.icon" :arial-label="p.label" :title="p.label" class="h-full inline-block -mt-1" />
-        <span v-else>{{ p.label }}</span>
+        <inline-svg v-if="p.icon" :src="p.icon" :arial-label="p.label" :title="p.label" />
+        <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
     </a>
-</div>
+</nav>
 </template>
 
 <script setup>
@@ -116,3 +119,13 @@ function pagesAfter() {
     return pages
 }
 </script>
+
+<style module>
+.page-button {
+    @apply px-2 inline-block align-middle leading-relaxed;
+
+    svg {
+        @apply h-5 inline-block -mt-0.5;
+    }
+}
+</style>
