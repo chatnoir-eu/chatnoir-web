@@ -100,7 +100,9 @@ onMounted(() => {
 
 onUnmounted(() => {
     toggleVisibility(false)
-    resizeObserver.unobserve(popup.value)
+    if (popup.value) {
+        resizeObserver.unobserve(popup.value)
+    }
 })
 
 defineExpose([
