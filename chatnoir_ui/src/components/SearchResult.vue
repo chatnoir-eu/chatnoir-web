@@ -3,7 +3,7 @@
 <article :id="'result-' + data.uuid" class="my-8">
     <header class="leading-tight">
         <a v-if="data.external_uri" :href="data.external_uri"
-           class="text-gray-800 text-sm">
+           class="text-gray-800 visited:text-gray-800 text-sm">
             {{ abbreviateUrl(data.external_uri, 2).replace(/^https?:\/\//i, '') }}
         </a>
         <h2 :class="$style.title" class="leading-none">

@@ -44,7 +44,7 @@ defineProps({
     color: #666;
     @apply text-xs;
 
-    a {
+    a, a:visited {
         color: inherit;
         @apply no-underline;
         @apply hover:underline;
