@@ -9,7 +9,7 @@
                     <h2 class="flex-grow text-lg font-bold"><slot name="header" /></h2>
                     <button ref="closeButton" title="Close"
                             class="text-gray-700 -mr-1 h-6 w-6 ml-6 align-middle text-center border-2 border-transparent rounded-full
-                            outline-none hover:text-red-500 focus:text-red-500 hover:border-red-500 focus:border-red-500"
+                            outline-none hover:text-red focus:text-red hover:border-red focus:border-red"
                             @click.prevent="close()">
                         <inline-svg :src="require('@/assets/icons/close.svg').default" class="h-full p-0.5 mx-auto" aria-label="Close" />
                     </button>

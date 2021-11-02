@@ -68,9 +68,9 @@
                     <a href="#" @click.prevent="explainModalState = true">Explain Ranking&hellip;</a>
                     <modal-dialog v-if="explainModalState" v-model="explainModalState">
                         <template #header>
-                            Explain
+                            Explain Ranking
                         </template>
-                        Foobar
+                        Sorry, but this feature is not yet implemented.
                     </modal-dialog>
                 </div>
             </ToolTipPopup>
