@@ -1,6 +1,6 @@
 <template>
 <section id="app" class="flex flex-col h-screen">
-    <main class="flex-grow w-full px-8 py-3">
+    <main class="flex-grow w-full">
         <router-view :key="$route.path" />
     </main>
 

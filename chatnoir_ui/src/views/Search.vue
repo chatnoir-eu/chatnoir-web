@@ -2,10 +2,10 @@
     Search page view.
 -->
 <template>
-<div class="mx-auto max-w-full">
-    <header class="border-b mb-10 pt-1 pb-2">
-        <div class="flex flex-row items-center max-w-3xl mx-auto">
-            <div class="w-32 mr-3">
+<div class="mx-auto max-w-full px-5">
+    <header class="border-b mb-10 pt-5 pb-3 -mx-5">
+        <div class="flex flex-row items-center max-w-3xl mx-auto h-24 px-5">
+            <div class="w-32 mr-3 hidden sm:block">
                 <router-link to="/">
                     <cat-logo ref="catLogoElement" />
                 </router-link>
