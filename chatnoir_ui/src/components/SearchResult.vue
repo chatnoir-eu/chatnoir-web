@@ -11,7 +11,7 @@
                class="text-xl text-red-700"
                v-html="data.title"></a>
         </h2>
-        <div class="text-sm text-gray-800">
+        <div class="text-sm text-gray-800 mt-0.5">
             <span v-if="data.authors && data.authors.length > 0" :class="$style['meta-link']">
                 <a :href="getAuthorUrl(data.authors[0])">{{ getLastName(data.authors[0]) }}</a>
                 <span v-if="data.authors.length === 2"> and </span>
@@ -27,8 +27,8 @@
                 <a :href="getQueryUrl(route, `year:${data.year}`)">{{ data.year }}</a>
             </span>
 
-            <button ref="detailsButton" type="button" class="h-2.5 w-2.5 ml-3 text-center" @click="detailsShown = !detailsShown">
-                <inline-svg :src="require('@/assets/icons/settings.svg').default" class="h-full mx-auto" arial-label="Options" />
+            <button ref="detailsButton" type="button" class="w-3 h-3 ml-3 -mt-0.5 text-center align-middle inline-block" @click="detailsShown = !detailsShown">
+                <inline-svg :src="require('@/assets/icons/settings.svg').default" class="h-full mx-auto align-middle" arial-label="Options" />
             </button>
 
             <ToolTipPopup :visible="detailsShown" :ref-element="$refs.detailsButton"
