@@ -18,6 +18,8 @@ export function buildQueryString(params) {
 /**
  * Return a query URL for the given route.
  *
+ * Pagination will be stripped from the query, so the URL always points to page 1.
+ *
  * @param route route for which to generate a query URL
  * @param query search query to add to query URL
  * @param index search index (use existing from route if unset)
@@ -29,6 +31,7 @@ export function getQueryUrl(route, query, index = null) {
     if (index) {
         qs.index = index
     }
+    delete qs.p
     return route.path + '?' + buildQueryString(qs)
 }
 
