@@ -25,7 +25,6 @@
 
 <script setup>
 import { onMounted, onUnmounted, ref, toRef, watch } from 'vue';
-import InlineSvg from 'vue-inline-svg';
 
 const modalMain = ref(null)
 const closeButton = ref(null)

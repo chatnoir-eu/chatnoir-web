@@ -84,7 +84,6 @@
 <script setup>
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import InlineSvg from 'vue-inline-svg';
 
 import { abbreviateUrl, getQueryUrl } from '@/common'
 
@@ -96,7 +95,6 @@ const detailsShown = ref(false)
 const authorsShowMore = ref(false)
 const explainModalState = ref(false)
 
-function log(m) { console.log(m) }
 const props = defineProps({
     data: {type: Object, default: () => {}}
 })

@@ -7,7 +7,6 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import InlineSvg from 'vue-inline-svg';
 
 const purrTimeout = ref(null)
 const logoElement = ref(null)

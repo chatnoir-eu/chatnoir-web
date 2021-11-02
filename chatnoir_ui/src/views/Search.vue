@@ -13,7 +13,7 @@
 
             <keep-alive>
                 <search-field ref="searchFieldRef" key="search-box2"
-                              v-model="searchModel" @submit="search()" @change="$refs.catLogoElement.purr()" />
+                              v-model="searchModel" @submit="updateRoute()" @change="$refs.catLogoElement.purr()" />
             </keep-alive>
         </div>
     </header>
@@ -23,17 +23,22 @@
             <component :is="SearchResult" :data="result" />
         </div>
     </div>
+
+    <footer v-if="paginationModel.maxPage > 0" class="my-16 mx-auto max-w-3xl text-center">
+        <pagination v-model="paginationModel" />
+    </footer>
 </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { buildQueryString } from '@/common';
 
 import CatLogo from '@/components/CatLogo';
 import SearchField from '@/components/SearchField';
 import SearchResult from '@/components/SearchResult'
+import Pagination from '@/components/Pagination'
 
 const route = useRoute()
 const router = useRouter()
@@ -41,6 +46,11 @@ const searchModel = ref({})
 const searchFieldRef = ref(null)
 const resultsElement = ref(null)
 const searchResults = ref([])
+const paginationModel = reactive({
+    page: 0,
+    maxPage: 0,
+    paginationSize: 0
+})
 
 /**
  * Request search result JSON from the server.
@@ -56,7 +66,7 @@ async function requestResults() {
             'X-Token': window.TOKEN
         },
         body: JSON.stringify({})
-    };
+    }
 
     const response = await fetch(backend + '?' + buildQueryString(route.query), requestOptions)
     window.TOKEN = response.headers.get('X-Token')
@@ -69,22 +79,26 @@ async function requestResults() {
  * @param resultObj result JSON
  */
 function processResults(resultObj) {
-    console.log(resultObj.hits)
     searchResults.value = resultObj.hits
+    paginationModel.page = resultObj.meta_extra.current_page
+    paginationModel.maxPage = resultObj.meta_extra.max_page
+    paginationModel.paginationSize = resultObj.meta_extra.pagination_size
+}
+
+/**
+ * Update route which current model data, which will trigger a search request.
+ */
+async function updateRoute() {
+    const routeQuery = searchFieldRef.value.modelToQueryString()
+    if (JSON.stringify(routeQuery) !== JSON.stringify(route.query)) {
+        await router.push({name: 'IndexSearch', query: routeQuery})
+    }
 }
 
 /**
  * Initiate a search request.
- *
- * @param initialLoad whether this is the initial page load (will not manipulate routes)
  */
-async function search(initialLoad = false) {
-    if (!initialLoad) {
-        const routeQuery = searchFieldRef.value.modelToQueryString()
-        if (JSON.stringify(routeQuery) !== JSON.stringify(route.query)) {
-            await router.push({name: 'IndexSearch', query: routeQuery})
-        }
-    }
+async function search() {
     if (searchModel.value.query) {
         const results = await requestResults()
         processResults(results)
@@ -93,6 +107,10 @@ async function search(initialLoad = false) {
 
 onMounted(() => {
     searchFieldRef.value.focus()
-    search(true)
+    search()
+})
+
+watch(() => route.query, () => {
+    search()
 })
 </script>

@@ -34,7 +34,6 @@ export default {
 
 <script setup>
 import { onMounted, reactive, ref, toRef, watch } from 'vue';
-import InlineSvg from 'vue-inline-svg';
 
 import OptionsDropDown from './OptionsDropDown'
 import { useRoute } from 'vue-router';
@@ -96,7 +95,6 @@ function updateModelFromQueryString() {
  * @returns {{} | {q: string, index: *[]}}
  */
 function modelToQueryString() {
-    console.log(searchModel.indices)
     let indices = searchModel.indices ? searchModel.indices.filter((e) => e.selected).map((e) => e.id) : []
     return {
         q: searchModel.query,

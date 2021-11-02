@@ -754,6 +754,13 @@ class SerpContext:
         return self._query_string
 
     @serp_api_meta_extra
+    def current_page(self):
+        """
+        Current page number.
+        """
+        return min(self.search.page_num + 1, self.max_page)
+
+    @serp_api_meta_extra
     def pagination_size(self):
         """
         Number of hits per page.
@@ -778,9 +785,9 @@ class SerpContext:
     @serp_api_meta_extra
     def max_page(self):
         """
-        Maximum allowed page number for pagination.
+        Maximum page number for pagination (respects general pagination limit).
         """
-        return int(math.ceil(10000 / self.search.num_results))
+        return min(math.ceil(self.total_results / self.pagination_size), int(math.ceil(10000 / self.search.num_results)))
 
     @serp_api_meta_extra
     def explain(self):
@@ -792,25 +799,3 @@ class SerpContext:
     @serp_api_meta_extra
     def terminated_early(self):
         return hasattr(self.response, 'terminated_early') and self.response.terminated_early
-
-    @serp_api_meta_extra
-    def pagination(self):
-        current_page = min(self.search.page_num + 1, self.max_page)
-        first_page = max(1, current_page - self.pagination_size // 2)
-        last_page = min(self.max_page, current_page + (self.pagination_size - (current_page - first_page) - 1))
-        last_page = min(last_page, math.ceil(self.total_results / self.search.num_results))
-        pages = deque({'num': p, 'label': str(p)} for p in range(first_page, last_page + 1))
-
-        if current_page > 1:
-            pages.appendleft({'num': current_page - 1, 'label': '«', 'label_aria': 'Previous'})
-        if first_page > 1:
-            pages.appendleft({'num': 1, 'label': '←', 'label_aria': 'First'})
-        if current_page < last_page:
-            pages.append({'num': current_page + 1, 'label': '»', 'label_aria': 'Next'})
-
-        return {
-            'first_page': first_page,
-            'last_page': last_page,
-            'current_page': current_page,
-            'pages': list(pages)
-        }
