@@ -63,6 +63,16 @@
                     <dt>Year:</dt>
                     <dd>{{ data.year }}</dd>
                 </dl>
+
+                <div class="clear-left ml-28 mt-2">
+                    <a href="#" @click.prevent="explainModalState = true">Explain Ranking&hellip;</a>
+                    <modal-dialog v-if="explainModalState" v-model="explainModalState">
+                        <template #header>
+                            Explain
+                        </template>
+                        Foobar
+                    </modal-dialog>
+                </div>
             </ToolTipPopup>
         </div>
     </header>
@@ -75,12 +85,16 @@
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import InlineSvg from 'vue-inline-svg';
+
+import { abbreviateUrl, getQueryUrl } from '@/common'
+
 import ToolTipPopup from '@/components/ToolTipPopup'
-import { abbreviateUrl, getQueryUrl } from '@/common';
+import ModalDialog from '@/components/ModalDialog'
 
 const maxAuthors = 6
 const detailsShown = ref(false)
 const authorsShowMore = ref(false)
+const explainModalState = ref(false)
 
 function log(m) { console.log(m) }
 const props = defineProps({
@@ -91,6 +105,7 @@ const route = useRoute()
 function getAuthorUrl(author) {
     return getQueryUrl(route, `author:"${author}"`)
 }
+
 function getLastName(author) {
     return author.split(/\s+/).pop()
 }

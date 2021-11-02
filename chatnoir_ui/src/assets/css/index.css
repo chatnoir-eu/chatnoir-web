@@ -161,3 +161,13 @@
         }
     }
 }
+
+@layer utilities {
+    .fade-enter-active, .fade-leave-active {
+        transition: opacity 500ms ease;
+    }
+
+    .fade-enter-from, .fade-leave-to {
+        opacity: 0;
+    }
+}
