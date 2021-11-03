@@ -584,14 +584,14 @@ class SerpContext:
 
         :param hits: include (filtered) hit list
         :param meta: include basic meta data
-        :param meta_extra: include extended meta data
+        :param meta_extra: include extended meta data (implies ``meta=True``)
         :return: dict representation
         """
         d = {}
-        if meta:
+        if meta or meta_extra:
             d['meta'] = self.meta
         if meta_extra:
-            d['meta_extra'] = self.meta_extra
+            d['meta'].update(self.meta_extra)
         if hits:
             d['hits'] = self.hits_filtered
 
@@ -774,12 +774,7 @@ class SerpContext:
     @serp_api_meta_extra
     def results_to(self):
         """Index number of the last result."""
-        return self.results_from + self.results_size
-
-    @serp_api_meta_extra
-    def results_size(self):
-        """Number of results returned on this page."""
-        return len(self.response.hits)
+        return self.results_from + len(self.response.hits)
 
     @serp_api_meta_extra
     def max_page(self):

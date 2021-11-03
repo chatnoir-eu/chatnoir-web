@@ -13,7 +13,7 @@
 
             <keep-alive>
                 <search-field ref="searchFieldRef" key="search-box2"
-                              v-model="searchModel" @submit="updateRoute()" @change="$refs.catLogoElement.purr()" />
+                              v-model="searchFieldModel" @submit="updateRoute()" @change="$refs.catLogoElement.purr()" />
             </keep-alive>
         </div>
 
@@ -23,11 +23,11 @@
     <div v-if="searchResults.length" ref="resultsElement" key="search-results" class="max-w-3xl mx-auto">
         <div class="flex -mb-3 text-sm">
             <div class="flex-grow">
-                Search results {{ numFormat(searchResultsMetaExtra.results_from + 1) }}–{{ numFormat(searchResultsMetaExtra.results_to) }}
-                for <em class="font-bold">“{{ searchResultsMetaExtra.query_string }}”</em>
+                Search results {{ numFormat(searchResultsMeta.results_from + 1) }}–{{ numFormat(searchResultsMeta.results_to) }}
+                for <em class="font-bold">“{{ searchResultsMeta.query_string }}”</em>
             </div>
             <div>
-                Total results: {{ numFormat(searchResultsMeta.total_results) }}<span v-if="searchResultsMetaExtra.terminated_early">+</span>
+                Total results: {{ numFormat(searchResultsMeta.total_results) }}<span v-if="searchResultsMeta.terminated_early">+</span>
                 <span v-if="searchResultsMeta.query_time < 1500">
                     (retrieved in {{ numFormat(searchResultsMeta.query_time) }}&thinsp;ms)
                 </span>
@@ -68,21 +68,23 @@ import SearchResult from '@/components/SearchResult'
 import ProgressBar from '@/components/ProgressBar'
 import Pagination from '@/components/Pagination'
 
-const requestToken = window.DATA.token
 const route = useRoute()
 const router = useRouter()
-const searchModel = ref({})
+
 const searchFieldRef = ref(null)
 const resultsElement = ref(null)
+
+const requestToken = window.DATA.token
+
+const searchFieldModel = ref({})
 const searchResults = ref([])
 const searchResultsMeta = ref(null)
-const searchResultsMetaExtra = ref(null)
-const requestProgress = ref(0)
 const paginationModel = reactive({
     page: 0,
     maxPage: 0,
     paginationSize: 0
 })
+const requestProgress = ref(0)
 const error = ref(null)
 
 /**
@@ -140,10 +142,10 @@ function processResults(resultObj) {
 
     searchResults.value = resultObj.hits
     searchResultsMeta.value = resultObj.meta
-    searchResultsMetaExtra.value = resultObj.meta_extra
-    paginationModel.page = resultObj.meta_extra.current_page
-    paginationModel.maxPage = resultObj.meta_extra.max_page
-    paginationModel.paginationSize = resultObj.meta_extra.pagination_size
+    searchFieldModel.value.indices = resultObj.meta.indices_all
+    paginationModel.page = resultObj.meta.current_page
+    paginationModel.maxPage = resultObj.meta.max_page
+    paginationModel.paginationSize = resultObj.meta.pagination_size
 }
 
 /**
@@ -160,7 +162,7 @@ async function updateRoute() {
  * Initiate a search request.
  */
 async function search() {
-    if (searchModel.value.query) {
+    if (searchFieldModel.value.query) {
         const results = await requestResults()
         processResults(results)
     }
