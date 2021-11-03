@@ -1,11 +1,11 @@
-from urllib.parse import quote_plus
-import uuid
+from chatnoir_search_v1 import search as chatnoir_search
+from chatnoir_search_v1.ir_anthology_serp import SerpContext
 
-from chatnoir_search_v1 import search
-from chatnoir_search_v1.search import minimal, extended, explanation
+# Monkey-patch ChatNoir SerpContext
+chatnoir_search.SerpContext = SerpContext
 
 
-class SimpleSearch(search.SimpleSearch):
+class SimpleSearch(chatnoir_search.SimpleSearch):
     """
     Simple search (version 1).
     """
@@ -93,7 +93,7 @@ class SimpleSearch(search.SimpleSearch):
     RESCORE_WINDOW = 1000
 
 
-class PhraseSearch(search.PhraseSearch):
+class PhraseSearch(chatnoir_search.PhraseSearch):
     """Default for how far terms can be apart in a phrase."""
     DEFAULT_SLOP = 0
 
@@ -114,54 +114,3 @@ class PhraseSearch(search.PhraseSearch):
 
     """Terminate search after this many results per node."""
     NODE_LIMIT = 4000
-
-
-# noinspection DuplicatedCode
-class SerpContext(search.SerpContext):
-    @property
-    def hits(self):
-        """
-        Result list from the given hits list.
-        """
-
-        results = []
-        for hit in self.response.hits:
-            full_text_key = 'full_text_lang.' + self.search.search_language
-            abstract_key = 'abstract_lang.' + self.search.search_language
-
-            snippet = self.search.get_snippet(hit, [full_text_key, abstract_key], 200)
-
-            title_key = 'title_lang.' + self.search.search_language
-            title = self.search.get_snippet(hit, [title_key], 60)
-            if not title:
-                title = '[ no title available ]'
-
-            result_index = self._index_name_to_shorthand(hit.meta.index)
-
-            expl = None
-            if hasattr(hit.meta, 'explanation'):
-                expl = hit.meta.explanation.to_dict()
-
-            result = {
-                'score': minimal(hit.meta.score),
-                'index': minimal(result_index),
-                'uuid': minimal(uuid.uuid5(uuid.NAMESPACE_URL, 'ir-anthology:' + hit.meta.id)),
-                'internal_uri': minimal(f'https://ir.webis.de/anthology/{quote_plus(hit.meta.id)}/'),
-                'external_uri': minimal(f'https://doi.org/{getattr(hit, "doi")}'
-                                        if hasattr(hit, 'doi') else getattr(hit, 'url', None)),
-                'authors': extended(list(getattr(hit, 'authors', []))),
-                'doi': minimal(getattr(hit, 'doi', None)),
-                'anthology_id': minimal(hit.meta.id),
-                'venue': extended(getattr(hit, 'venue', None)),
-                'year': extended(getattr(hit, 'year', None)),
-                'title': minimal(title),
-                'snippet': extended(snippet),
-                'explanation': explanation(expl)
-            }
-
-            results.append(result)
-
-        return results
-
-
-search.SerpContext = SerpContext
