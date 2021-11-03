@@ -1,5 +1,5 @@
 """
-Django settings for ChatonIR.
+Django settings for the IR Anthology Search.
 """
 
 from chatnoir.settings import *
