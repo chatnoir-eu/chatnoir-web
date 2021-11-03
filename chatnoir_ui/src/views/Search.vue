@@ -68,6 +68,7 @@ import SearchResult from '@/components/SearchResult'
 import ProgressBar from '@/components/ProgressBar'
 import Pagination from '@/components/Pagination'
 
+const requestToken = window.DATA.token
 const route = useRoute()
 const router = useRouter()
 const searchModel = ref({})
@@ -88,6 +89,11 @@ const error = ref(null)
  * Request search result JSON from the server.
  */
 async function requestResults() {
+    // Refresh stale search token
+    if (Date.now() / 1000 - requestToken.timestamp >= requestToken.max_age) {
+        location.reload()
+        return
+    }
     const baseUrl = process.env.VUE_APP_BACKEND_ADDRESS + route.path.substr(1)
     const backend = baseUrl +'search'
     const requestOptions = {
@@ -95,7 +101,7 @@ async function requestResults() {
         url: backend + '?' + buildQueryString(route.query),
         headers: {
             'Content-Type': 'application/json',
-            'X-Token': window.TOKEN
+            'X-Token': requestToken.token
         },
         data: {},
         onDownloadProgress(e) {
@@ -107,11 +113,12 @@ async function requestResults() {
         requestProgress.value = 25
         error.value = ''
         const response = await axios(requestOptions)
-        window.TOKEN = response.headers['x-token']
+        requestToken.token = response.headers['x-token']
+        requestToken.timestamp = Date.now() / 1000
         return response.data
     } catch (ex) {
-        // probably CSRF token error, refresh page
         if (ex.response.status === 403 && location.hash !== '#reload') {
+            // Probably a CSRF token error, try to refresh page
             location.hash = 'reload'
             location.reload()
         } else if (ex.response.status !== 200) {

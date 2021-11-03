@@ -13,7 +13,7 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 CSRF_USE_SESSIONS = True
 CSRF_HEADER_NAME = 'HTTP_X_TOKEN'
-CSRF_HEADER_SET_NAME = 'x-token'
+CSRF_HEADER_SET_NAME = 'X-Token'
 CORS_ALLOW_HEADERS = (
     "accept",
     "accept-encoding",
@@ -24,9 +24,9 @@ CORS_ALLOW_HEADERS = (
     "user-agent",
     CSRF_HEADER_SET_NAME
 )
+CSRF_MAX_TOKEN_AGE = 5 * 60
 
 # Application definition
-
 INSTALLED_APPS = [
     'chatnoir_web.apps.ChatnoirWebConfig',
     'chatnoir_api_v1.apps.ChatnoirApiConfig',

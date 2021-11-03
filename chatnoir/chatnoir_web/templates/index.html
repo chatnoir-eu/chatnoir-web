@@ -15,8 +15,9 @@
 </noscript>
 <section id="app"></section>
 <script>
-window.TOKEN = '{{ csrf_token }}'
 window.DATA = {
+    token: {% search_request_token %},
+    timestamp: {% now 'U' %},
     indices: {{ indices | json | safe }}
 }
 </script>

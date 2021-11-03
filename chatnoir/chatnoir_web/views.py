@@ -1,19 +1,18 @@
 import os
-from time import time
 import uuid
 
 from django.core.cache import cache as django_cache
 from django.conf import settings
 from django.http import Http404, HttpResponseBadRequest, JsonResponse
-from django.middleware.csrf import get_token, rotate_token, CSRF_SESSION_KEY
+from django.middleware.csrf import get_token
 from django.shortcuts import HttpResponse, render
 from django.utils.translation import gettext as _
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods, require_safe
 import frontmatter
 import mistune
 
 from .cache import BasicHtmlFormatter, CacheDocument
+from .middleware import time_limited_csrf
 from chatnoir_api_v1.search import SimpleSearch
 from chatnoir_api_v1.views import bool_param_set
 
@@ -29,29 +28,6 @@ def index(request):
                  for k, v in allowed_indices.items()]
     )
     return render(request, 'index.html', ctx)
-
-
-def time_limited_csrf(func):
-    """
-    Decorator for views that force CSRF token to be invalidated after five minutes.
-    """
-    func = csrf_protect(func)
-
-    def wrapper(request):
-        if request.method not in ['HEAD', 'GET', 'OPTIONS', 'TRACE']:
-            if CSRF_SESSION_KEY in request.session:
-                time_key = CSRF_SESSION_KEY + '_TIME'
-                if time_key not in request.session:
-                    request.session[time_key] = time()
-
-                if time() - request.session[time_key] > 5 * 60:
-                    del request.session[CSRF_SESSION_KEY]
-                    request.session[time_key] = time()
-                    rotate_token(request)
-
-        return func(request)
-
-    return wrapper
 
 
 @require_http_methods(['POST'])
