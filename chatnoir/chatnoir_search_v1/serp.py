@@ -147,23 +147,29 @@ class SerpContext:
                 expl = hit.meta.explanation.to_dict()
 
             result = {
-                'score': minimal(hit.meta.score),
-                'uuid': minimal(hit.meta.id),
                 'index': minimal(result_index),
-                'target_uri': minimal(target_uri),
-                'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
+                'uuid': minimal(hit.meta.id),
+                'warc_id': extended(hit.warc_record_id),
                 'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
+                'score': minimal(hit.meta.score),
+                'external_uri': minimal(target_uri),
+                'internal_uri': minimal(target_uri),    # TODO: change me!
+                'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
                 'page_rank': extended(getattr(hit, 'page_rank', None)),
                 'spam_rank': extended(getattr(hit, 'spam_rank', None)),
                 'title': minimal(title),
                 'snippet': minimal(snippet),
+                'content_type': extended(getattr(hit, 'content_type', None)),
+                'lang': extended(getattr(hit, 'lang', None)),
+                'date': extended(getattr(hit, 'date', None)),
                 'explanation': explanation(expl)
             }
 
             results.append(result)
 
-        if self.search.group_results_by_hostname:
-            return self.group_results(results)
+        # TODO: Do this better.
+        # if self.search.group_results_by_hostname:
+        #     return self.group_results(results)
 
         return results
 

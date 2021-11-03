@@ -156,8 +156,16 @@ WEBPACK_LOADER = {
     }
 }
 
+# Api settings
+API_ADMIN_ROLE = 'admin'
+API_KEY_CREATE_ROLE = 'keycreate'
+API_NOLOG_ROLES = ('dev',)
+API_TRUST_X_FORWARDED_FOR = False
 
-# Search settings (override me)
+# Documentation cache time
+DOC_PAGE_CACHE_TIMEOUT = 10 * 60
+
+# Elasticsearch backend settings (override me)
 ELASTICSEARCH_PROPERTIES = {
     'hosts': ['localhost:9200'],
     'retry_on_timeout': True,
@@ -165,12 +173,14 @@ ELASTICSEARCH_PROPERTIES = {
     "api_key": ["apikey", "secret"]
 }
 
+# S3 backend settings (override me)
 S3_ENDPOINT_PROPERTIES = {
     "endpoint_url": "http://localhost",
     "aws_access_key_id": "access_key",
     "aws_secret_access_key": "secret_key"
 }
 
+# Search index settings (override me)
 SEARCH_INDICES = {
     'index_shorthand_name': {
         'index': 'index_internal_name',
@@ -181,15 +191,6 @@ SEARCH_INDICES = {
         'compat_search_versions': [1]
     }
 }
-
-# Api settings
-API_ADMIN_ROLE = 'admin'
-API_KEY_CREATE_ROLE = 'keycreate'
-API_NOLOG_ROLES = ('dev',)
-API_TRUST_X_FORWARDED_FOR = False
-
-# Documentation cache time
-DOC_PAGE_CACHE_TIMEOUT = 10 * 60
 
 try:
    from .local_settings import *

@@ -53,7 +53,7 @@
         </div>
 
         <div v-for="result in searchResults" :key="result.uuid">
-            <component :is="SearchResult" :data="result" />
+            <component :is="SearchResult" :data="result" :meta="searchResultsMeta" />
         </div>
     </div>
     <div v-if="!error && searchResultsMeta && searchResults.length === 0" class="max-w-3xl mt-12 mx-auto text-center text-lg">
@@ -132,6 +132,7 @@ async function requestResults() {
         const response = await axios(requestOptions)
         requestToken.token = response.headers['x-token']
         requestToken.timestamp = Date.now() / 1000
+        console.log(response.data)
         return response.data
     } catch (ex) {
         if (ex.response.status === 403 && location.hash !== '#reload') {

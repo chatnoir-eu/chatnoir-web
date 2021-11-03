@@ -35,6 +35,12 @@
                 <span v-if="data.authors.length > 2"> et al.</span>
             </span>
 
+            <span v-if="data.index && data.warc_id" :class="$style['meta-link']">
+                <a :href="getQueryUrl(route, `index:${data.index} ${meta.query_string.replace(RegExp(`index:${data.index}\\s+`), '')}`, null)">
+                    {{ getFullIndexName() }}
+                </a>
+            </span>
+
             <span v-if="data.venue" :class="$style['meta-link']">
                 <a :href="getQueryUrl(route, `venue:${data.venue}`)">{{ data.venue }}</a>
             </span>
@@ -43,24 +49,46 @@
                 <a :href="getQueryUrl(route, `year:${data.year}`)">{{ data.year }}</a>
             </span>
 
+            <span v-if="!data.year && data.date" :class="$style['meta-link']">
+                Crawled {{ new Intl.DateTimeFormat('en-US', {month: 'short', year: 'numeric'}).format(Date.parse(data.date)) }}
+            </span>
+
             <button ref="detailsButton" type="button" class="w-3 h-3 ml-3 -mt-0.5 text-center align-middle inline-block" @click="detailsShown = !detailsShown">
                 <inline-svg :src="require('@/assets/icons/settings.svg').default" class="h-full mx-auto align-middle" aria-label="Details" />
             </button>
 
-            <ToolTipPopup :visible="detailsShown" :ref-element="$refs.detailsButton"
+            <ToolTipPopup :visible="detailsShown" :aria-hidden="(!detailsShown).toString()" :ref-element="$refs.detailsButton"
                           class="tail-top max-w-md" @close="detailsShown = false">
                 <dl :class="$style['meta-details']">
                     <dt>Score:</dt>
                     <dd>{{ data.score.toFixed(2) }}</dd>
 
+                    <dt>Index:</dt>
+                    <dd>{{ getFullIndexName() }}</dd>
+
+                    <dt>Document ID:</dt>
+                    <dd class="font-mono text-2xs">{{ data.uuid }}</dd>
+
+                    <dt v-if="data.warc_id">WARC ID:</dt>
+                    <dd v-if="data.warc_id" class="font-mono text-2xs">{{ data.warc_id }}</dd>
+
+                    <dt v-if="data.trec_id">TREC ID:</dt>
+                    <dd v-if="data.trec_id" class="font-mono text-2xs">{{ data.trec_id }}</dd>
+
+                    <dt v-if="data.page_rank">Page Rank:</dt>
+                    <dd v-if="data.page_rank">{{ data.page_rank }}</dd>
+
+                    <dt v-if="data.spam_rank">Spam Rank:</dt>
+                    <dd v-if="data.spam_rank">{{ data.spam_rank }}</dd>
+
                     <dt v-if="data.doi">DOI:</dt>
-                    <dd><a v-if="data.doi" :href="data.external_uri">{{ data.doi }}</a></dd>
+                    <dd v-if="data.doi"><a :href="data.external_uri">{{ data.doi }}</a></dd>
 
-                    <dt>Anthology ID:</dt>
-                    <dd>{{ data.anthology_id }}</dd>
+                    <dt v-if="data.anthology_id">Anthology ID:</dt>
+                    <dd v-if="data.anthology_id">{{ data.anthology_id }}</dd>
 
-                    <dt>Authors:</dt>
-                    <dd>
+                    <dt v-if="data.authors">Authors:</dt>
+                    <dd v-if="data.authors">
                         <span v-for="(a, i) in data.authors.slice(0, authorsShowMore || data.authors.length === maxAuthors + 1 ?
                             data.authors.length : maxAuthors)" :key="a">
                             <a :href="getAuthorUrl(a)">{{ a.replace(/\s+/, '\u00a0') }}</a>
@@ -73,11 +101,22 @@
                         </a>
                     </dd>
 
-                    <dt>Venue:</dt>
-                    <dd>{{ data.venue }}</dd>
+                    <dt v-if="data.venue">Venue:</dt>
+                    <dd v-if="data.venue">{{ data.venue }}</dd>
 
-                    <dt>Year:</dt>
-                    <dd>{{ data.year }}</dd>
+                    <dt v-if="data.year">Year:</dt>
+                    <dd v-if="data.year">{{ data.year }}</dd>
+
+                    <dt v-if="data.lang">Language:</dt>
+                    <dd v-if="data.lang">{{ data.lang }}</dd>
+
+                    <dt v-if="data.content_type">Content-Type:</dt>
+                    <dd v-if="data.content_type">{{ data.content_type }}</dd>
+
+                    <dt v-if="data.date">Crawl Date:</dt>
+                    <dd v-if="data.date">
+                        {{ new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'long'}).format(Date.parse(data.date)) }}
+                    </dd>
                 </dl>
 
                 <div class="clear-left ml-28 mt-2">
@@ -112,7 +151,8 @@ const authorsShowMore = ref(false)
 const explainModalState = ref(false)
 
 const props = defineProps({
-    data: {type: Object, default: () => {}}
+    data: {type: Object, default: () => {}},
+    meta: {type: Object, default: () => {}}
 })
 const route = useRoute()
 
@@ -122,6 +162,10 @@ function getAuthorUrl(author) {
 
 function getLastName(author) {
     return author.split(/\s+/).pop()
+}
+
+function getFullIndexName() {
+    return props.meta.indices_all.find((e) => e.id === props.data.index).name
 }
 </script>
 

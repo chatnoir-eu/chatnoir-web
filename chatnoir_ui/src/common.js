@@ -39,14 +39,16 @@ export function buildQueryString(params) {
  *
  * @param route route for which to generate a query URL
  * @param query search query to add to query URL
- * @param index search index (use existing from route if unset)
+ * @param index search index (set undefined for current, null for none)
  * @returns {string} query URL
  */
-export function getQueryUrl(route, query, index = null) {
+export function getQueryUrl(route, query, index = undefined) {
     const qs = Object.assign({}, route.query)
     qs.q = query
     if (index) {
         qs.index = index
+    } else if (index === null) {
+        delete qs.index
     }
     delete qs.p
     return route.path + '?' + buildQueryString(qs)

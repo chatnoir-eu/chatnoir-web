@@ -8,6 +8,9 @@ module.exports = {
         extend: {
             transitionProperty: {
                 'width': 'width'
+            },
+            fontSize: {
+                '2xs': '.65rem'
             }
         },
         colors: {

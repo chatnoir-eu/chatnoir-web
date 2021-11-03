@@ -26,6 +26,13 @@ ELASTICSEARCH_PROPERTIES = {
     'timeout': 30
 }
 
+# Configure S3 backend here
+S3_ENDPOINT_PROPERTIES = {
+    "endpoint_url": "http://localhost",
+    "aws_access_key_id": "access_key",
+    "aws_secret_access_key": "secret_key"
+}
+
 # Configure search indices here
 SEARCH_INDICES = {
   'INDEX_SHORTHAND': {
