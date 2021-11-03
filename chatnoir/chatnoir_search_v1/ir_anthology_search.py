@@ -1,11 +1,11 @@
 from urllib.parse import quote_plus
 import uuid
 
-from chatnoir_api_v1 import search as search_v1
-from chatnoir_api_v1.search import minimal, extended, explanation
+from chatnoir_search_v1 import search
+from chatnoir_search_v1.search import minimal, extended, explanation
 
 
-class SimpleSearch(search_v1.SimpleSearch):
+class SimpleSearch(search.SimpleSearch):
     """
     Simple search (version 1).
     """
@@ -93,7 +93,7 @@ class SimpleSearch(search_v1.SimpleSearch):
     RESCORE_WINDOW = 1000
 
 
-class PhraseSearch(search_v1.PhraseSearch):
+class PhraseSearch(search.PhraseSearch):
     """Default for how far terms can be apart in a phrase."""
     DEFAULT_SLOP = 0
 
@@ -117,7 +117,7 @@ class PhraseSearch(search_v1.PhraseSearch):
 
 
 # noinspection DuplicatedCode
-class SerpContext(search_v1.SerpContext):
+class SerpContext(search.SerpContext):
     @property
     def hits(self):
         """
@@ -164,4 +164,4 @@ class SerpContext(search_v1.SerpContext):
         return results
 
 
-search_v1.SerpContext = SerpContext
+search.SerpContext = SerpContext

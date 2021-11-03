@@ -15,7 +15,7 @@ import html
 from warcio.bufferedreaders import DecompressingBufferedReader
 from warcio.recordloader import ArcWarcRecordLoader
 
-from chatnoir_api_v1.elasticsearch import get_index
+from chatnoir_search_v1.elastic_backend import get_index
 
 logger = logging.getLogger(__name__)
 

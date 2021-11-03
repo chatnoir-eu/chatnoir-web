@@ -6,10 +6,13 @@ from chatnoir.settings import *
 
 APPLICATION_NAME = 'IR Anthology Search'
 
-INSTALLED_APPS.append('ir_anthology_web.apps.IRAnthologyWebConfig')
+INSTALLED_APPS.extend([
+    'ir_anthology_web.apps.IRAnthologyWebConfig',
+    'ir_anthology_api_v1.apps.IRAnthologyApiConfig'
+])
 
 ROOT_URLCONF = 'ir_anthology.urls'
-# STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'sigir21_chatnoir_web', 'static'))
+
 TEMPLATES[0]['DIRS'] = [
     os.path.join(BASE_DIR, 'ir_anthology_web', 'templates'),
     os.path.join(BASE_DIR, 'chatnoir', 'templates')

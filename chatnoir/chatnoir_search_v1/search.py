@@ -1,8 +1,7 @@
 import math
 import re
 from abc import ABC, abstractmethod
-from collections import defaultdict, deque
-from urllib.parse import urlparse
+from collections import defaultdict
 
 from django.conf import settings
 from elasticsearch_dsl import Q, Search, connections

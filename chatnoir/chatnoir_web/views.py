@@ -11,9 +11,9 @@ from django.views.decorators.http import require_http_methods, require_safe
 import frontmatter
 import mistune
 
-from .cache import BasicHtmlFormatter, CacheDocument
+from chatnoir_search_v1.cache import BasicHtmlFormatter, CacheDocument
 from .middleware import time_limited_csrf
-from chatnoir_api_v1.search import SimpleSearch
+from chatnoir_search_v1.search import SimpleSearch
 from chatnoir_api_v1.views import bool_param_set
 
 

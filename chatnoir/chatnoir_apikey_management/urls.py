@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import views
 
-app_name = 'apikey_management'
+app_name = 'chatnoir_apikey_management'
 
 urlpatterns = [
     path(r'', views.index, name='index'),

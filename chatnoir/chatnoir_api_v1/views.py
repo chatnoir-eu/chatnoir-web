@@ -7,7 +7,7 @@ from .authentication import *
 from .metadata import *
 from .serializers import *
 
-from .search import SimpleSearch, PhraseSearch
+from chatnoir_search_v1.search import SimpleSearch, PhraseSearch
 
 
 def api_exception_handler(exc, _):

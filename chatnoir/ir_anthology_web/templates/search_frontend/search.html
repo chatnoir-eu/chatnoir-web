@@ -28,11 +28,11 @@
                             {% endif %}
                             {% if result.venue %}
                                 {% if result.authors  %}<span>&middot;</span>{% endif %}
-                                <a href="{%  url 'chatnoir_web:index' %}?q=venue%3A{{ result.venue | urlencode }}">{{ result.venue }}</a>
+                                <a href="{%  url 'ir_anthology_web:index' %}?q=venue%3A{{ result.venue | urlencode }}">{{ result.venue }}</a>
                             {% endif %}
                             {% if result.year %}
                                 {% if result.authors or result.venue %}<span>&middot;</span>{% endif %}
-                                <a href="{%  url 'chatnoir_web:index' %}?q=year%3A{{ result.year | urlencode }}">{{ result.year | stringformat:"s" }}</a>
+                                <a href="{%  url 'ir_anthology_web:index' %}?q=year%3A{{ result.year | urlencode }}">{{ result.year | stringformat:"s" }}</a>
                             {% endif %}
                             {% if result.doi %}
                                 {% if result.authors or result.venue or result.year %}<span>&middot;</span>{% endif %}
@@ -54,7 +54,7 @@
                                     <li role="presentation" class="dropdown-header">Year: {{ result.year | stringformat:"s" | default:"unknown" }}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'chatnoir_web:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}&explain#result-{{ result.uuid | urlencode }}">Explain</a>
+                                        <a role="menuitem" class="result-explain" tabindex="-1" href="{%  url 'ir_anthology_web:index' %}?q={{ search_query | urlencode }}&p={{ serp_context.pagination.current_page }}&index={{ p.indexes | join:',' | urlencode }}&explain#result-{{ result.uuid | urlencode }}">Explain</a>
                                     </li>
                                 </ul>
                             </div>
@@ -64,7 +64,7 @@
                 </article>
                 {% if result.is_more_suggested %}
                     <div class="more-from-host">
-                        <a href="{%  url 'chatnoir_web:index' %}?q=site:{{ result.target_hostname }}+{{ search_query | urlencode }}">More results from {{ result.target_hostname }}</a>
+                        <a href="{%  url 'ir_anthology_web:index' %}?q=site:{{ result.target_hostname }}+{{ search_query | urlencode }}">More results from {{ result.target_hostname }}</a>
                     </div>
                 {% endif %}
 
@@ -77,7 +77,7 @@
                 <ul class="pagination">
                     {% for p in serp_context.pagination.pages %}
                         <li{% if p.num == serp_context.pagination.current_page %} class="active"{% endif %}>
-                            <a href="{%  url 'chatnoir_web:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.serp_context.explain %}&explain{% endif %}{% for i in serp_context.search.indexes %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
+                            <a href="{%  url 'ir_anthology_web:index' %}?q={{ search_query | urlencode }}&p={{ p.num | safe }}{% if serp_context.serp_context.explain %}&explain{% endif %}{% for i in serp_context.search.indexes %}&index={{ i | urlencode }}{% endfor %}"{% if p.label_aria %} title="{{ p.label_aria }}"{% endif %}>
                             {% if p.label_aria %}
                                 <span aria-hidden="true">{{ p.label }}</span>
                                 <span class="sr-only">{{ p.label_aria }}</span>
