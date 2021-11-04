@@ -121,6 +121,7 @@ async function requestResults() {
             'X-Token': requestToken.token
         },
         data: {},
+        timeout: 25000,
         onDownloadProgress(e) {
             requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
         }
@@ -139,7 +140,9 @@ async function requestResults() {
 
         return response.data
     } catch (ex) {
-        if (ex.response.status === 403 && location.hash !== '#reload') {
+        if (ex.code === 'ECONNABORTED') {
+            error.value = 'Search took too long (Timeout).'
+        } else if (ex.response.status === 403 && location.hash !== '#reload') {
             // Probably a CSRF token error, try to refresh page
             location.hash = 'reload'
             location.reload()
@@ -148,6 +151,7 @@ async function requestResults() {
         }
         return new Promise(() => {})
     } finally {
+        requestProgress.value = 100
         if (resultsElement.value) {
             resultsElement.value.classList.remove('opacity-50')
         }
