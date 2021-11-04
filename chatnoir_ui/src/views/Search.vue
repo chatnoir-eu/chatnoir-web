@@ -127,12 +127,16 @@ async function requestResults() {
     }
 
     try {
+        if (resultsElement.value) {
+            resultsElement.value.classList.add('opacity-50')
+        }
         requestProgress.value = 25
         error.value = ''
+
         const response = await axios(requestOptions)
         requestToken.token = response.headers['x-token']
         requestToken.timestamp = Date.now() / 1000
-        console.log(response.data)
+
         return response.data
     } catch (ex) {
         if (ex.response.status === 403 && location.hash !== '#reload') {
@@ -143,6 +147,10 @@ async function requestResults() {
             error.value = `${ex.response.status} ${ex.response.statusText}`
         }
         return new Promise(() => {})
+    } finally {
+        if (resultsElement.value) {
+            resultsElement.value.classList.remove('opacity-50')
+        }
     }
 }
 
