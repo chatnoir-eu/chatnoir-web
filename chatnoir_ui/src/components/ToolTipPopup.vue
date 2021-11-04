@@ -15,7 +15,7 @@
 -->
 
 <template>
-<div ref="popup" class="tooltip-popup invisible hidden w-max transform">
+<div ref="popup" class="tooltip-popup invisible hidden w-max transform" tabindex="-1">
     <div class="py-1 px-1.5">
         <slot />
     </div>
@@ -87,6 +87,7 @@ function toggleVisibility(visible) {
         popup.value.classList.remove('invisible', 'hidden')
         reposition()
         popup.value.classList.remove(...animationClasses)
+        popup.value.focus()
     } else {
         document.removeEventListener('click', closeOnClick, true)
         setTimeout(() => popup.value.classList.add('hidden'), 450)

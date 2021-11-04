@@ -58,7 +58,7 @@
             </button>
 
             <ToolTipPopup :visible="detailsShown" :aria-hidden="(!detailsShown).toString()" :ref-element="$refs.detailsButton"
-                          class="tail-top max-w-md" @close="detailsShown = false">
+                          class="tail-top max-w-lg" @close="detailsShown = false">
                 <dl :class="$style['meta-details']">
                     <dt>Score:</dt>
                     <dd>{{ data.score.toFixed(2) }}</dd>
@@ -67,13 +67,13 @@
                     <dd>{{ getFullIndexName() }}</dd>
 
                     <dt>Document ID:</dt>
-                    <dd class="font-mono text-2xs">{{ data.uuid }}</dd>
+                    <dd class="font-mono text-2xs"><CopyableStringField>{{ data.uuid }}</CopyableStringField></dd>
 
                     <dt v-if="data.warc_id">WARC ID:</dt>
-                    <dd v-if="data.warc_id" class="font-mono text-2xs">{{ data.warc_id }}</dd>
+                    <dd v-if="data.warc_id" class="font-mono text-2xs"><CopyableStringField>{{ data.warc_id }}</CopyableStringField></dd>
 
                     <dt v-if="data.trec_id">TREC ID:</dt>
-                    <dd v-if="data.trec_id" class="font-mono text-2xs">{{ data.trec_id }}</dd>
+                    <dd v-if="data.trec_id" class="font-mono text-2xs"><CopyableStringField>{{ data.trec_id }}</CopyableStringField></dd>
 
                     <dt v-if="data.page_rank">Page Rank:</dt>
                     <dd v-if="data.page_rank">{{ data.page_rank }}</dd>
@@ -144,6 +144,7 @@ import { abbreviateUrl, getQueryUrl } from '@/common'
 
 import ToolTipPopup from '@/components/ToolTipPopup'
 import ModalDialog from '@/components/ModalDialog'
+import CopyableStringField from '@/components/CopyableStringField'
 
 const maxAuthors = 6
 const detailsShown = ref(false)

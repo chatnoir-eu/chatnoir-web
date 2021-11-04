@@ -21,6 +21,14 @@
 @layer base {
     @import url('fonts.css');
 
+    ::selection {
+        @apply bg-red-100;
+    }
+
+    :focus {
+        outline-color: theme('colors.red.200')
+    }
+
     html {
         @apply text-gray-700;
         font-size: 17px;
@@ -31,8 +39,16 @@
         @apply no-underline hover:underline focus:underline;
     }
 
+    a:focus-visible, button:focus-visible {
+        @apply outline-none ring-1 ring-red-300 ring-offset-4;
+    }
+
     a:visited {
         @apply text-red-400;
+    }
+
+    a:active {
+        @apply text-red-800;
     }
 
     input[type="search"]::-webkit-search-decoration,

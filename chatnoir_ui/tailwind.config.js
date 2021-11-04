@@ -57,7 +57,11 @@ module.exports = {
     },
     variants: {
         extend: {
-            textColor: ['visited']
+            textColor: ['active', 'visited'],
+            ringOffsetWidth: ['focus-visible'],
+            ringWidth: ['focus-visible'],
+            ringColor: ['focus-visible'],
+            display: ['group-focus', 'group-hover'],
         },
     },
     plugins: [],
