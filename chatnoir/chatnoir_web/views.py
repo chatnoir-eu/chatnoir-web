@@ -52,14 +52,14 @@ def search(request):
     if not query_string:
         return HttpResponseBadRequest('Missing search query.')
 
-    page_num = request.GET.get('p', '0')
-    if page_num is None or not page_num.isnumeric():
-        page_num = '0'
-    page_num = max(0, int(page_num) - 1)
+    page_num = request.GET.get('p', '1')
+    if not page_num.isdigit():
+        page_num = '1'
+    page_num = max(0, int(page_num))
 
     indexes = request.GET.getlist('index')
 
-    search = SimpleSearch(indexes, search_from=page_num * 10, num_results=10,
+    search = SimpleSearch(indexes, search_from=(page_num - 1) * 10, num_results=10,
                           explain=bool_param_set('explain', request.GET))
     search.explain = bool_param_set('explain', request.GET)
     serp_context = search.search(query_string)
