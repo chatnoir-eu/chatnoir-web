@@ -17,7 +17,7 @@
 -->
 <template>
 <div class="mx-auto max-w-full h-full flex flex-row items-center mt-9 mb-5">
-    <div class="block mx-auto max-w-full mt-10 mb-36 sm:mb-64 text-center">
+    <div class="block mx-auto max-w-full pb-20 sm:mb-64 text-center">
         <cat-logo ref="catLogoElement" class="block h-40" />
 
         <keep-alive>
