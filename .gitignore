@@ -9,6 +9,7 @@ db.sqlite3
 media
 venv/
 src/data
+chatnoir_static
 
 ### NPM, Webpack
 node_modules

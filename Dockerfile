@@ -51,6 +51,10 @@ RUN set -x \
     && rm -rf node_modules \
     && chown -R chatnoir:chatnoir /opt/chatnoir_ui
 
+RUN set -x \
+    && mkdir /opt/chatnoir_static \
+    && chown -R chatnoir:chatnoir /opt/chatnoir_static
+
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
