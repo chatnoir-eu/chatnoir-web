@@ -14,6 +14,7 @@ RUN set -x \
         python3 \
         python3-dev \
         python3-pip \
+        python3-psycopg2 \
         python3-setuptools \
         python3-wheel \
     && curl -sfL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
