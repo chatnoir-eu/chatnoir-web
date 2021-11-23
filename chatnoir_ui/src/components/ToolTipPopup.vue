@@ -78,16 +78,20 @@ function toggleVisibility(visible) {
         return
     }
 
+    popup.value.style.transition = ''
     const animationClasses = ['opacity-0', 'invisible', '-translate-y-3']
     popup.value.classList.add(...animationClasses)
     popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
 
     if (visible) {
         document.addEventListener('click', closeOnClick, true)
-        popup.value.classList.remove('invisible', 'hidden')
-        reposition()
-        popup.value.classList.remove(...animationClasses)
-        popup.value.focus()
+        popup.value.classList.remove('hidden')
+        setTimeout(() => {
+            reposition()
+            popup.value.classList.remove('invisible')
+            popup.value.classList.remove(...animationClasses)
+            popup.value.focus()
+        }, 0)
     } else {
         document.removeEventListener('click', closeOnClick, true)
         setTimeout(() => popup.value.classList.add('hidden'), 450)

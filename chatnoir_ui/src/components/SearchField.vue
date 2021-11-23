@@ -31,7 +31,7 @@
         <options-drop-down
             v-model="searchModel.indices"
             :visible="showOptions"
-            :ref-element="$refs.optionsButton"
+            :ref-element="optionsButton"
             @close="showOptions = false"
         />
 
@@ -54,6 +54,7 @@ import { onMounted, reactive, ref, toRef, watch } from 'vue';
 import OptionsDropDown from './OptionsDropDown'
 import { useRoute } from 'vue-router';
 
+const optionsButton = ref(null)
 const emit = defineEmits(['update:modelValue', 'submit', 'change', 'option-change', 'keyup'])
 const props = defineProps({
     action: {type: String, default:''},
