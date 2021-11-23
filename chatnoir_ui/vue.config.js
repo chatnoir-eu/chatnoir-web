@@ -27,8 +27,6 @@ module.exports = {
                 filename: path.join(__dirname, 'webpack-stats.json')
             })
         ],
-        cache: {
-            type: 'filesystem'
-        }
+        cache: DEBUG ? { type: 'filesystem' } : undefined
     }
 }
