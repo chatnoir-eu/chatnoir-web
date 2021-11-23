@@ -26,10 +26,7 @@
                 </router-link>
             </div>
 
-            <keep-alive>
-                <search-field ref="searchFieldRef" key="search-box2"
-                              v-model="searchFieldModel" @submit="updateRoute()" @change="$refs.catLogoElement.purr()" />
-            </keep-alive>
+            <search-field ref="searchFieldRef" v-model="searchFieldModel" @submit="updateRoute()" @change="$refs.catLogoElement.purr()" />
         </div>
 
         <progress-bar :progress="requestProgress" class="mt-3" @complete="requestProgress = 0" />

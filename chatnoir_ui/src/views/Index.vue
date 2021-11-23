@@ -20,11 +20,7 @@
     <div class="block mx-auto max-w-full pb-20 sm:mb-64 text-center">
         <cat-logo ref="catLogoElement" class="block h-40" />
 
-        <keep-alive>
-            <search-field
-                ref="searchFieldRef" key="search-box"
-                v-model="searchModel" @submit="search()" @change="$refs.catLogoElement.purr()" />
-        </keep-alive>
+        <search-field ref="searchFieldRef" v-model="searchModel" @submit="search()" @change="$refs.catLogoElement.purr()" />
     </div>
 </div>
 </template>
