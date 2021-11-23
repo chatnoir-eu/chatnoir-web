@@ -111,6 +111,11 @@ async function requestResults() {
         location.reload()
         return
     }
+
+    if (!route.query.q) {
+        return;
+    }
+
     const baseUrl = process.env.VUE_APP_BACKEND_ADDRESS + route.path.substr(1)
     const backend = baseUrl +'search'
     const requestOptions = {
