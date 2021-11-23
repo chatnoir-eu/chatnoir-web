@@ -11,7 +11,10 @@ module.exports = {
             },
             fontSize: {
                 '2xs': '.65rem'
-            }
+            },
+            spacing: {
+                '18': '4.5rem',
+              }
         },
         colors: {
             transparent: 'transparent',

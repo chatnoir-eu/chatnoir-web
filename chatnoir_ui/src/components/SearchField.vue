@@ -25,8 +25,8 @@
                v-bind="$attrs"
                @keyup="emit('keyup', $event)">
 
-        <button ref="optionsButton" type="button" class="mr-20" :class="$style['btn-options']" @click="showOptions = !showOptions">
-            <inline-svg :src="require('@/assets/icons/settings.svg').default" arial-label="Options" />
+        <button ref="optionsButton" type="button" class="mr-18 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
+            <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/settings.svg').default" arial-label="Options" />
         </button>
         <options-drop-down
             v-model="searchModel.indices"
@@ -35,8 +35,8 @@
             @close="showOptions = false"
         />
 
-        <button type="submit" class="mr-10" :class="$style['btn-submit']">
-            <inline-svg :src="require('@/assets/icons/search.svg').default" arial-label="Search" />
+        <button type="submit" class="mr-11" :class="$style['btn-submit']">
+            <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/search.svg').default" arial-label="Search" />
         </button>
     </form>
 </div>
