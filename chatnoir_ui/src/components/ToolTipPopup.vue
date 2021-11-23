@@ -44,6 +44,12 @@ function closeOnClick(e) {
     toggleVisibility(false)
 }
 
+function closeOnEsc(e) {
+    if (e.key === 'Escape') {
+        toggleVisibility(false)
+    }
+}
+
 function reposition() {
     if (!props.refElement) {
         return
@@ -85,6 +91,7 @@ function toggleVisibility(visible) {
 
     if (visible) {
         document.addEventListener('click', closeOnClick, true)
+        document.addEventListener('keyup', closeOnEsc)
         popup.value.classList.remove('hidden')
         setTimeout(() => {
             reposition()
@@ -94,6 +101,7 @@ function toggleVisibility(visible) {
         }, 0)
     } else {
         document.removeEventListener('click', closeOnClick, true)
+        document.removeEventListener('keyup', closeOnEsc)
         setTimeout(() => popup.value.classList.add('hidden'), 450)
         emit('close')
     }
