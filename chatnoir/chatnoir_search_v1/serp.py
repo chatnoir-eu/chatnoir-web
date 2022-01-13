@@ -14,7 +14,9 @@
 
 import math
 from collections import defaultdict
+from urllib import parse
 
+from django.urls import reverse
 from elasticsearch_dsl.response import Response
 
 
@@ -153,7 +155,8 @@ class SerpContext:
                 'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
                 'score': minimal(hit.meta.score),
                 'external_uri': minimal(target_uri),
-                'internal_uri': minimal(target_uri),    # TODO: change me!
+                'internal_uri': minimal(reverse('chatnoir_web:cache') + '?index={}&uuid={}'.format(
+                    parse.quote(result_index), parse.quote(hit.meta.id))),
                 'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
                 'page_rank': extended(getattr(hit, 'page_rank', None)),
                 'spam_rank': extended(getattr(hit, 'spam_rank', None)),

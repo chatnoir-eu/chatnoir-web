@@ -67,7 +67,7 @@ class CacheDocument:
         except NotFoundError:
             return None
 
-        return self._read_warc_content(index.warc_bucket, doc_index, doc)
+        return self._read_warc_content(doc_index, doc)
 
     def retrieve_by_filter(self, doc_index, **filter_expr):
         """
@@ -86,38 +86,41 @@ class CacheDocument:
         if not result.hits:
             return None
 
-        return self._read_warc_content(index.warc_bucket, doc_index, result.hits[0])
+        return self._read_warc_content(doc_index, result.hits[0])
 
-    def _read_warc_record(self, warc_bucket, warc_file, start_offset, record_size):
+    def _read_warc_record(self, warc_file_url, start_offset, record_size):
         """
         Read WARC record from S3 object store.
 
-        :param warc_bucket: S3 bucket
-        :param warc_file: S3 object name
+        :param warc_file_url: S3 object URL
         :param start_offset: byte offset of record in WARC file
         :param record_size: length of record in bytes
         :return: ArcWarcRecord
         """
+        if not warc_file_url.startswith('s3://'):
+            raise ValueError('WARC URL is not an S3 URL.')
+
         try:
-            obj = self._S3_RESOURCE.Object(warc_bucket, warc_file)
+            bucket_name, obj_name = warc_file_url[5:].split('/', 1)
+            obj = self._S3_RESOURCE.Object(bucket_name, obj_name)
             start = start_offset
             end = start + record_size
             stream = obj.get(Range='bytes={}-{}'.format(start, end))['Body']
             return ArcWarcRecordLoader().parse_record_stream(DecompressingBufferedReader(stream))
 
-        except ClientError:
+        except ClientError as e:
+            logger.exception(e)
             return None
 
-    def _read_warc_content(self, warc_bucket, doc_index, doc):
+    def _read_warc_content(self, doc_index, doc):
         """
         Read and parse WARC content stream.
 
-        :param warc_bucket: S3 bucket name
         :param doc_index: index shorthand name
         :param doc: WARC meta index document
         :return: dict(meta=WarcMetaDoc, body=str)
         """
-        record = self._read_warc_record(warc_bucket, doc.source_file, doc.source_offset, doc.http_content_length)
+        record = self._read_warc_record(doc.source_file, doc.source_offset, doc.http_content_length)
 
         if not record:
             logger.warning('Document {} not found in {}.'.format(doc.meta.id, doc.source_file))
@@ -157,7 +160,7 @@ class CacheDocument:
         :return: modified HTML
         """
 
-        link_base = reverse('search:cache') + '?index={}&raw&url='.format(urlparse.quote(index))
+        link_base = reverse('chatnoir_web:cache') + '?index={}&raw&url='.format(urlparse.quote(index))
 
         soup = BeautifulSoup(html_doc, 'html.parser')
         for a in soup.select('a[href], area[href]'):
