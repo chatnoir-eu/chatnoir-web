@@ -13,4 +13,3 @@ python-frontmatter
 resiliparse
 typing
 uwsgi
-warcio

@@ -26,8 +26,7 @@ from django.urls import reverse
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import connections, Search
 import html
-from warcio.bufferedreaders import DecompressingBufferedReader
-from warcio.recordloader import ArcWarcRecordLoader
+from fastwarc import ArchiveIterator
 
 from chatnoir_search_v1.elastic_backend import get_index
 
@@ -95,7 +94,7 @@ class CacheDocument:
         :param warc_file_url: S3 object URL
         :param start_offset: byte offset of record in WARC file
         :param record_size: length of record in bytes
-        :return: ArcWarcRecord
+        :return: WarcRecord
         """
         if not warc_file_url.startswith('s3://'):
             raise ValueError('WARC URL is not an S3 URL.')
@@ -106,7 +105,10 @@ class CacheDocument:
             start = start_offset
             end = start + record_size
             stream = obj.get(Range='bytes={}-{}'.format(start, end))['Body']
-            return ArcWarcRecordLoader().parse_record_stream(DecompressingBufferedReader(stream))
+            rec = next(ArchiveIterator(stream._raw_stream))
+            rec.freeze()
+            stream.close()
+            return rec
 
         except ClientError as e:
             logger.exception(e)
@@ -126,7 +128,7 @@ class CacheDocument:
             logger.warning('Document {} not found in {}.'.format(doc.meta.id, doc.source_file))
             return None
 
-        body = record.content_stream().read()
+        body = record.reader.read()
         if doc.http_content_type:
             if doc.http_content_type.startswith('text/') or \
                     doc.http_content_type in ('application/json', 'application/xhtml+xml'):
