@@ -27,6 +27,7 @@ from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import connections, Search
 import html
 from fastwarc import ArchiveIterator
+from resiliparse.parse.encoding import bytes_to_str
 
 from chatnoir_search_v1.elastic_backend import get_index
 
@@ -132,7 +133,7 @@ class CacheDocument:
         if doc.http_content_type:
             if doc.http_content_type.startswith('text/') or \
                     doc.http_content_type in ('application/json', 'application/xhtml+xml'):
-                body = body.decode(doc.content_encoding, errors='replace')
+                body = bytes_to_str(body, doc.content_encoding)
 
             if self.post_process_html and doc.http_content_type in ('text/html', 'application/xhtml+xml'):
                 body = self._post_process_html(body, doc.warc_target_uri, doc_index,
