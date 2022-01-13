@@ -123,12 +123,12 @@ class SerpContext:
 
         results = []
         for hit in self.response.hits:
-            body_key = 'body_lang.' + self.search.search_language
-            meta_desc_key = 'meta_desc_lang.' + self.search.search_language
+            body_key = 'body_lang_' + self.search.search_language
+            meta_desc_key = 'meta_desc_lang_' + self.search.search_language
 
             snippet = self.search.get_snippet(hit, [body_key, meta_desc_key], 200)
 
-            title_key = 'title_lang.' + self.search.search_language
+            title_key = 'title_lang_' + self.search.search_language
             title = self.search.get_snippet(hit, [title_key], 60)
             if not title:
                 title = '[ no title available ]'

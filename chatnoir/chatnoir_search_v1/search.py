@@ -150,32 +150,32 @@ class SimpleSearch(SearchBase):
     """Default search fields."""
     MAIN_FIELDS = [
         {
-            'name': 'title_lang.%lang%',
+            'name': 'title_lang_%lang%',
             'boost': 70,
             'proximity_matching': True,
             'proximity_slop': 2,
             'proximity_boost': 30
         },
         {
-            'name': 'body_lang.%lang%',
+            'name': 'body_lang_%lang%',
             'boost': 10,
             'proximity_matching': True,
             'proximity_slop': 2,
             'proximity_boost': 20
         },
         {
-            'name': 'full_body_lang.%lang%'
+            'name': 'full_body_lang_%lang%'
         },
         {
-            'name': 'headings_lang.%lang%',
+            'name': 'headings_lang_%lang%',
             'boost': 5
         },
         {
-            'name': 'meta_desc_lang.%lang%',
+            'name': 'meta_desc_lang_%lang%',
             'boost': 1
         },
         {
-            'name': 'meta_keywords_lang.%lang%',
+            'name': 'meta_keywords_lang_%lang%',
             'boost': 1
         },
         {
@@ -196,12 +196,12 @@ class SimpleSearch(SearchBase):
     """Highlight fields for snippets"""
     HIGHLIGHT_FIELDS = [
         {
-            'name': 'title_lang.%lang%',
+            'name': 'title_lang_%lang%',
             'fragment_size': 70,
             'number_of_fragments': 1
         },
         {
-            'name': 'body_lang.%lang%',
+            'name': 'body_lang_%lang%',
             'fragment_size': 300,
             'number_of_fragments': 1
         }
@@ -475,7 +475,7 @@ class PhraseSearch(SimpleSearch):
     """Fields to search."""
     MAIN_FIELDS = [
         {
-            'name': 'body_lang.%lang%',
+            'name': 'body_lang_%lang%',
             'boost': 1.0
         }
     ]
