@@ -25,7 +25,7 @@ from django.views.decorators.http import require_http_methods, require_safe
 import frontmatter
 import mistune
 
-from chatnoir_search_v1.cache import BasicHtmlFormatter, CacheDocument
+from chatnoir_search_v1.cache import CacheDocument
 from .middleware import time_limited_csrf
 from chatnoir_search_v1.search import SimpleSearch
 from chatnoir_api_v1.views import bool_param_set
@@ -92,36 +92,35 @@ def cache(request):
         }
     }
 
-    cache_doc = CacheDocument(post_process_html)
-    doc = None
+    cache_doc = CacheDocument()
     doc_id = request.GET.get('uuid')
     if not doc_id and request.GET.get('trec-id'):
         # Retrieve by internal document ID, which is usually faster than searching for the warc_trec_id term
         doc_id = webis_uuid(settings.SEARCH_INDICES[request.GET['index']]['warc_uuid_prefix'], request.GET['trec-id'])
 
     if doc_id:
-        doc = cache_doc.retrieve_by_uuid(request.GET['index'], doc_id)
+        if not cache_doc.retrieve_by_uuid(request.GET['index'], doc_id):
+            raise Http404
     elif request.GET.get('url'):
-        doc = cache_doc.retrieve_by_filter(request.GET['index'], warc_target_uri=request.GET['url'])
-        if not doc:
+        if not cache_doc.retrieve_by_filter(request.GET['index'], warc_target_uri=request.GET['url']):
             return render(request, 'cache-redirect.html', {'uri': request.GET['url']})
 
-    if not doc:
-        raise Http404
+    doc_meta = cache_doc.doc_meta()
+    context['cache']['uuid'] = doc_meta.meta.id
+    context['cache']['meta'] = doc_meta
 
-    context['cache']['uuid'] = doc['meta'].meta.id
-    context['cache']['meta'] = doc['meta']
-
-    content_type = doc['meta'].http_content_type
+    content_type = doc_meta.http_content_type
     if not content_type:
         content_type = 'text/html'
 
     if plaintext_mode:
-        doc['body'] = BasicHtmlFormatter.format(doc['body'])
-        content_type = 'text/html'
+        content_type = 'text/plain'
+        body = cache_doc.main_content()
+    else:
+        body = cache_doc.html(post_process_html)
 
     if raw_mode:
-        return HttpResponse(doc['body'], content_type, 200)
+        return HttpResponse(body, content_type, 200)
 
     return render(request, 'cache.html', context)
 
