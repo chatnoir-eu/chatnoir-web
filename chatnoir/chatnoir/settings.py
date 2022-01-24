@@ -162,9 +162,6 @@ API_KEY_CREATE_ROLE = 'keycreate'
 API_NOLOG_ROLES = ('dev',)
 API_TRUST_X_FORWARDED_FOR = False
 
-# Documentation cache time
-DOC_PAGE_CACHE_TIMEOUT = 10 * 60
-
 # Elasticsearch backend settings (override me)
 ELASTICSEARCH_PROPERTIES = {
     'hosts': ['localhost:9200'],
@@ -191,6 +188,9 @@ SEARCH_INDICES = {
         'compat_search_versions': [1]
     }
 }
+
+# Cache frontend URL (should be different origin to avoid cookie leakage)
+CACHE_FRONTEND_URL = 'http://127.0.0.2:8000'
 
 try:
    from .local_settings import *

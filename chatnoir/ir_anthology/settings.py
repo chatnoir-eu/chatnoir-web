@@ -21,4 +21,4 @@ TEMPLATES[0]['DIRS'] = [
 try:
    from .local_settings import *
 except ImportError:
-    raise RuntimeError("Could not find local_settings.py.")
+    pass

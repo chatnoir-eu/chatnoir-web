@@ -1,5 +1,3 @@
-import elasticsearch_dsl as edsl
-from django.conf import settings
 # Copyright 2021 Janek Bevendorff
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +12,8 @@ from django.conf import settings
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from django.conf import settings
+import elasticsearch_dsl as edsl
 from elasticsearch.exceptions import NotFoundError
 
 _INDICES = {}
