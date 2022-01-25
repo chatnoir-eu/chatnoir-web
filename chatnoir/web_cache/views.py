@@ -77,26 +77,25 @@ def cache(request):
             title=cache_doc.html_title(),
             index=search_index.display_name,
             index_shorthand=request.GET.get('index'),
-            is_plaintext_mode=plaintext_mode
+            is_plaintext_mode=plaintext_mode or cache_doc.is_text_plain(),
+            is_plaintext_doc=cache_doc.is_text_plain(),
+            is_html_doc=cache_doc.is_html()
         )
     )
 
-    content_type = doc_meta.http_content_type
-    if not content_type:
-        content_type = 'text/html'
-
-    if plaintext_mode:
+    if plaintext_mode or cache_doc.is_text_plain():
         body = cache_doc.main_content()
     else:
         body = cache_doc.html(not raw_mode)
 
+    content_type = doc_meta.http_content_type if raw_mode else 'text/html'
     charset = doc_meta.content_encoding if raw_mode else settings.DEFAULT_CHARSET
-    content_type += f'; charset={charset}'
+    content_type = f'{content_type}; charset={charset}'
 
     if raw_mode:
         response = HttpResponse(body, content_type=content_type, status=200)
     else:
-        context['cache']['html'] = body
+        context['cache']['body'] = body
         response = render(request, 'cache.html', context=context, content_type=content_type)
 
     response['X-Robots-Tag'] = 'noindex, nofollow'

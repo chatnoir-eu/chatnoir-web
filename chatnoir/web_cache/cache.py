@@ -115,7 +115,7 @@ class CacheDocument:
 
             self._html_tree = None
             if self._meta_doc.http_content_type and self._meta_doc.http_content_type in (
-                    'text/html', 'application/json', 'application/xhtml+xml'):
+                    'text/html', 'application/xhtml+xml'):
                 self._html_tree = HTMLTree.parse_from_bytes(self._doc_bytes, self._meta_doc.content_encoding)
 
         except ClientError as e:
@@ -139,7 +139,7 @@ class CacheDocument:
             if main_content:
                 body = extract_plain_text(self._html_tree,
                                           preserve_formatting=True, main_content=True, alt_texts=True)
-            elif not raw_html and self._meta_doc.http_content_type in ('text/html', 'application/xhtml+xml'):
+            elif not raw_html:
                 body = self._post_process_html(self._html_tree)
 
             # ClueWeb09 messed up the encoding of many pages, so strip Unicode replacement characters
@@ -152,6 +152,12 @@ class CacheDocument:
             return bytes_to_str(body, self._meta_doc.content_encoding)
 
         return body
+
+    def is_text_plain(self):
+        return self._meta_doc and self._meta_doc.http_content_type.startswith('text/') and not self.is_html()
+
+    def is_html(self):
+        return self._html_tree is not None
 
     def doc_meta(self):
         """
