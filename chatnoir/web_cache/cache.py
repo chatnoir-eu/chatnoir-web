@@ -261,6 +261,9 @@ class CacheDocument:
         repl = {}
         if not target_url_parts.scheme:
             repl['scheme'] = base_url_parts.scheme
+        elif target_url_parts.scheme not in ['https', 'http']:
+            # Do not rewrite unsafe protocol prefixes
+            return input_url
 
         if not target_url_parts.netloc:
             repl['netloc'] = base_url_parts.netloc
