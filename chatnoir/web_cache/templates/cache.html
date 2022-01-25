@@ -91,10 +91,8 @@
                     <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}&amp;plain"
                         {% if cache.is_plaintext_mode %}aria-current="page"{% endif %} rel="nofollow">Plain Text</a>
 
-                     {% if cache.is_html_doc %}
-                         <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}&amp;raw"
-                            rel="nofollow">Original HTML</a>
-                     {% endif %}
+                     <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}&amp;raw"
+                        rel="nofollow">Original {% if cache.is_html_doc %}HTML{% else %}Text{% endif %}</a>
 
                     <a href="{{ cache.meta.warc_target_uri }}" rel="nofollow" target="_blank">Current Website (external)</a>
                 </div>
