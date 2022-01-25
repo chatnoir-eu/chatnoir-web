@@ -1,33 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en">{% with css_prefix="chatnoir-q58Cv68T2nBUc1k44-" %}
 <head>
+    <meta charset="utf-8">
+    <meta name=”robots” content=”noindex, nofollow”>
+    <link rel="canonical" href="{{ cache.meta.warc_target_uri }}">
     <title>{{ cache.title }} | {{ app_name }}</title>
+    <style>
+        body, html {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        #{{ css_prefix }}header {
+            font-family: ui-sans-serif, system-ui, sans-serif !important;
+            font-size: 16px !important;
+            font-weight: normal !important;
+            line-height: 18px !important;
+            background-color: #f5f5f5 !important;
+            padding: 28px 32px !important;
+            text-align: left !important;
+        }
+        #{{ css_prefix }}header a {
+            color: rgb(0, 0, 238) !important;
+            text-decoration: underline !important;
+            font-weight: normal !important;
+        }
+        #{{ css_prefix }}header a:visited {
+            color: rgb(85, 26, 139) !important;
+        }
+        #{{ css_prefix }}meta {
+            font-size: 14px !important;
+            margin: 12px 0 22px 0 !important;
+            padding: 0 !important;
+        }
+        #{{ css_prefix }}meta dt {
+            display: inline-block !important;
+            font-weight: bold !important;
+            font-style: normal !important;
+            color: #444 !important;
+        }
+        #{{ css_prefix }}meta dd {
+            display: inline-block !important;
+            margin: 0 28px 0 5px !important;
+        }
+        #{{ css_prefix }}display a {
+            display: inline-block !important;
+            margin-right: 16px !important;
+        }
+        #{{ css_prefix }}display a[aria-current="page"] {
+            font-weight: bold !important;
+            color: #444 !important;
+            text-decoration: none !important;
+        }
+        #{{ css_prefix }}plaintext {
+            font-family: ui-sans-serif, system-ui, sans-serif !important;
+            font-size: 16px !important;
+            white-space: pre-wrap !important;
+            padding: 32px !important;
+            max-width: 1024px !important;
+        }
+    </style>
 </head>
-<body class="cache-page">
-    <div id="Main" class="container">
-        <div id="CacheHeader">
-            <div id="LogoWrapper">
+<body>
+    <div id="{{ css_prefix }}header">
+        <div>
+            <div>This is ChatNoir's cached version of <a href="{{ cache.meta.warc_target_uri }}" rel="nofollow">{{ cache.meta.warc_target_uri }}</a></div>
+            <dl id="{{ css_prefix }}meta">
+                <dt>Index:</dt><dd>{{ cache.index }}</dd>
+                <dt>Document ID:</dt><dd>{{ cache.meta.uuid }}</dd>
+                {% if cache.meta.warc_trec_id %}<dt>TREC ID:</dt><dd>{{ cache.meta.warc_trec_id }}</dd>{% endif %}
+                <dt>Crawl Date:</dt><dd>{{ cache.meta.warc_date | date:"M d, Y" }}</dd>
+            </dl>
+            <div id="{{ css_prefix }}display">
+                <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}"
+                    {% if not cache.is_plaintext_mode %}aria-current="page"{% endif %} rel="nofollow">Full Website</a>
+                <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}&amp;plain"
+                    {% if cache.is_plaintext_mode %}aria-current="page"{% endif %} rel="nofollow">Plain Text</a>
+                <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}&amp;raw"
+                   rel="nofollow">Original HTML</a>
+                <a href="{{ cache.meta.warc_target_uri }}"
+                   rel="nofollow" target="_blank">Current Website (external)</a>
             </div>
-            <div id="CacheMeta">
-                <h1>Cache Result for document <em>{{ cache.uuid }}</em></h1>
-                <div class="cache-document-meta">
-                    <em>Index:</em> {{ cache.index }}
-                    {% if cache.meta.warc_trec_id %} &bullet; <em>TREC ID:</em> {{ cache.meta.warc_trec_id }} {% endif %}
-                    &bullet; <em>Crawl Date:</em> {{ cache.meta.warc_date | date:"M d, Y" }}
-                </div>
-                <p>
-                {% if cache.search_query %}
-                    <a href="{{ cache_frontend_url }}?q={{ cache.search_query | urlencode }}&index={{ cache.index }}{% if cache.search_page %}&p={{ cache.search_page }}{% endif %}" class="back">Back to search</a> –
-                {% endif %}
-                    <a href="{{ cache.meta.warc_target_uri }}" class="weblink" target="_blank">View original web page</a> –
-                    <a href="{{ cache_frontend_url }}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}" class="html"{% if not cache.is_plaintext_mode %} style="display: none"{% endif %}>View original HTML</a>
-                    <a href="{{ cache_frontend_url }}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;plain" class="plaintext"{% if cache.is_plaintext_mode %} style="display: none"{% endif %}>View plain text</a>
-                </p>
-            </div>
-        </div>
-        <div id="CacheResult">
-            <iframe style="width: 100%; height: 80vh" src="{{ cache_frontend_url }}?uuid={{ cache.uuid | urlencode }}&amp;index={{ cache.index | urlencode }}&amp;raw{% if cache.is_plaintext_mode %}&amp;plain{% endif %}"></iframe>
         </div>
     </div>
-</body>
+    {% if cache.is_plaintext_mode %}
+        <div id="{{ css_prefix }}plaintext">{{ cache.html }}</div>
+    {% else %}
+        <div id="{{ css_prefix }}root" style="position: relative">{{ cache.html | safe }}</div>
+    {% endif %}
+{% endwith %}</body>
 </html>

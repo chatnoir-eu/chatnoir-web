@@ -15,10 +15,11 @@
 import uuid
 
 from django.conf import settings
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_safe
 
+from chatnoir_search_v1.elastic_backend import get_index
 from .cache import CacheDocument
 
 
@@ -26,64 +27,77 @@ def bool_param_set(param_name, param_dict):
     return param_name in param_dict and param_dict[param_name] not in [None, '0', 'false', 'False']
 
 
-def webis_uuid(prefix, doc_id):
-    """
-    Calculate Webis UUID from a corpus prefix and a document ID.
-    """
-    return str(uuid.uuid5(uuid.NAMESPACE_URL, ':'.join((prefix, doc_id))))
+def robots_txt(request):
+    """Disallow all crawlers."""
+    return HttpResponse('User-agent: *\nDisallow: /',
+                        content_type=f'text/plain; charset={settings.DEFAULT_CHARSET}', status=200)
 
 
 @require_safe
-def index(request):
-    if 'index' not in request.GET or request.GET.get('index') not in settings.SEARCH_INDICES:
+def cache(request):
+    """Cache view."""
+
+    search_index = get_index(request.GET.get('index'))
+    if not search_index:
         raise Http404
 
     raw_mode = bool_param_set('raw', request.GET)
     plaintext_mode = bool_param_set('plain', request.GET)
-    post_process_html = not bool_param_set('no-rewrite', request.GET)
+
+    cache_doc = CacheDocument()
+    result = False
+    if request.GET.get('uuid'):
+        result = cache_doc.retrieve_by_filter(search_index, uuid=request.GET.get('uuid'))
+    elif request.GET.get('idx-uuid'):
+        result = cache_doc.retrieve_by_idx_id(search_index, request.GET.get('idx-uuid'))
+    elif request.GET.get('trec-id'):
+        result = cache_doc.retrieve_by_filter(search_index, warc_trec_id=request.GET.get('trec-id'))
+    elif request.GET.get('url'):
+        result = cache_doc.retrieve_by_filter(search_index, warc_target_uri=request.GET['url'])
+        if not result:
+            if raw_mode and request.META.get('HTTP_REFERER', '').startswith(settings.CACHE_FRONTEND_URL):
+                # Don't show redirect page for directly embedded content
+                return HttpResponseRedirect(request.GET['url'])
+
+            return render(request, 'cache-redirect.html', {
+                'app_name': settings.APPLICATION_NAME,
+                'uri': request.GET['url']
+            })
+
+    if not result:
+        raise Http404
+
+    doc_meta = cache_doc.doc_meta()
     context = dict(
         app_name=settings.APPLICATION_NAME,
         cache_frontend_url=settings.CACHE_FRONTEND_URL,
         cache=dict(
-            index=request.GET.get('index'),
-            is_plaintext_mode=plaintext_mode,
-            is_raw_mode=raw_mode,
-            search_query=request.GET.get('q', ''),
-            search_page=request.GET.get('p', '')
+            uuid=doc_meta.meta.id,
+            meta=doc_meta,
+            title=cache_doc.html_title(),
+            index=search_index.display_name,
+            index_shorthand=request.GET.get('index'),
+            is_plaintext_mode=plaintext_mode
         )
     )
-
-    cache_doc = CacheDocument()
-    doc_id = request.GET.get('uuid')
-    if not doc_id and request.GET.get('trec-id'):
-        # Retrieve by internal document ID, which is usually faster than searching for the warc_trec_id term
-        doc_id = webis_uuid(settings.SEARCH_INDICES[request.GET['index']]['warc_uuid_prefix'], request.GET['trec-id'])
-
-    if doc_id:
-        if not cache_doc.retrieve_by_uuid(request.GET['index'], doc_id):
-            raise Http404
-    elif request.GET.get('url'):
-        if not cache_doc.retrieve_by_filter(request.GET['index'], warc_target_uri=request.GET['url']):
-            return render(request, 'cache-redirect.html', {'uri': request.GET['url']})
-
-    doc_meta = cache_doc.doc_meta()
-    context['cache'].update(dict(
-        uuid=doc_meta.meta.id,
-        meta=doc_meta,
-        title=cache_doc.html_title()
-    ))
 
     content_type = doc_meta.http_content_type
     if not content_type:
         content_type = 'text/html'
 
     if plaintext_mode:
-        content_type = 'text/plain'
         body = cache_doc.main_content()
     else:
-        body = cache_doc.html(post_process_html)
+        body = cache_doc.html(not raw_mode)
+
+    charset = doc_meta.content_encoding if raw_mode else settings.DEFAULT_CHARSET
+    content_type += f'; charset={charset}'
 
     if raw_mode:
-        return HttpResponse(body, content_type, 200)
+        response = HttpResponse(body, content_type=content_type, status=200)
+    else:
+        context['cache']['html'] = body
+        response = render(request, 'cache.html', context=context, content_type=content_type)
 
-    return render(request, 'cache.html', context)
+    response['X-Robots-Tag'] = 'noindex, nofollow'
+    return response

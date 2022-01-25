@@ -20,6 +20,9 @@ _INDICES = {}
 
 
 def get_index(shorthand):
+    if not shorthand:
+        return None
+
     if not _INDICES:
         _INDICES.update({k: SearchIndex(k) for k in settings.SEARCH_INDICES})
 
@@ -65,13 +68,14 @@ class SearchIndex:
 
         self._conf = settings.SEARCH_INDICES[shorthand]
 
+        self.shorthand_name = shorthand
         self.display_name = self._conf['display_name']
-        self.interal_name = self._conf['index']
+        self.internal_name = self._conf['index']
         self.warc_index_name = self._conf['warc_index']
         self.warc_bucket = self._conf['warc_bucket']
         self.compat_search_versions = self._conf['compat_search_versions']
 
-        self.index = edsl.Index(self.interal_name)
+        self.index = edsl.Index(self.internal_name)
 
         self.warc_index = edsl.Index(self.warc_index_name)
 

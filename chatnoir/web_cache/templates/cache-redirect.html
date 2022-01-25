@@ -1,20 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>{% spaceless %}
-    {% load chatnoir_tags %}
-    {% load render_bundle from webpack_loader %}
-    {% endspaceless %}
+<head>
     <meta charset="utf-8">
-    <title>{% app_name %}</title>
-    {% include 'include/global_head.html' %}
+    <title>External Link | {{ app_name }}</title>
+
+    <meta name=”robots” content=”noindex, nofollow”>
+    <meta http-equiv="refresh" content="5; url={{ uri }}">
+    <style>
+        #redirect-message {
+            font-family: Carlito, ui-sans-serif, system-ui, sans-serif;
+            font-size: 1.2rem;
+            margin: 3.5rem auto;
+            padding: 0 2rem;
+            text-align: center;
+            max-width: 80rem;
+        }
+        h1 {
+            font-size: 2.4rem;
+            font-weight: bold;
+        }
+        h1, p {
+            margin: 1rem 0;
+        }
+    </style>
 </head>
-<body class="cache-page">
-    <div id="Main" class="container">
-        <div class="redirect-message">
-            <h1>You are leaving us! ;-(</h1>
-            <p>Redirecting to the <em>InterWebz™</em> at <a href="{{ uri }}">{{ uri }}</a></p>
-            <p class="timer-message">…in <span class="timer">5</span> seconds…</p>
-        </div>
+<body>
+    <div id="redirect-message">
+        <h1>You are leaving us! ;-(</h1>
+        <p>Unfortunately, we have no cached version of the requested page.<p>
+        <p>Redirecting you to the <em>InterWebz™</em> at <a href="{{ uri }}" rel="nofollow">{{ uri }}</a> in <span id="timer">5</span> seconds&hellip;</p>
     </div>
+    <script>
+        const timer = document.getElementById('timer')
+        const interval = setInterval(() => {
+            const t = Math.max(0, parseInt(timer.innerText) - 1)
+            timer.innerText = t.toString()
+            if (t === 0) {
+                clearInterval(interval)
+            }
+        }, 1000)
+    </script>
 </body>
 </html>

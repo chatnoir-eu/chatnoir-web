@@ -18,5 +18,6 @@ from . import views
 app_name = 'web_cache'
 
 urlpatterns = [
-    path(r'', views.index, name='index'),
+    path(r'', views.cache, name='cache'),
+    path(r'robots.txt', views.robots_txt, name='robots_txt'),
 ]

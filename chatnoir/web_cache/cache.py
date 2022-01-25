@@ -51,34 +51,32 @@ class CacheDocument:
         if self._S3_RESOURCE is None:
             self._S3_RESOURCE = boto3.resource('s3', **settings.S3_ENDPOINT_PROPERTIES)
 
-    def retrieve_by_uuid(self, doc_index, doc_uuid):
+    def retrieve_by_idx_id(self, index, idx_uuid):
         """
         Retrieve document by its UUID.
 
-        :param doc_index: index shorthand name
-        :param doc_uuid: document UUID
+        :param index: index object
+        :param idx_uuid: document internal index UUID
         :return: True on success
         """
         try:
-            index = get_index(doc_index)
-            doc = index.warc_meta_doc.get(id=doc_uuid)
+            doc = index.warc_meta_doc.get(id=idx_uuid)
         except NotFoundError:
             return False
 
-        self._doc_index = doc_index
+        self._doc_index = index
         self._meta_doc = doc
         self._read_warc_record(doc.source_file, doc.source_offset, doc.http_content_length)
         return True
 
-    def retrieve_by_filter(self, doc_index, **filter_expr):
+    def retrieve_by_filter(self, index, **filter_expr):
         """
         Retrieve first document that matches the given filter expression in the WARC meta index.
 
-        :param doc_index: index shorthand name
+        :param index: index object
         :param filter_expr: term filter expression (e.g. warc_target_uri="http://example.com")
         :return: True on success
         """
-        index = get_index(doc_index)
         result = (Search().doc_type(index.warc_meta_doc)
                   .index(index.warc_index_name)
                   .filter('term', **filter_expr)
@@ -88,7 +86,7 @@ class CacheDocument:
             return False
 
         doc = result.hits[0]
-        self._doc_index = doc_index
+        self._doc_index = index
         self._meta_doc = doc
         self._read_warc_record(doc.source_file, doc.source_offset, doc.http_content_length)
         return True
@@ -189,24 +187,21 @@ class CacheDocument:
         :param html_tree: Resiliparse HTML tree
         :return: modified HTML
         """
-
-        link_base = settings.CACHE_FRONTEND_URL + '?index={}&raw&url='.format(urlparse.quote(self._doc_index))
-
         if not html_tree.body:
             return ''
 
         for a in html_tree.body.query_selector_all('a[href], area[href]'):
-            a['href'] = link_base + urlparse.quote(self._get_absolute_uri(a['href'], self._meta_doc.warc_target_uri))
+            a['href'] = self._rewrite_url(a['href'], self._meta_doc.warc_target_uri, False)
 
         for link in html_tree.body.query_selector_all('link[href]'):
-            link['href'] = self._get_absolute_uri(link['href'], self._meta_doc.warc_target_uri)
+            link['href'] = self._rewrite_url(link['href'], self._meta_doc.warc_target_uri, True)
 
         for embed in html_tree.body.query_selector_all(
                 'img[src], script[src], iframe[src], video[src], audio[src], input[type=image][src]'):
-            embed['src'] = self._get_absolute_uri(embed['src'], self._meta_doc.warc_target_uri)
+            embed['src'] = self._rewrite_url(embed['src'], self._meta_doc.warc_target_uri, True)
 
         for obj in html_tree.body.query_selector_all('object[data]'):
-            obj['data'] = self._get_absolute_uri(obj['data'], self._meta_doc.warc_target_uri)
+            obj['data'] = self._rewrite_url(obj['data'], self._meta_doc.warc_target_uri, True)
 
         # Add HTML head elements (find or create head first)
         head = html_tree.head
@@ -236,33 +231,39 @@ class CacheDocument:
 
         return html_tree.document.html
 
-    @staticmethod
-    def _get_absolute_uri(relative_url, base_url):
+    def _rewrite_url(self, input_url, source_base, raw=False):
         """
         Resolve a relative URI to an absolute URI.
         If `relative_url` is already absolute (i.e. with schema and network location), it's returned unchanged.
 
-        :param relative_url: relative URI
-        :param base_url: absolute base URL for resolving `relative_url`
-        :return: absolute URI
+        :param input_url: relative URI
+        :param source_base: absolute source base URL for resolving `relative_url`
+        :param raw: add "raw" parameter to rewritten URL
+        :return: rewritten URI
         """
 
-        url_parts = urlparse.urlparse(relative_url)
-        if url_parts.scheme and url_parts.netloc:
-            return relative_url
+        input_url = input_url.strip()
+        if input_url.startswith('#'):
+            # Return relative fragment URLs as is
+            return input_url
 
-        base_url_parts = urlparse.urlparse(base_url)
+        base_url_parts = urlparse.urlparse(source_base)
+        target_url_parts = urlparse.urlparse(input_url)
         repl = {}
-        if not url_parts.scheme:
+        if not target_url_parts.scheme:
             repl['scheme'] = base_url_parts.scheme
 
-        if not url_parts.netloc:
+        if not target_url_parts.netloc:
             repl['netloc'] = base_url_parts.netloc
 
-        if not url_parts.path.startswith('/'):
+        if not target_url_parts.path.startswith('/'):
             base_path = base_url_parts.path
             if not base_path.endswith('/'):
                 base_path = os.path.dirname(base_path)
-            repl['path'] = os.path.abspath(os.path.join(base_path, url_parts.path))
+            repl['path'] = os.path.abspath(os.path.join(base_path, target_url_parts.path))
 
-        return urlparse.urlunparse(url_parts._replace(**repl))
+        new_url = urlparse.urlunparse(target_url_parts._replace(**repl))
+        new_url = f'{settings.CACHE_FRONTEND_URL}?index={self._doc_index.shorthand_name}&url={urlparse.quote(new_url)}'
+        if raw:
+            new_url += '&raw'
+        return new_url
