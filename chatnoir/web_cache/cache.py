@@ -27,8 +27,6 @@ from resiliparse.extract.html2text import extract_plain_text
 from resiliparse.parse.encoding import bytes_to_str
 from resiliparse.parse.html import HTMLTree
 
-from chatnoir_search_v1.elastic_backend import get_index
-
 logger = logging.getLogger(__name__)
 
 
@@ -249,9 +247,14 @@ class CacheDocument:
         """
 
         input_url = input_url.strip()
+
+        # Return relative fragment URLs as is
         if input_url.startswith('#'):
-            # Return relative fragment URLs as is
             return input_url
+
+        # Turn effectively relative fragment URLs into actual fragments
+        if input_url.startswith(source_base) and input_url[len(source_base):].startswith('#'):
+            return input_url[len(source_base):]
 
         base_url_parts = urlparse.urlparse(source_base)
         target_url_parts = urlparse.urlparse(input_url)
