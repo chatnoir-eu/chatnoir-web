@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import base64
+import uuid
+
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
@@ -31,6 +34,17 @@ def robots_txt(request):
                         content_type=f'text/plain; charset={settings.DEFAULT_CHARSET}', status=200)
 
 
+def normalize_uuid_str(uuid_str):
+    """Convert a legacy UUID hex string to truncated base64 if necessary (or return it as is)."""
+    if uuid_str and len(uuid_str) == 36 and '-' in uuid_str:
+        try:
+            return base64.b64encode(uuid.UUID(uuid_str).bytes)[:-2].decode()
+        except ValueError:
+            pass
+
+    return uuid_str
+
+
 @require_safe
 def cache(request):
     """Cache view."""
@@ -45,9 +59,9 @@ def cache(request):
     cache_doc = CacheDocument()
     result = False
     if request.GET.get('uuid'):
-        result = cache_doc.retrieve_by_filter(search_index, uuid=request.GET['uuid'])
+        result = cache_doc.retrieve_by_filter(search_index, uuid=normalize_uuid_str(request.GET['uuid']))
     elif request.GET.get('idx-uuid'):
-        result = cache_doc.retrieve_by_idx_id(search_index, request.GET['idx-uuid'])
+        result = cache_doc.retrieve_by_idx_id(search_index, normalize_uuid_str(request.GET['idx-uuid']))
     elif request.GET.get('trec-id'):
         result = cache_doc.retrieve_by_filter(search_index, warc_trec_id=request.GET['trec-id'])
     elif request.GET.get('url'):
