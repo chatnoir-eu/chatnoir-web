@@ -18,6 +18,7 @@ import uuid
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
+from django.utils.encoding import iri_to_uri
 from django.views.decorators.http import require_safe
 
 from chatnoir_search_v1.elastic_backend import get_index
@@ -104,7 +105,7 @@ def cache(request):
     else:
         body = cache_doc.html(not raw_mode)
 
-    content_type = doc_meta.http_content_type if raw_mode else 'text/html'
+    content_type = iri_to_uri(doc_meta.http_content_type) if raw_mode else 'text/html'
     charset = doc_meta.content_encoding if raw_mode else settings.DEFAULT_CHARSET
     content_type = f'{content_type}; charset={charset}'
 
@@ -115,4 +116,5 @@ def cache(request):
         response = render(request, 'cache.html', context=context, content_type=content_type)
 
     response['X-Robots-Tag'] = 'noindex, nofollow'
+    response['Link'] = f'<{iri_to_uri(doc_meta.warc_target_uri)}>; rel="canonical"'
     return response
