@@ -58,20 +58,20 @@ def cache(request):
     plaintext_mode = bool_param_set('plain', request.GET)
 
     cache_doc = CacheDocument()
-    result = False
+    found = False
     if request.GET.get('uuid'):
-        result = cache_doc.retrieve_by_filter(search_index, uuid=normalize_uuid_str(request.GET['uuid']))
+        found = cache_doc.retrieve_by_filter(search_index, uuid=normalize_uuid_str(request.GET['uuid']))
     elif request.GET.get('idx-uuid'):
-        result = cache_doc.retrieve_by_idx_id(search_index, normalize_uuid_str(request.GET['idx-uuid']))
+        found = cache_doc.retrieve_by_idx_id(search_index, normalize_uuid_str(request.GET['idx-uuid']))
     elif request.GET.get('trec-id'):
-        result = cache_doc.retrieve_by_filter(search_index, warc_trec_id=request.GET['trec-id'])
+        found = cache_doc.retrieve_by_filter(search_index, warc_trec_id=request.GET['trec-id'])
     elif request.GET.get('url'):
         if not request.GET['url'].startswith('https://') and not request.GET['url'].startswith('http://'):
             # Do not redirect to unsafe URLs
             raise Http404
 
-        result = cache_doc.retrieve_by_filter(search_index, warc_target_uri=request.GET['url'])
-        if not result:
+        found = cache_doc.retrieve_by_filter(search_index, warc_target_uri=request.GET['url'])
+        if not found:
             if raw_mode and request.META.get('HTTP_REFERER', '').startswith(settings.CACHE_FRONTEND_URL):
                 # Don't show redirect page for directly embedded content
                 return HttpResponseRedirect(request.GET['url'])
@@ -81,7 +81,7 @@ def cache(request):
                 'uri': request.GET['url']
             })
 
-    if not result:
+    if not found:
         raise Http404
 
     doc_meta = cache_doc.doc_meta()
