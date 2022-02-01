@@ -115,6 +115,6 @@ def cache(request):
         context['cache']['body'] = body
         response = render(request, 'cache.html', context=context, content_type=content_type)
 
-    response['X-Robots-Tag'] = 'noindex, nofollow'
+    response['X-Robots-Tag'] = 'noindex,nofollow'
     response['Link'] = f'<{iri_to_uri(doc_meta.warc_target_uri)}>; rel="canonical"'
     return response
