@@ -135,6 +135,7 @@ USE_TZ = True
 USE_THOUSAND_SEPARATOR = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_SENDER_ADDRESS = 'no-reply@localhost'
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'

@@ -327,9 +327,9 @@ def management_index(request):
             mail_content_plain = get_template('apikey_email/confirmation_email.txt').render(mail_context, request)
             mail_content_html = get_template('apikey_email/confirmation_email.html').render(mail_context, request)
             mail = EmailMultiAlternatives(
-                'Complete your ChatNoir API key request',
+                _('Complete your ChatNoir API key request'),
                 mail_content_plain,
-                'no-reply@chatnoir.eu',
+                settings.EMAIL_SENDER_ADDRESS,
                 [instance.email]
             )
             mail.attach_alternative(mail_content_html, 'text/html')
@@ -361,9 +361,9 @@ def management_activate(request, activation_code):
         mail_content_plain = get_template('apikey_email/apikey_email.txt').render(context, request)
         mail_content_html = get_template('apikey_email/apikey_email.html').render(context, request)
         mail = EmailMultiAlternatives(
-            'Your ChatNoir API key',
+            _('Your ChatNoir API key'),
             mail_content_plain,
-            'no-reply@chatnoir.eu',
+            settings.EMAIL_SENDER_ADDRESS,
             [user.email]
         )
         mail.attach_alternative(mail_content_html, 'text/html')
