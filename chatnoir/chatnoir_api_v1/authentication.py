@@ -20,7 +20,7 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 from rest_framework import authentication, exceptions, permissions
 
-from chatnoir_apikey_management.models import ApiKey
+from .models import ApiKey
 
 
 class ApiKeyAuthentication(authentication.BaseAuthentication):

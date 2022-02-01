@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.urls import include, path
+from django.urls import include, path, reverse_lazy
+from django.contrib import admin
+from django.views.generic import RedirectView
 from rest_framework import routers
 
 from . import views
@@ -33,5 +35,12 @@ router_v1.register(r'.+', views.Error404, basename='v1-error-404')
 
 
 urlpatterns = [
-    path(r'', include(router_v1.urls))
+    path(r'api/', RedirectView.as_view(url=reverse_lazy('chatnoir_api_v1:api-root'))),
+    path(r'api/v1/', include(router_v1.urls)),
+
+    path(r'apikey/', views.management_index, name='management_index'),
+    path(r'apikey/activate/<slug:activation_code>', views.management_activate, name='management_activate'),
+    path(r'apikey/request_sent', views.management_request_sent, name='management_request_sent'),
+
+    path(r'apikey/admin/', admin.site.urls)
 ]

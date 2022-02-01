@@ -30,7 +30,6 @@ CSRF_MAX_TOKEN_AGE = 5 * 60
 INSTALLED_APPS = [
     'chatnoir_web.apps.ChatnoirWebConfig',
     'chatnoir_api_v1.apps.ChatnoirApiConfig',
-    'chatnoir_apikey_management.apps.ChatnoirApikeyManagementConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
