@@ -148,7 +148,7 @@ class CacheDocument:
 
             # ClueWeb09 messed up the encoding of many pages, so strip Unicode replacement characters
             if self._is_clueweb09:
-                body = body.replace('\ufffd', '')
+                body = body.replace('\ufffd', '') if type(body) is str else body.replace(b'\xef\xbf\xbd', b'')
 
             return body
 
