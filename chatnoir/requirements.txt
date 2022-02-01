@@ -6,9 +6,9 @@ django-webpack-loader
 djangorestframework
 elasticsearch
 elasticsearch-dsl
-fastwarc
+fastwarc>=0.10.4
 mistune
 python-frontmatter
-resiliparse
+resiliparse>=0.10.4
 typing
 uwsgi

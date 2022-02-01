@@ -39,6 +39,7 @@ class CacheDocument:
         self._doc_index = None
         self._doc_bytes = None
         self._html_tree = None
+        self._is_clueweb09 = False   # ClueWEb09 quirks mode
 
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
@@ -101,13 +102,16 @@ class CacheDocument:
         if not warc_file_url.startswith('s3://'):
             raise ValueError('WARC URL is not an S3 URL.')
 
+        # ClueWeb09 WARCs are broken and need further processing
+        self._is_clueweb09 = self._meta_doc.warc_trec_id and self._meta_doc.warc_trec_id.startswith('clueweb09')
+
         try:
             bucket_name, obj_name = warc_file_url[5:].split('/', 1)
             obj = self._S3_RESOURCE.Object(bucket_name, obj_name)
             start = start_offset
             end = start + record_size
             stream = obj.get(Range='bytes={}-{}'.format(start, end))['Body']
-            self._warc_record = next(ArchiveIterator(stream._raw_stream))
+            self._warc_record = next(ArchiveIterator(stream._raw_stream, strict_mode=not self._is_clueweb09))
             self._doc_bytes = self._warc_record.reader.read()
             stream.close()
 
@@ -116,6 +120,8 @@ class CacheDocument:
                     'text/html', 'application/xhtml+xml'):
                 self._html_tree = HTMLTree.parse_from_bytes(self._doc_bytes, self._meta_doc.content_encoding)
 
+        except StopIteration:
+            logger.error('End of WARC reached when trying to read position %s.', start_offset)
         except ClientError as e:
             logger.exception(e)
 
@@ -141,7 +147,7 @@ class CacheDocument:
                 body = self._post_process_html(self._html_tree)
 
             # ClueWeb09 messed up the encoding of many pages, so strip Unicode replacement characters
-            if self._meta_doc.warc_trec_id and self._meta_doc.warc_trec_id.startswith('clueweb09'):
+            if self._is_clueweb09:
                 body = body.replace('\ufffd', '')
 
             return body
