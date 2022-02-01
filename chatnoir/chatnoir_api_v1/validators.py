@@ -27,7 +27,7 @@ def validate_index_names(index_names, search_version=1):
     for i in index_names:
         if i not in settings.SEARCH_INDICES or \
                 search_version not in settings.SEARCH_INDICES[i]['compat_search_versions']:
-            raise ValidationError(_('\'{}\' is not a valid index.'.format(i)))
+            raise ValidationError(_('"{}" is not a valid index.').format(i))
 
 
 def validate_cidr_address(address):
@@ -41,7 +41,7 @@ def validate_api_role_exists(role):
     try:
         ApiKeyRole.objects.get(role=role)
     except ApiKeyRole.DoesNotExist:
-        raise ValidationError(_('Role \'{}\' does not exist.').format(role))
+        raise ValidationError(_('Role "{}" does not exist.').format(role))
 
 
 def validate_api_key(data, no_parent_ok=False):
@@ -76,7 +76,7 @@ def validate_api_key(data, no_parent_ok=False):
         if limits.get(lim) is None or parent_limits[i] < 0:
             continue
         elif limits.get(lim) > parent_limits[i] or (data['limits'][lim] < 0 and parent_limits[i] >= 0):
-            raise ValidationError(_('Request limit for "{}" cannot exceed parent request limit.'.format(lim)))
+            raise ValidationError(_('Request limit for "{}" cannot exceed parent request limit.').format(lim))
 
     if data.get('expires'):
         if data['expires'] > parent.expires_inherited:

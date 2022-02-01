@@ -134,7 +134,7 @@ class CacheDocument:
         :return: body as string or bytes
         """
         if not self._warc_record:
-            logger.warning('Document {} not found in {}.'.format(self._meta_doc.meta.id, self._meta_doc.source_file))
+            logger.warning('Document %s not found in %s.', self._meta_doc.meta.id, self._meta_doc.source_file)
             return None
 
         body = self._doc_bytes

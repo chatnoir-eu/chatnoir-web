@@ -53,7 +53,7 @@ def bool_param_set(name, request_params):
 
 
 class APIRoot(routers.APIRootView):
-    __doc__ = _('%(name)s REST API') % {'name': settings.APPLICATION_NAME}
+    __doc__ = _('%(appname)s REST API') % {'appname': settings.APPLICATION_NAME}
 
     def get_view_name(self):
         return _(settings.APPLICATION_NAME)
@@ -116,7 +116,7 @@ class ApiViewSet(viewsets.ViewSet):
 
 
 class SimpleSearchViewSet(ApiViewSet):
-    __doc__ = _('Default %(name)s search API') % {'name': settings.APPLICATION_NAME}
+    __doc__ = _('Default %(appname)s search API') % {'appname': settings.APPLICATION_NAME}
 
     serializer_class = SimpleSearchRequestSerializer
     allowed_methods = ('GET', 'POST', 'OPTIONS')
@@ -157,7 +157,7 @@ class SimpleSearchViewSet(ApiViewSet):
 
 
 class PhraseSearchViewSet(SimpleSearchViewSet):
-    __doc__ = _('%(name)s exact phrase search API') % {'name': settings.APPLICATION_NAME}
+    __doc__ = _('%(appname)s exact phrase search API') % {'appname': settings.APPLICATION_NAME}
 
     serializer_class = PhraseSearchRequestSerializer
 
@@ -175,7 +175,7 @@ class PhraseSearchViewSet(SimpleSearchViewSet):
 
 
 class ManageKeysViewSet(ApiViewSet):
-    __doc__ = _('%(name)s API key management API') % {'name': settings.APPLICATION_NAME}
+    __doc__ = _('%(appname)s API key management API') % {'appname': settings.APPLICATION_NAME}
 
     authentication_classes = (ApiKeyAuthentication,)
 
@@ -260,7 +260,7 @@ class ManageKeysUpdateViewSet(ManageKeysViewSet):
             return child_key
         except ApiKey.DoesNotExist:
             raise exceptions.ValidationError(
-                _('API key "{}" does not exist or is not a sub key.'.format(child)))
+                _('API key "{}" does not exist or is not a sub key.').format(child))
 
     def put(self, request, target_apikey=None, **kwargs):
         if not target_apikey:
@@ -327,7 +327,7 @@ def management_index(request):
             mail_content_plain = get_template('apikey_email/confirmation_email.txt').render(mail_context, request)
             mail_content_html = get_template('apikey_email/confirmation_email.html').render(mail_context, request)
             mail = EmailMultiAlternatives(
-                _('Complete your ChatNoir API key request'),
+                _('Complete your %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
                 mail_content_plain,
                 settings.EMAIL_SENDER_ADDRESS,
                 [instance.email]
@@ -361,7 +361,7 @@ def management_activate(request, activation_code):
         mail_content_plain = get_template('apikey_email/apikey_email.txt').render(context, request)
         mail_content_html = get_template('apikey_email/apikey_email.html').render(context, request)
         mail = EmailMultiAlternatives(
-            _('Your ChatNoir API key'),
+            _('Your %(appname)s API key') % {'appname': settings.APPLICATION_NAME},
             mail_content_plain,
             settings.EMAIL_SENDER_ADDRESS,
             [user.email]

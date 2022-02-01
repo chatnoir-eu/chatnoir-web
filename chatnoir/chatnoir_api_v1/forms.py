@@ -62,7 +62,7 @@ class KeyRequestForm(forms.ModelForm):
                 self._errors['passcode'] = self.error_class([
                     _('Passcode already redeemed.')])
         except ApiKeyPasscode.DoesNotExist:
-            self._errors['passcode'] = self.error_class([_('The passcode "{0}" is invalid.').format(
+            self._errors['passcode'] = self.error_class([_('The passcode "{}" is invalid.').format(
                 self.data.get('passcode', ''))])
 
         return cleaned_data

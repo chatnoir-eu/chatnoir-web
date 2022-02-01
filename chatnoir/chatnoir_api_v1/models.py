@@ -264,8 +264,8 @@ class PendingApiUser(models.Model):
         try:
             pending_user = PendingApiUser.objects.get(activation_code=activation_code)
             if not pending_user.passcode:
-                logger.error('Pending user {} ({}) has no associated passcode.'.format(
-                    pending_user.common_name, pending_user.email))
+                logger.error('Pending user %s (%s) has no associated passcode.',
+                             pending_user.common_name, pending_user.email)
                 return None
 
         except PendingApiUser.DoesNotExist:
@@ -291,5 +291,6 @@ class PendingApiUser(models.Model):
                 pending_user.delete()
             return user, api_key
         except IntegrityError as e:
-            logger.error('Error activating user {} ({}):'.format(pending_user.common_name, pending_user.email), e)
+            logger.error('Error activating user %s (%s):', pending_user.common_name, pending_user.email)
+            logger.exception(e)
             return None
