@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from chatnoir_search_v1 import ir_anthology_search
+# noinspection PyUnresolvedReferences
 from chatnoir_api_v1.urls import *
 import chatnoir_api_v1.views as views
 

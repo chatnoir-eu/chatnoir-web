@@ -13,11 +13,16 @@
 # limitations under the License.
 
 
+from django.conf import settings
 from django.urls import include, path
+from django.contrib import admin
 
 app_name = 'chatnoir'
 
 urlpatterns = [
-    path(r'', include('chatnoir_web.urls')),
-    path(r'', include('chatnoir_api_v1.urls'))
+    path(r'', include('chatnoir_web.urls', namespace='chatnoir_web')),
+    path(r'', include('chatnoir_api_v1.urls', namespace='chatnoir_api'))
 ]
+
+if settings.DEBUG:
+    urlpatterns.append(path(r'admin/', admin.site.urls))
