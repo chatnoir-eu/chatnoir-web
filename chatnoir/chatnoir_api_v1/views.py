@@ -336,12 +336,10 @@ def management_index(request):
             send_mail_executor.submit(mail.send)
 
             return redirect('apikey_management:request_sent')
-        else:
-            return render(request, 'apikey_frontend/index.html', {'form': form})
     else:
         form = KeyRequestForm()
 
-    return render(request, 'apikey_frontend/index.html', {'form': form})
+    return render(request, 'index.html', {'form': form})
 
 
 def management_request_sent(request):

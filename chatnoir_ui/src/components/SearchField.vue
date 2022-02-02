@@ -26,7 +26,7 @@
                @keyup="emit('keyup', $event)">
 
         <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button"
-                class="mr-18 w-4" :class="$style['btn-options']"  @click="showOptions = !showOptions">
+                class="mr-18 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
             <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/settings.svg').default" arial-label="Options" />
         </button>
         <options-drop-down
@@ -51,7 +51,7 @@ export default {
 </script>
 
 <script setup>
-import { onMounted, reactive, ref, toRef, watch } from 'vue';
+import { onMounted, ref, toRefs, watch } from 'vue'
 
 import OptionsDropDown from './OptionsDropDown'
 import { useRoute } from 'vue-router';
@@ -63,10 +63,7 @@ const props = defineProps({
     method: {type: String, default: "GET"},
     modelValue: {
         type: Object,
-        default: () => {},
-        validator(value) {
-            return !Object.keys(value).length || (value.query !== undefined && value.indices && value.indices.length)
-        }
+        default: () => {}
     },
     focus: {type: Boolean, default: false}
 })
@@ -74,7 +71,7 @@ const props = defineProps({
 const route = useRoute()
 const searchInput = ref(null)
 const showOptions = ref(false)
-const searchModel = reactive({
+const searchModel = ref({
     query: '',
     indices: []
 })
@@ -84,9 +81,10 @@ function focus() {
 }
 
 function emitModelUpdate(submit = false) {
-    emit('update:modelValue', searchModel)
+    const modelRefs = toRefs(searchModel.value)
+    emit('update:modelValue', modelRefs)
     if (submit) {
-        emit('submit', searchModel)
+        emit('submit', modelRefs)
     }
 }
 
@@ -102,30 +100,22 @@ function updateModelFromQueryString() {
     }
 
     const availableIndices = window.DATA.indices ? window.DATA.indices : []
-    Object.assign(searchModel, {
+    searchModel.value = {
         query: route.query.q || '',
         indices: availableIndices.map((i) => Object.assign(
             {}, i, {selected: !indices.length ? i.selected : indices.includes(i.id)}))
-    })
+    }
     emitModelUpdate()
 }
 
-
-watch(toRef(props, 'modelValue'), (newValue) => {
-    Object.assign(searchModel, newValue)
-})
-
-watch(() => searchModel.query, (newValue, oldValue) => {
+watch(() => searchModel.value.query, (newValue, oldValue) => {
     if (newValue !== oldValue) {
         emit('change', newValue)
         emitModelUpdate()
     }
-
-    emit('option-change', newValue.indices)
-    emitModelUpdate()
 })
 
-watch(() => searchModel.indices, (newValue, oldValue) => {
+watch(() => searchModel.value.indices, (newValue, oldValue) => {
     if (newValue !== oldValue) {
         emit('option-change', newValue)
         emitModelUpdate()
@@ -137,7 +127,7 @@ defineExpose({
 })
 
 onMounted(() => {
-    if (!searchModel.query) {
+    if (!searchModel.value.query) {
         updateModelFromQueryString()
     }
     if (props.focus) {

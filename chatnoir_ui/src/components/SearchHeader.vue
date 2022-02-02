@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, toRef, watch } from 'vue';
+import { onMounted, ref, toRef, watch } from 'vue'
 import CatLogo from '@/components/CatLogo';
 import SearchField from '@/components/SearchField';
 import ProgressBar from '@/components/ProgressBar'
@@ -45,10 +45,7 @@ const props = defineProps({
     method: {type: String, default: "GET"},
     modelValue: {
         type: Object,
-        default: () => {},
-        validator(value) {
-            return !Object.keys(value).length || (value.query !== undefined && value.indices && value.indices.length)
-        }
+        default: () => {}
     },
     progress: {type: Number, default: 0},
     focus: {type: Boolean, default: false}
@@ -69,13 +66,8 @@ onMounted(() => {
     }
 })
 
-watch(() => searchFieldModel, (newValue) => {
+watch(() => searchFieldModel.value, (newValue) => {
     emit('update:modelValue', newValue)
-})
-
-watch(toRef(props, 'modelValue'), (newValue) => {
-    Object.assign(searchFieldModel.value, newValue)
-    emit('update:modelValue', searchFieldModel.value)
 })
 
 watch(toRef(props, 'progress'), (newValue) => {

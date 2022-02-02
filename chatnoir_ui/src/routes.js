@@ -23,6 +23,11 @@ export default createRouter({
             path: '/',
             name: 'IndexSearch',
             component: () => import('./views/IndexSearch.vue')
+        },
+        {
+            path: '/apikey/',
+            name: 'ApikeyRequest',
+            component: () => import('./views/ApikeyRequest.vue')
         }
     ]
 })
