@@ -16,21 +16,23 @@
     limitations under the License.
 -->
 <template>
-<div class="mx-auto max-w-full h-full flex flex-row items-center mt-9 mb-5">
+<div class="max-w-full h-full flex flex-row items-center mt-9 mb-5">
     <div class="block mx-auto max-w-full pb-20 sm:mb-64 text-center">
         <cat-logo ref="catLogoElement" class="block h-40" />
 
-        <search-field ref="searchFieldRef" v-model="searchModel" @submit="search()" @change="$refs.catLogoElement.purr()" />
+        <search-field ref="searchFieldRef" v-model="searchModel" focus
+                      @submit="search()" @change="$refs.catLogoElement.purr()" />
     </div>
 </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { ref } from "vue"
 import { useRoute, useRouter } from 'vue-router'
+import { searchModelToQueryString } from '@/common'
 
-import CatLogo from '@/components/CatLogo';
-import SearchField from '@/components/SearchField';
+import CatLogo from '@/components/CatLogo'
+import SearchField from '@/components/SearchField'
 
 const router = useRouter()
 const route = useRoute()
@@ -38,10 +40,6 @@ const searchFieldRef = ref(null)
 const searchModel = ref({})
 
 function search() {
-    router.push({name: 'IndexSearch', query: searchFieldRef.value.modelToQueryString()})
+    router.push({name: 'IndexSearch', query: searchModelToQueryString(searchModel.value)})
 }
-
-onMounted(() => {
-    searchFieldRef.value.focus()
-})
 </script>

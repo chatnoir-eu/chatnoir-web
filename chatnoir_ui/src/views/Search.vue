@@ -17,20 +17,8 @@
 -->
 
 <template>
-<div class="mx-auto max-w-full px-5">
-    <header class="border-b mb-5 pt-5 -mx-5">
-        <div class="flex flex-row items-center max-w-3xl mx-auto h-24 px-5">
-            <div class="w-32 mr-3 hidden sm:block">
-                <router-link to="/">
-                    <cat-logo ref="catLogoElement" />
-                </router-link>
-            </div>
-
-            <search-field ref="searchFieldRef" v-model="searchFieldModel" @submit="updateRoute()" @change="$refs.catLogoElement.purr()" />
-        </div>
-
-        <progress-bar :progress="requestProgress" class="mt-3" @complete="requestProgress = 0" />
-    </header>
+<div class="max-w-full px-5">
+    <search-header ref="searchHeaderRef" v-model="searchHeaderModel" focus :progress="requestProgress" @submit="search()" />
 
     <div v-if="searchResults.length" ref="resultsElement" key="search-results" class="max-w-3xl mx-auto">
         <div class="flex -mb-3 text-sm">
@@ -69,26 +57,24 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { buildQueryString } from '@/common';
+import { buildQueryString, searchModelToQueryString } from '@/common'
 
-import CatLogo from '@/components/CatLogo';
-import SearchField from '@/components/SearchField';
+import SearchHeader from '@/components/SearchHeader'
 import SearchResult from '@/components/SearchResult'
-import ProgressBar from '@/components/ProgressBar'
 import Pagination from '@/components/Pagination'
 
 const route = useRoute()
 const router = useRouter()
 
-const searchFieldRef = ref(null)
+const searchHeaderRef = ref(null)
 const resultsElement = ref(null)
 
 const requestToken = window.DATA.token
 
-const searchFieldModel = ref({})
+const searchHeaderModel = ref({})
 const searchResults = ref([])
 const searchResultsMeta = ref(null)
 const paginationModel = reactive({
@@ -172,27 +158,18 @@ function processResults(resultObj) {
 
     searchResults.value = resultObj.hits
     searchResultsMeta.value = resultObj.meta
-    searchFieldModel.value.indices = resultObj.meta.indices_all
+    searchHeaderModel.value.indices = resultObj.meta.indices_all
     paginationModel.page = resultObj.meta.current_page
     paginationModel.maxPage = resultObj.meta.max_page
     paginationModel.paginationSize = resultObj.meta.pagination_size
 }
 
 /**
- * Update route which current model data, which will trigger a search request.
- */
-async function updateRoute() {
-    const routeQuery = searchFieldRef.value.modelToQueryString()
-    if (JSON.stringify(routeQuery) !== JSON.stringify(route.query)) {
-        await router.push({name: 'IndexSearch', query: routeQuery})
-    }
-}
-
-/**
  * Initiate a search request.
  */
 async function search() {
-    if (searchFieldModel.value.query) {
+    await router.push({name: 'IndexSearch', query: searchModelToQueryString(searchHeaderModel.value)})
+    if (searchHeaderModel.value.query) {
         const results = await requestResults()
         processResults(results)
     }
@@ -201,13 +178,4 @@ async function search() {
 function numFormat(num, opts) {
     return num.toLocaleString('en-US', opts)
 }
-
-onMounted(() => {
-    searchFieldRef.value.focus()
-    search()
-})
-
-watch(() => route.query, () => {
-    search()
-})
 </script>

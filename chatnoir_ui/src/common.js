@@ -99,3 +99,15 @@ export function abbreviateUrl(url, maxSegments = 3, maxLength = 40,
 export function rem2Px(rem) {
     return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
+
+
+/**
+ * Generate a query string Map object representation of a search model.
+ */
+export function searchModelToQueryString(searchModel) {
+    let indices = searchModel.indices ? searchModel.indices.filter((e) => e.selected).map((e) => e.id) : []
+    return {
+        q: searchModel.query,
+        index: indices.length === 1 ? indices[0] : indices
+    }
+}

@@ -25,10 +25,12 @@
                v-bind="$attrs"
                @keyup="emit('keyup', $event)">
 
-        <button ref="optionsButton" type="button" class="mr-18 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
+        <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button"
+                class="mr-18 w-4" :class="$style['btn-options']"  @click="showOptions = !showOptions">
             <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/settings.svg').default" arial-label="Options" />
         </button>
         <options-drop-down
+            v-if="searchModel.indices.length > 0"
             v-model="searchModel.indices"
             :visible="showOptions"
             :ref-element="optionsButton"
@@ -65,7 +67,8 @@ const props = defineProps({
         validator(value) {
             return !Object.keys(value).length || (value.query !== undefined && value.indices && value.indices.length)
         }
-    }
+    },
+    focus: {type: Boolean, default: false}
 })
 
 const route = useRoute()
@@ -98,26 +101,15 @@ function updateModelFromQueryString() {
         indices = [route.query.index]
     }
 
+    const availableIndices = window.DATA.indices ? window.DATA.indices : []
     Object.assign(searchModel, {
         query: route.query.q || '',
-        indices: window.DATA.indices.map((i) => Object.assign(
+        indices: availableIndices.map((i) => Object.assign(
             {}, i, {selected: !indices.length ? i.selected : indices.includes(i.id)}))
     })
     emitModelUpdate()
 }
 
-/**
- * Generate a query string object representation of the current model.
- *
- * @returns {{} | {q: string, index: *[]}}
- */
-function modelToQueryString() {
-    let indices = searchModel.indices ? searchModel.indices.filter((e) => e.selected).map((e) => e.id) : []
-    return {
-        q: searchModel.query,
-        index: indices.length === 1 ? indices[0] : indices
-    }
-}
 
 watch(toRef(props, 'modelValue'), (newValue) => {
     Object.assign(searchModel, newValue)
@@ -141,13 +133,15 @@ watch(() => searchModel.indices, (newValue, oldValue) => {
 })
 
 defineExpose({
-    focus,
-    modelToQueryString
+    focus
 })
 
 onMounted(() => {
     if (!searchModel.query) {
         updateModelFromQueryString()
+    }
+    if (props.focus) {
+        focus()
     }
 })
 </script>
