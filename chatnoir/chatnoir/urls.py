@@ -26,3 +26,8 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns.append(path(r'admin/', admin.site.urls))
+
+handler404 = 'chatnoir_web.error_views.not_found'
+handler500 = 'chatnoir_web.error_views.server_error'
+handler403 = 'chatnoir_web.error_views.permission_denied'
+handler400 = 'chatnoir_web.error_views.bad_request'

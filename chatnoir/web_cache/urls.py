@@ -21,3 +21,8 @@ urlpatterns = [
     path(r'', views.cache, name='cache'),
     path(r'robots.txt', views.robots_txt, name='robots_txt'),
 ]
+
+handler404 = 'chatnoir_web.error_views.not_found'
+handler500 = 'chatnoir_web.error_views.server_error'
+handler403 = 'chatnoir_web.error_views.permission_denied'
+handler400 = 'chatnoir_web.error_views.bad_request'

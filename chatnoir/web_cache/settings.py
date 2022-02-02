@@ -5,6 +5,7 @@ Django settings for the ChatNoir Web Cache.
 from chatnoir.settings import *
 
 APPLICATION_NAME = 'ChatNoir Web Cache'
+CSRF_USE_SESSIONS = False
 
 # Application definition
 INSTALLED_APPS = [
@@ -23,23 +24,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'web_cache.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'web_cache', 'templates')
-        ],
-
-        'APP_DIRS': False,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ]
-        },
-    },
+TEMPLATES[0]['DIRS'] = [
+    os.path.join(BASE_DIR, 'web_cache', 'templates'),
+    os.path.join(BASE_DIR, 'chatnoir_web', 'templates')
 ]
 
 WSGI_APPLICATION = 'web_cache.wsgi.application'

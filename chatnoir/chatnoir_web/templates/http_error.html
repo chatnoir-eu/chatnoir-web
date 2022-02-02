@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oops! {{ error }}</title>
+
+    {% load static %}
+    {% include 'include/global_head.html' %}
+</head>
+<body class="search-page">
+    <div id="Main" class="container error">
+        <section id="Error">
+            <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir-cat-only.svg' %}">
+                ChatNoir Logo
+            </object>
+            <div class="message">
+                <h1>{{ title }}</h1>
+                <p>{{ message }}</p>
+                <p>(Error: {{ error }})</p>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

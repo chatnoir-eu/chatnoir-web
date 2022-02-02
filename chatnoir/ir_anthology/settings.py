@@ -15,7 +15,7 @@ ROOT_URLCONF = 'ir_anthology.urls'
 
 TEMPLATES[0]['DIRS'] = [
     os.path.join(BASE_DIR, 'ir_anthology_web', 'templates'),
-    os.path.join(BASE_DIR, 'chatnoir', 'templates')
+    os.path.join(BASE_DIR, 'chatnoir_web', 'templates')
 ]
 
 try:
