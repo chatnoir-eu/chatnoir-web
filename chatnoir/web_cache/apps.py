@@ -12,17 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.urls import path
-from . import views
+from django.apps import AppConfig
+from django.utils.translation import gettext_lazy as _
 
-app_name = 'web_cache'
 
-urlpatterns = [
-    path(r'', views.cache, name='cache'),
-    path(r'robots.txt', views.robots_txt, name='robots_txt')
-]
-
-handler404 = 'chatnoir_web.error_views.not_found'
-handler500 = 'chatnoir_web.error_views.server_error'
-handler403 = 'chatnoir_web.error_views.permission_denied'
-handler400 = 'chatnoir_web.error_views.bad_request'
+class ChatnoirWebCacheConfig(AppConfig):
+    name = 'web_cache'
+    verbose_name = _('ChatNoir Web Cache')

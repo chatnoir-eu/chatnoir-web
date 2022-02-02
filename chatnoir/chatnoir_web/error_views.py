@@ -51,6 +51,6 @@ def permission_denied(request, exception=None):
 def bad_request(request, exception=None):
     return render(request, 'http_error.html', dict(
         error=_('400 – Bad Request'),
-        title=_('Sorry…'),
-        message=_exc_message(exception, _('…we couldn\'t understand your request.'))
+        title=_('What did you say?'),
+        message=_exc_message(exception, _('Sorry, we couldn\'t understand your request.'))
     ), status=400)

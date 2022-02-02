@@ -1,23 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>Oops! {{ error }}</title>
 
     {% load static %}
     {% include 'include/global_head.html' %}
+    <style>
+        main {
+            color: black;
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            font-size: 16px;
+            max-width: 43rem;
+            margin: 20vh auto;
+            padding: 3rem;
+        }
+        .logo {
+            height: 15rem;
+            width: auto;
+            float: left;
+        }
+        .message {
+            margin-left: 12rem;
+            padding-top: 1rem;
+        }
+    </style>
 </head>
-<body class="search-page">
-    <div id="Main" class="container error">
-        <section id="Error">
-            <object id="Logo" type="image/svg+xml" data="{% static 'img/chatnoir-cat-only.svg' %}">
-                ChatNoir Logo
-            </object>
-            <div class="message">
-                <h1>{{ title }}</h1>
-                <p>{{ message }}</p>
-                <p>(Error: {{ error }})</p>
-            </div>
-        </section>
-    </div>
+<body>
+    <main>
+        <img class="logo" alt="" src="{% static 'img/chatnoir-cat-only.svg' %}">
+        <div class="message">
+            <h1>{{ title }}</h1>
+            <p>{{ message }}</p>
+            <p>(Error: {{ error }})</p>
+        </div>
+    </main>
 </body>
 </html>

@@ -7,6 +7,10 @@
     <meta charset="utf-8">
     <title>{% app_name %}</title>
     {% include 'include/global_head.html' %}
+    {% load render_bundle from webpack_loader %}
+    {% render_bundle 'index' 'css' is_preload=True %}
+    {% render_bundle 'index' 'js' is_preload=True %}
+    {% render_bundle 'index' 'css' %}
 </head>
 <body>
 <noscript>

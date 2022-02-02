@@ -5,10 +5,13 @@ Django settings for the ChatNoir Web Cache.
 from chatnoir.settings import *
 
 APPLICATION_NAME = 'ChatNoir Web Cache'
+DEBUG = True
+
 CSRF_USE_SESSIONS = False
 
 # Application definition
 INSTALLED_APPS = [
+    'web_cache.apps.ChatnoirWebCacheConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
@@ -17,8 +20,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
