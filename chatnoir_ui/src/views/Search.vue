@@ -51,13 +51,13 @@
     </div>
 
     <footer v-if="paginationModel.maxPage > 0" class="my-16 mx-auto max-w-3xl text-center">
-        <pagination v-model="paginationModel" />
+        <pagination v-model="paginationModel" @pageChanged="search()" />
     </footer>
 </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { ref, toRefs, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { buildQueryString, searchModelToQueryString } from '@/common'
@@ -77,7 +77,7 @@ const requestToken = window.DATA.token
 const searchHeaderModel = ref({})
 const searchResults = ref([])
 const searchResultsMeta = ref(null)
-const paginationModel = reactive({
+const paginationModel = ref({
     page: 0,
     maxPage: 0,
     paginationSize: 0
@@ -159,16 +159,20 @@ function processResults(resultObj) {
     searchResults.value = resultObj.hits
     searchResultsMeta.value = resultObj.meta
     searchHeaderModel.value.indices = resultObj.meta.indices_all
-    paginationModel.page = resultObj.meta.current_page
-    paginationModel.maxPage = resultObj.meta.max_page
-    paginationModel.paginationSize = resultObj.meta.pagination_size
+    paginationModel.value.page = resultObj.meta.current_page
+    paginationModel.value.maxPage = resultObj.meta.max_page
+    paginationModel.value.paginationSize = resultObj.meta.pagination_size
 }
 
 /**
  * Initiate a search request.
  */
 async function search() {
-    await router.push({name: 'IndexSearch', query: searchModelToQueryString(searchHeaderModel.value)})
+    const queryString = searchModelToQueryString(searchHeaderModel.value)
+    if (paginationModel.value.page > 1) {
+        queryString['p'] = paginationModel.value.page
+    }
+    await router.push({name: 'IndexSearch', query: queryString})
     if (searchHeaderModel.value.query) {
         const results = await requestResults()
         processResults(results)

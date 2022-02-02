@@ -56,10 +56,17 @@ const props = defineProps({
         }
     }
 })
+const emit = defineEmits(['update:modelValue', 'pageChanged'])
 
 function navigateToPage(p) {
     router.push({query: getPageQuery(p)})
     window.scrollTo(0,0)
+    emit('update:modelValue', {
+        page: p,
+        maxPage: props.modelValue.maxPage,
+        paginationSize: props.modelValue.paginationSize
+    })
+    emit('pageChanged', p)
 }
 
 function getPageQuery(p) {
