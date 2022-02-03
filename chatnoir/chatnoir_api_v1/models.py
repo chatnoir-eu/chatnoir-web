@@ -209,7 +209,7 @@ class ApiKey(models.Model):
         try:
             uuid.UUID(self.api_key)
             return True
-        except ValueError:
+        except (ValueError, TypeError):
             return False
 
     roles_str.fget.short_description = roles.verbose_name
