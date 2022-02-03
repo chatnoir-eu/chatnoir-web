@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('api_key', models.CharField(default=chatnoir_api_v1.models.generate_apikey, max_length=255, primary_key=True, serialize=False, verbose_name='API Key')),
                 ('issue_date', models.DateTimeField(blank=True, default=django.utils.timezone.now, null=True, verbose_name='Issue Date')),
                 ('expires', models.DateTimeField(blank=True, null=True, verbose_name='Expiration Date')),
-                ('revoked', models.BooleanField(blank=True, verbose_name='Is Revoked')),
+                ('revoked', models.BooleanField(blank=True, default=False, verbose_name='Is Revoked')),
                 ('limits_day', models.IntegerField(blank=True, null=True, verbose_name='Request Limit Day')),
                 ('limits_week', models.IntegerField(blank=True, null=True, verbose_name='Request Limit Week')),
                 ('limits_month', models.IntegerField(blank=True, null=True, verbose_name='Request Limit Month')),

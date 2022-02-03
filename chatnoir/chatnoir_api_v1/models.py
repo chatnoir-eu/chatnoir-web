@@ -97,13 +97,13 @@ class ApiKey(models.Model):
     issue_date = models.DateTimeField(verbose_name=_('Issue Date'), default=timezone.now, null=True, blank=True)
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
     expires = models.DateTimeField(verbose_name=_('Expiration Date'), null=True, blank=True)
-    revoked = models.BooleanField(verbose_name=_('Is Revoked'), null=False, blank=True)
+    revoked = models.BooleanField(verbose_name=_('Is Revoked'), blank=True, default=False)
     limits_day = models.IntegerField(verbose_name=_('Request Limit Day'), null=True, blank=True)
     limits_week = models.IntegerField(verbose_name=_('Request Limit Week'), null=True, blank=True)
     limits_month = models.IntegerField(verbose_name=_('Request Limit Month'), null=True, blank=True)
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
     allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
-    comment = models.CharField(verbose_name=_('Comment'), max_length=255, null=False, blank=True)
+    comment = models.CharField(verbose_name=_('Comment'), max_length=255, blank=True)
     quota_used = models.BinaryField(blank=True, default=b'')
 
     def __str__(self):
