@@ -112,6 +112,11 @@ class ApiKey(models.Model):
             comment = ''.join((' (', comment, ')'))
         return '{0}: {1}{2}'.format(self.user.common_name, self.api_key, comment)
 
+    def save(self, *args, **kwargs):
+        if self.parent and self.api_key == self.parent.api_key:
+            raise ValueError('Cannot parent an API key to itself')
+        super().save(*args, **kwargs)
+
     def resolve_inheritance(self, *field_names):
         if self.pk is None:
             raise RuntimeError('Cannot resolve inheritance on unsaved model.')

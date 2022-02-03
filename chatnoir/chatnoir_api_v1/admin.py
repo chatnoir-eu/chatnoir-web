@@ -60,7 +60,7 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
 
         # Exclude keys which are not allowed to issue other API keys
-        if 'apikey/autocomplete/' in request.path:
+        if '/autocomplete/' in request.path:
             queryset = queryset.filter(Q(roles__in=_keycreate_roles) &
                                        (Q(expires__gte=timezone.now()) | Q(expires__isnull=True)))
 
@@ -69,12 +69,7 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
                 p = os.path.basename(os.path.dirname(request.META.get('HTTP_REFERER').rstrip('/')))
                 queryset = queryset.exclude(api_key=p)
 
-            results = []
-            for r in queryset:
-                expires = r.resolve_inheritance('expires')
-                if not expires or expires >= timezone.now():
-                    results.append(r)
-            queryset = results
+            queryset = [r for r in queryset if self.is_valid(r)]
 
         return queryset, use_distinct
 
