@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import date
 import os
 
 from django.conf import settings
 from django.contrib import admin
 from django.db.models import Q
 from django.forms import ModelForm, TextInput
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .models import *
@@ -46,8 +46,15 @@ class ApiKeyAdminBase:
 
 
 class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
-    list_display = ('api_key', 'roles_str', 'expires_inherited', 'is_revoked', 'user', 'comment')
+    list_display = ('api_key', 'roles_str', 'expires_inherited', 'is_valid', 'user', 'comment')
     list_filter = ('roles', 'user', 'expires')
+
+    def is_valid(self, obj):
+        expires_inherited = obj.expires_inherited
+        return not obj.is_revoked and (not expires_inherited or expires_inherited >= timezone.now())
+
+    is_valid.boolean = True
+    is_valid.short_description = _('Valid')
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
@@ -55,7 +62,7 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
         # Exclude keys which are not allowed to issue other API keys
         if 'apikey/autocomplete/' in request.path:
             queryset = queryset.filter(Q(roles__in=_keycreate_roles) &
-                                       (Q(expires__gte=date.today()) | Q(expires__isnull=True)))
+                                       (Q(expires__gte=timezone.now()) | Q(expires__isnull=True)))
 
             # Prevent cycles through self-parenting
             if request.META.get('HTTP_REFERER') and '/apikey/' in request.META.get('HTTP_REFERER'):
@@ -65,7 +72,7 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
             results = []
             for r in queryset:
                 expires = r.resolve_inheritance('expires')
-                if not expires or expires >= date.today():
+                if not expires or expires >= timezone.now():
                     results.append(r)
             queryset = results
 
