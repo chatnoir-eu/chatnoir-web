@@ -200,6 +200,11 @@ class ApiKey(models.Model):
         return self.resolve_inheritance('revoked') is True
 
     @property
+    def is_valid(self):
+        expires_inherited = self.expires_inherited
+        return not self.is_revoked and (not expires_inherited or expires_inherited >= timezone.now())
+
+    @property
     def is_legacy_key(self):
         try:
             uuid.UUID(self.api_key)

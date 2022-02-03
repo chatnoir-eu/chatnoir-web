@@ -18,7 +18,6 @@ from django.conf import settings
 from django.contrib import admin
 from django.db.models import Q
 from django.forms import ModelForm, TextInput
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .models import *
@@ -50,8 +49,7 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
     list_filter = ('roles', 'user', 'expires')
 
     def is_valid(self, obj):
-        expires_inherited = obj.expires_inherited
-        return not obj.is_revoked and (not expires_inherited or expires_inherited >= timezone.now())
+        return obj.is_valid
 
     is_valid.boolean = True
     is_valid.short_description = _('Valid')
@@ -72,12 +70,6 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
             queryset = [r for r in queryset if self.is_valid(r)]
 
         return queryset, use_distinct
-
-    def is_revoked(self, obj):
-        return obj.is_revoked
-
-    is_revoked.short_description = _('Revoked')
-    is_revoked.boolean = True
 
 
 class AlwaysChangedModelForm(ModelForm):
