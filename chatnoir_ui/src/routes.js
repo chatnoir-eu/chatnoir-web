@@ -27,7 +27,11 @@ export default createRouter({
         {
             path: '/apikey/',
             name: 'ApikeyRequest',
-            component: () => import('./views/ApikeyRequest.vue')
+            component: () => import('./views/ApikeyRequest.vue'),
+            children: [
+                { path: 'request_research', name: 'ApikeyRequest_Research', component: () => import('./views/ApikeyRequest.vue')},
+                { path: 'request_passcode', name: 'ApikeyRequest_Passcode', component: () => import('./views/ApikeyRequest.vue')}
+            ]
         }
     ]
 })
