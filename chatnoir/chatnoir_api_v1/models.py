@@ -127,7 +127,7 @@ class ApiKey(models.Model):
             return cached
 
         if len(field_names) < 1:
-            raise AttributeError('field_names must at least be length 1')
+            raise ValueError('field_names must at least be length 1')
 
         obj = self
         resolved = {f: getattr(obj, f) for f in field_names if getattr(obj, f)}
