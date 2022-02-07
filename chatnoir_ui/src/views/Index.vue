@@ -27,19 +27,19 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { reactive, ref } from "vue"
 import { useRoute, useRouter } from 'vue-router'
-import { searchModelToQueryString } from '@/common'
 
 import CatLogo from '@/components/CatLogo'
 import SearchField from '@/components/SearchField'
+import { SearchModel } from '@/search-model'
 
 const router = useRouter()
 const route = useRoute()
 const searchFieldRef = ref(null)
-const searchModel = ref({})
+const searchModel = reactive(new SearchModel())
 
 function search() {
-    router.push({name: 'IndexSearch', query: searchModelToQueryString(searchModel.value)})
+    router.push({name: 'IndexSearch', query: searchModel.toQueryString()})
 }
 </script>

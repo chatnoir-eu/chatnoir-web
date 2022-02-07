@@ -34,39 +34,43 @@
 </template>
 
 <script setup>
-import { onMounted, ref, toRef, watch } from 'vue'
+import { onMounted, reactive, ref, toRef, watch } from 'vue'
 import CatLogo from '@/components/CatLogo';
 import SearchField from '@/components/SearchField';
 import ProgressBar from '@/components/ProgressBar'
+import { IndexDesc, SearchModel } from '@/search-model'
+import { useRoute } from 'vue-router'
 
+const route = useRoute()
 const emit = defineEmits(['update:modelValue', 'submit'])
 const props = defineProps({
     action: {type: String, default:''},
     method: {type: String, default: "GET"},
     modelValue: {
-        type: Object,
-        default: () => {}
+        type: SearchModel,
+        default: () => new SearchModel()
     },
     progress: {type: Number, default: 0},
-    focus: {type: Boolean, default: false}
+    focus: {type: Boolean, default: false},
 })
 
 const searchFieldRef = ref(null)
-const searchFieldModel = ref({})
+const searchFieldModel = reactive(props.modelValue)
 const requestProgress = ref(0)
 
 async function emitSubmit() {
-    emit('submit', searchFieldModel.value)
+    emit('submit', searchFieldModel)
 }
 
 onMounted(() => {
-    if (searchFieldModel.value.query) {
-        emit('update:modelValue', searchFieldModel.value)
-        emitSubmit()
+    if (!searchFieldModel.query) {
+        let availableIndices = window.DATA.indices ? window.DATA.indices : []
+        availableIndices = availableIndices.map((a) => new IndexDesc(a))
+        searchFieldModel.updateFromQueryString(route.query, availableIndices)
     }
 })
 
-watch(() => searchFieldModel.value, (newValue) => {
+watch(searchFieldModel, (newValue) => {
     emit('update:modelValue', newValue)
 })
 

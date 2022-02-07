@@ -278,14 +278,14 @@ class SerpContext:
         return self._query_string
 
     @serp_api_meta_extra
-    def current_page(self):
+    def page(self):
         """
         Current page number.
         """
         return min(self.search.page_num + 1, self.max_page)
 
     @serp_api_meta_extra
-    def pagination_size(self):
+    def page_size(self):
         """
         Number of hits per page.
         """
@@ -306,7 +306,7 @@ class SerpContext:
         """
         Maximum page number for pagination (respects general pagination limit).
         """
-        return min(math.ceil(self.total_results / self.pagination_size), int(math.ceil(10000 / self.search.num_results)))
+        return min(math.ceil(self.total_results / self.page_size), int(math.ceil(10000 / self.search.num_results)))
 
     @serp_api_meta_extra
     def explain(self):

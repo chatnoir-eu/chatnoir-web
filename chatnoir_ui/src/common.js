@@ -100,14 +100,35 @@ export function rem2Px(rem) {
     return rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
 }
 
+/**
+ * Convert a snake_case string to camelCase.
+ *
+ * @param snake snake string
+ * @returns converted camelCaseString
+ */
+export function snake2Camel(snake) {
+    return snake.replace(/(_[a-zA-Z])/g, (m) => m[1].toUpperCase())
+}
 
 /**
- * Generate a query string Map object representation of a search model.
+ * Recursively convert object keys from snake_case to camelCase.
+ *
+ * @param obj input object
+ * @returns converted Object
  */
-export function searchModelToQueryString(searchModel) {
-    let indices = searchModel.indices ? searchModel.indices.filter((e) => e.selected).map((e) => e.id) : []
-    return {
-        q: searchModel.query,
-        index: indices.length === 1 ? indices[0] : indices
+export function objSnake2Camel(obj) {
+    if (Array.isArray(obj)) {
+        return obj.map((o) => objSnake2Camel(o))
+    } else if (obj !== null && typeof obj === 'object') {
+        const newObj = {}
+        Object.keys(obj).forEach((k) => {
+            let val = obj[k]
+            if (typeof obj[k] === 'object' && !Array.isArray(obj[k])) {
+                val = objSnake2Camel(val)
+            }
+            newObj[snake2Camel(k)] = val
+        })
+        return newObj
     }
+    return obj
 }

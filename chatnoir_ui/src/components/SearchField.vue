@@ -51,8 +51,9 @@ export default {
 </script>
 
 <script setup>
-import { onMounted, ref, toRefs, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 
+import { SearchModel } from '@/search-model'
 import OptionsDropDown from './OptionsDropDown'
 import { useRoute } from 'vue-router';
 
@@ -62,8 +63,8 @@ const props = defineProps({
     action: {type: String, default:''},
     method: {type: String, default: "GET"},
     modelValue: {
-        type: Object,
-        default: () => {}
+        type: SearchModel,
+        default: () => new SearchModel()
     },
     focus: {type: Boolean, default: false}
 })
@@ -71,51 +72,27 @@ const props = defineProps({
 const route = useRoute()
 const searchInput = ref(null)
 const showOptions = ref(false)
-const searchModel = ref({
-    query: '',
-    indices: []
-})
+const searchModel = reactive(props.modelValue)
 
 function focus() {
     searchInput.value.focus()
 }
 
 function emitModelUpdate(submit = false) {
-    const modelRefs = toRefs(searchModel.value)
-    emit('update:modelValue', modelRefs)
+    emit('update:modelValue', searchModel)
     if (submit) {
-        emit('submit', modelRefs)
+        emit('submit', searchModel)
     }
 }
 
-/**
- * Update model data from the current route's query string.
- *
- * @returns {{query: string, indices: object}}
- */
-function updateModelFromQueryString() {
-    let indices = route.query.index || []
-    if (typeof route.query.index === 'string') {
-        indices = [route.query.index]
-    }
-
-    const availableIndices = window.DATA.indices ? window.DATA.indices : []
-    searchModel.value = {
-        query: route.query.q || '',
-        indices: availableIndices.map((i) => Object.assign(
-            {}, i, {selected: !indices.length ? i.selected : indices.includes(i.id)}))
-    }
-    emitModelUpdate()
-}
-
-watch(() => searchModel.value.query, (newValue, oldValue) => {
+watch(() => searchModel.query, (newValue, oldValue) => {
     if (newValue !== oldValue) {
         emit('change', newValue)
         emitModelUpdate()
     }
 })
 
-watch(() => searchModel.value.indices, (newValue, oldValue) => {
+watch(() => searchModel.indices, (newValue, oldValue) => {
     if (newValue !== oldValue) {
         emit('option-change', newValue)
         emitModelUpdate()
@@ -127,9 +104,6 @@ defineExpose({
 })
 
 onMounted(() => {
-    if (!searchModel.value.query) {
-        updateModelFromQueryString()
-    }
     if (props.focus) {
         focus()
     }

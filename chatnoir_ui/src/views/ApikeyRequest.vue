@@ -111,17 +111,17 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { searchModelToQueryString } from '@/common'
 
 import SearchHeader from '@/components/SearchHeader'
+import { SearchModel } from '@/search-model'
 
 const router = useRouter()
-const searchHeaderModel = ref({})
+const searchHeaderModel = reactive(new SearchModel())
 
 
 function redirectSearch() {
-    router.push({name: 'IndexSearch', query: searchModelToQueryString(searchHeaderModel.value)})
+    router.push({name: 'IndexSearch', query: searchHeaderModel.toQueryString()})
 }
 </script>

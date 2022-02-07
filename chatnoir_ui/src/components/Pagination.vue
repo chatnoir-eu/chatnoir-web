@@ -22,8 +22,8 @@
         <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
     </a>
     <span :class="$style['page-button']" class="text-gray-800 font-bold text-2xl pt-0.5"
-          :aria-label="`Page ${modelValue.page} (Current)`" aria-current="page">
-        {{ modelValue.page }}
+          :aria-label="`Page ${page} (Current)`" aria-current="page">
+        {{ page }}
     </span>
     <a v-for="p in pagesAfter()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
        @click.prevent="navigateToPage(p.num)">
@@ -42,31 +42,16 @@ const route = useRoute()
 const showPages = 10
 
 const props = defineProps({
-    modelValue: {
-        type: Object,
-        default: () => {
-            return {
-                page: 1,
-                maxPage: 1,
-                paginationSize: 10
-            }
-        },
-        validator(v) {
-            return v.page !== undefined && v.maxPage !== undefined && v.paginationSize && v.paginationSize > 0
-        }
-    }
+    page: {type: Number, default: 1},
+    pageSize: {type: Number, default: 10},
+    maxPage: {type: Number, default: 1000},
 })
-const emit = defineEmits(['update:modelValue', 'pageChanged'])
+const emit = defineEmits(['update:page'])
 
 function navigateToPage(p) {
     router.push({query: getPageQuery(p)})
     window.scrollTo(0,0)
-    emit('update:modelValue', {
-        page: p,
-        maxPage: props.modelValue.maxPage,
-        paginationSize: props.modelValue.paginationSize
-    })
-    emit('pageChanged', p)
+    emit('update:page', p)
 }
 
 function getPageQuery(p) {
@@ -80,13 +65,12 @@ function getPageUrl(p) {
 }
 
 function pagesBefore() {
-    const p = props.modelValue
     const pages = []
-    if (p.page <= 1) {
+    if (props.page <= 1) {
         return pages
     }
 
-    let min = Math.max(1, p.page - Math.min(Math.ceil(showPages / 2), p.page) + 1)
+    let min = Math.max(1, props.page - Math.min(Math.ceil(showPages / 2), props.page) + 1)
 
     if (min > 1) {
         pages.push({
@@ -96,15 +80,15 @@ function pagesBefore() {
         })
     }
 
-    if (p.page > 1) {
+    if (props.page > 1) {
         pages.push({
             label: 'Previous',
             icon: require('@/assets/icons/angle-left.svg').default,
-            num: p.page - 1
+            num: props.page - 1
         })
     }
 
-    for (let i = min; i < p.page; ++i) {
+    for (let i = min; i < props.page; ++i) {
         pages.push({
             label: i.toString(),
             icon: null,
@@ -116,14 +100,13 @@ function pagesBefore() {
 }
 
 function pagesAfter() {
-    const p = props.modelValue
     const pages = []
-    if (p.page >= p.maxPage) {
+    if (props.page >= props.maxPage) {
         return pages
     }
-    let max = p.page + showPages - Math.min(Math.floor(showPages / 2), p.page)
-    max = Math.min(p.maxPage, max)
-    for (let i = p.page + 1; i <= max; ++i) {
+    let max = props.page + showPages - Math.min(Math.floor(showPages / 2), props.page)
+    max = Math.min(props.maxPage, max)
+    for (let i = props.page + 1; i <= max; ++i) {
         pages.push({
             label: i.toString(),
             icon: null,
@@ -132,16 +115,17 @@ function pagesAfter() {
     }
 
 
-    if (p.page < p.maxPage) {
+    if (props.page < props.maxPage) {
         pages.push({
             label: 'Next',
             icon: require('@/assets/icons/angle-right.svg').default,
-            num: p.page + 1
+            num: props.page + 1
         })
     }
 
     return pages
 }
+
 </script>
 
 <style module>

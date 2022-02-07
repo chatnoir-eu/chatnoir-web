@@ -18,53 +18,56 @@
 
 <template>
 <div class="max-w-full px-5">
-    <search-header ref="searchHeaderRef" v-model="searchHeaderModel" focus :progress="requestProgress" @submit="search()" />
+    <search-header ref="searchHeaderRef" v-model="searchModel" focus :progress="requestProgress" @submit="search()" />
 
-    <div v-if="searchResults.length" ref="resultsElement" key="search-results" class="max-w-3xl mx-auto">
-        <div class="flex -mb-3 text-sm">
-            <div class="flex-grow">
-                Search results {{ numFormat(searchResultsMeta.results_from + 1) }}–{{ numFormat(searchResultsMeta.results_to) }}
-                for <em class="font-bold">“{{ searchResultsMeta.query_string }}”</em>
+    <div ref="resultsElement">
+        <div v-if="searchModel.response && searchModel.response.hits.length" key="search-results" class="max-w-3xl mx-auto">
+            <div class="flex -mb-3 text-sm">
+                <div class="flex-grow">
+                    Search results {{ numFormat(searchModel.response.meta.resultsFrom + 1) }}–{{ numFormat(searchModel.response.meta.resultsTo) }}
+                    for <em class="font-bold">“{{ searchModel.response.meta.queryString }}”</em>
+                </div>
+                <div>
+                    Total results: {{ numFormat(searchModel.response.meta.totalResults) }}<span v-if="searchModel.response.meta.terminatedEarly">+</span>
+                    <span v-if="searchModel.response.meta.queryTime < 1500">
+                        (retrieved in {{ numFormat(searchModel.response.meta.queryTime) }}&thinsp;ms)
+                    </span>
+                    <span v-else>
+                        (retrieved in {{ numFormat(searchModel.response.meta.queryTime / 1000, { minimumFractionDigits: 1 }) }}&thinsp;s)
+                    </span>
+                </div>
             </div>
-            <div>
-                Total results: {{ numFormat(searchResultsMeta.total_results) }}<span v-if="searchResultsMeta.terminated_early">+</span>
-                <span v-if="searchResultsMeta.query_time < 1500">
-                    (retrieved in {{ numFormat(searchResultsMeta.query_time) }}&thinsp;ms)
-                </span>
-                <span v-else>
-                    (retrieved in {{ numFormat(searchResultsMeta.query_time / 1000, { minimumFractionDigits: 1 }) }}&thinsp;s)
-                </span>
+
+            <div v-for="hit in searchModel.response.hits" :key="hit.uuid">
+                <component :is="SearchResult" :data="hit" :meta="searchModel.response.meta" />
             </div>
         </div>
-
-        <div v-for="result in searchResults" :key="result.uuid">
-            <component :is="SearchResult" :data="result" :meta="searchResultsMeta" />
+        <div v-if="!error && searchModel.response && searchModel.response.hits.length === 0" class="max-w-3xl mt-12 mx-auto text-center text-lg">
+            No results found… ;-(
+        </div>
+        <div v-if="error" class="max-w-3xl mx-auto mt-10 py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">
+            Error processing your request. Got:<br>
+            <strong>{{ error }}</strong><br>
+            Please try again later.
         </div>
     </div>
-    <div v-if="!error && searchResultsMeta && searchResults.length === 0" class="max-w-3xl mt-12 mx-auto text-center text-lg">
-        No results found… ;-(
-    </div>
-    <div v-if="error" class="max-w-3xl mx-auto mt-10 py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">
-        Error processing your request. Got:<br>
-        <strong>{{ error }}</strong><br>
-        Please try again later.
-    </div>
 
-    <footer v-if="paginationModel.maxPage > 0" class="my-16 mx-auto max-w-3xl text-center">
-        <pagination v-model="paginationModel" @pageChanged="search()" />
+    <footer v-if="searchModel.response && searchModel.maxPage > 0" class="my-16 mx-auto max-w-3xl text-center">
+        <pagination v-model:page="searchModel.page" :max-page="searchModel.maxPage" :page-size="searchModel.pageSize" />
     </footer>
 </div>
 </template>
 
 <script setup>
-import { ref, toRefs, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { buildQueryString, searchModelToQueryString } from '@/common'
+import { buildQueryString } from '@/common'
 
 import SearchHeader from '@/components/SearchHeader'
 import SearchResult from '@/components/SearchResult'
 import Pagination from '@/components/Pagination'
+import { SearchModel } from '@/search-model'
 
 const route = useRoute()
 const router = useRouter()
@@ -74,14 +77,7 @@ const resultsElement = ref(null)
 
 const requestToken = window.DATA.token
 
-const searchHeaderModel = ref({})
-const searchResults = ref([])
-const searchResultsMeta = ref(null)
-const paginationModel = ref({
-    page: 0,
-    maxPage: 0,
-    paginationSize: 0
-})
+const searchModel = reactive(new SearchModel())
 const requestProgress = ref(0)
 const error = ref(null)
 
@@ -147,39 +143,28 @@ async function requestResults() {
 }
 
 /**
- * Process and display search results.
- *
- * @param resultObj result JSON
- */
-function processResults(resultObj) {
-    if (Object.keys(resultObj).length === 0) {
-        return
-    }
-
-    searchResults.value = resultObj.hits
-    searchResultsMeta.value = resultObj.meta
-    searchHeaderModel.value.indices = resultObj.meta.indices_all
-    paginationModel.value.page = resultObj.meta.current_page
-    paginationModel.value.maxPage = resultObj.meta.max_page
-    paginationModel.value.paginationSize = resultObj.meta.pagination_size
-}
-
-/**
  * Initiate a search request.
  */
 async function search() {
-    const queryString = searchModelToQueryString(searchHeaderModel.value)
-    if (paginationModel.value.page > 1) {
-        queryString['p'] = paginationModel.value.page
-    }
-    await router.push({name: 'IndexSearch', query: queryString})
-    if (searchHeaderModel.value.query) {
+    await router.push({name: 'IndexSearch', query: searchModel.toQueryString()})
+    if (searchModel.query) {
         const results = await requestResults()
-        processResults(results)
+        if (Object.keys(results).length === 0) {
+            return
+        }
+        searchModel.updateFromResponse(results)
     }
 }
 
 function numFormat(num, opts) {
     return num.toLocaleString('en-US', opts)
 }
+
+onMounted(() => {
+    search()
+})
+
+watch(() => searchModel.page, () => {
+    search()
+})
 </script>

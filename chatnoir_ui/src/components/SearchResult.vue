@@ -18,12 +18,12 @@
 <!-- eslint-disable vue/no-v-html -->
 <article :id="'result-' + data.uuid" class="my-8">
     <header class="leading-tight">
-        <a v-if="data.external_uri" :href="data.external_uri"
+        <a v-if="data.externalUri" :href="data.externalUri"
            class="text-gray-800 visited:text-gray-800 text-sm">
-            {{ abbreviateUrl(data.external_uri, 2).replace(/^https?:\/\//i, '') }}
+            {{ abbreviateUrl(data.externalUri, 2).replace(/^https?:\/\//i, '') }}
         </a>
         <h2 :class="$style.title" class="leading-none">
-            <a :href="data.internal_uri" rel="nofollow"
+            <a :href="data.internalUri" rel="nofollow"
                class="text-xl text-red-700"
                v-html="data.title"></a>
         </h2>
@@ -35,8 +35,8 @@
                 <span v-if="data.authors.length > 2"> et al.</span>
             </span>
 
-            <span v-if="data.index && data.warc_id" :class="$style['meta-link']">
-                <a :href="getQueryUrl(route, `index:${data.index} ${meta.query_string.replace(RegExp(`index:${data.index}\\s+`), '')}`, null)">
+            <span v-if="data.index && data.warcId" :class="$style['meta-link']">
+                <a :href="getQueryUrl(route, `index:${data.index} ${meta.queryString.replace(RegExp(`index:${data.index}\\s+`), '')}`, null)">
                     {{ getFullIndexName() }}
                 </a>
             </span>
@@ -69,23 +69,23 @@
                     <dt>Document ID:</dt>
                     <dd class="font-mono text-2xs"><CopyableStringField>{{ data.uuid }}</CopyableStringField></dd>
 
-                    <dt v-if="data.warc_id">WARC ID:</dt>
-                    <dd v-if="data.warc_id" class="font-mono text-2xs"><CopyableStringField>{{ data.warc_id }}</CopyableStringField></dd>
+                    <dt v-if="data.warcId">WARC ID:</dt>
+                    <dd v-if="data.warcId" class="font-mono text-2xs"><CopyableStringField>{{ data.warcId }}</CopyableStringField></dd>
 
-                    <dt v-if="data.trec_id">TREC ID:</dt>
-                    <dd v-if="data.trec_id" class="font-mono text-2xs"><CopyableStringField>{{ data.trec_id }}</CopyableStringField></dd>
+                    <dt v-if="data.trecId">TREC ID:</dt>
+                    <dd v-if="data.trecId" class="font-mono text-2xs"><CopyableStringField>{{ data.trecId }}</CopyableStringField></dd>
 
-                    <dt v-if="data.page_rank">Page Rank:</dt>
-                    <dd v-if="data.page_rank">{{ data.page_rank }}</dd>
+                    <dt v-if="data.pageRank">Page Rank:</dt>
+                    <dd v-if="data.pageRank">{{ data.pageRank }}</dd>
 
-                    <dt v-if="data.spam_rank">Spam Rank:</dt>
-                    <dd v-if="data.spam_rank">{{ data.spam_rank }}</dd>
+                    <dt v-if="data.spamRank">Spam Rank:</dt>
+                    <dd v-if="data.spamRank">{{ data.spamRank }}</dd>
 
                     <dt v-if="data.doi">DOI:</dt>
-                    <dd v-if="data.doi"><a :href="data.external_uri">{{ data.doi }}</a></dd>
+                    <dd v-if="data.doi"><a :href="data.externalUri">{{ data.doi }}</a></dd>
 
-                    <dt v-if="data.anthology_id">Anthology ID:</dt>
-                    <dd v-if="data.anthology_id">{{ data.anthology_id }}</dd>
+                    <dt v-if="data.anthologyId">Anthology ID:</dt>
+                    <dd v-if="data.anthologyId">{{ data.anthologyId }}</dd>
 
                     <dt v-if="data.authors">Authors:</dt>
                     <dd v-if="data.authors">
@@ -110,8 +110,8 @@
                     <dt v-if="data.lang">Language:</dt>
                     <dd v-if="data.lang">{{ data.lang }}</dd>
 
-                    <dt v-if="data.content_type">Content-Type:</dt>
-                    <dd v-if="data.content_type">{{ data.content_type }}</dd>
+                    <dt v-if="data.contentType">Content-Type:</dt>
+                    <dd v-if="data.contentType">{{ data.contentType }}</dd>
 
                     <dt v-if="data.date">Crawl Date:</dt>
                     <dd v-if="data.date">
@@ -166,7 +166,7 @@ function getLastName(author) {
 }
 
 function getFullIndexName() {
-    return props.meta.indices_all.find((e) => e.id === props.data.index).name
+    return props.meta.indicesAll.find((e) => e.id === props.data.index).name
 }
 </script>
 
