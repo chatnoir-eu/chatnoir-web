@@ -113,7 +113,7 @@ async function requestResults() {
 
     try {
         if (resultsElement.value) {
-            resultsElement.value.classList.add('opacity-50')
+            resultsElement.value.classList.add('opacity-50', 'pointer-events-none')
         }
         requestProgress.value = 25
         error.value = ''
@@ -137,7 +137,7 @@ async function requestResults() {
     } finally {
         requestProgress.value = 100
         if (resultsElement.value) {
-            resultsElement.value.classList.remove('opacity-50')
+            resultsElement.value.classList.remove('opacity-50', 'pointer-events-none')
         }
     }
 }
