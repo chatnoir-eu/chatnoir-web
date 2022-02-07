@@ -63,6 +63,10 @@
         @apply align-middle;
     }
 
+    textarea {
+        min-height: 5em;
+    }
+
     button, input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"], label {
         @apply cursor-pointer;
     }
@@ -81,9 +85,8 @@
     }
 
     .btn, .text-field {
-        @apply border border-gray-300 rounded-full;
-        @apply m-2;
-        @apply px-6 py-2;
+        @apply border border-gray-300 rounded-md;
+        @apply px-4 py-1;
         @apply bg-white;
         @apply text-gray-600;
 
@@ -143,6 +146,7 @@
         @apply appearance-none;
         @apply border border-red-400 rounded-sm;
         @apply m-1;
+        @apply mt-0.5;
         @apply mr-2;
         @apply align-middle;
         @apply relative;
@@ -195,6 +199,27 @@
             top: calc(50% - .55rem / 2);
             left: calc(50% - .55rem / 2);
         }
+    }
+
+    .input-lg, .input-xl {
+        @apply px-6 py-2;
+        @apply rounded-full;
+    }
+
+    .input-xl {
+        @apply m-2;
+        @apply px-6 py-3;
+    }
+
+    .lbl-block {
+        @apply block;
+        @apply text-sm;
+        @apply my-0.5;
+    }
+
+    .lbl-required {
+        @apply font-bold;
+        @apply italic;
     }
 }
 

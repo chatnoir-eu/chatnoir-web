@@ -19,7 +19,7 @@
     <form class="box-border py-3 px-5 relative"
           :action="action" :method="method" @submit.prevent="emitModelUpdate(true)">
         <input ref="searchInput" v-model="searchModel.query"
-               class="text-field w-full px-6 py-3 pr-20 m-0"
+               class="text-field w-full input-xl pr-20 m-0"
                type="search" name="q" placeholder="Search…"
                role="searchbox" autocomplete="off" spellcheck="false"
                v-bind="$attrs"

@@ -19,14 +19,14 @@
     <transition name="fade" @enter="enterHandler()">
         <div v-if="modalState"
              class="fixed z-50 top-0 left-0 w-full h-full bg-black bg-opacity-50 border border-gray-700 flex items-center"
-             @click.self="close" @keyup.esc="close()">
+             @click.self="cancel()" @keyup.esc="cancel()">
             <section ref="modalMain" tabindex="-1" class="bg-white rounded-md -mt-28 mx-auto shadow shadow-md overscroll-auto flex flex-col outline-none">
                 <header class="h-4 flex flex-row border-b border-gray-200 rounded-t-lg bg-gray-100 mb-4 pt-4 pb-9 px-6">
                     <h2 class="flex-grow text-lg font-bold"><slot name="header" /></h2>
                     <button ref="closeButton" title="Close"
                             class="text-gray-700 -mr-1 h-6 w-6 ml-6 align-middle text-center border-2 border-transparent rounded-full
                             outline-none hover:text-red-600 focus:text-red-600 hover:border-red-600 focus:border-red-600"
-                            @click.prevent="close()">
+                            @click.prevent="cancel()">
                         <inline-svg :src="require('@/assets/icons/close.svg').default" class="h-full p-0.5 mx-auto" aria-label="Close" />
                     </button>
                 </header>
@@ -49,7 +49,7 @@ const modalState = ref(false)
 const props = defineProps({
     modelValue: {type: Boolean, default: false}
 })
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'cancel'])
 
 watch(toRef(props, 'modelValue'), (newValue, oldValue) => {
     if (newValue === oldValue) {
@@ -64,6 +64,11 @@ watch(toRef(props, 'modelValue'), (newValue, oldValue) => {
 
 function enterHandler() {
     modalMain.value.focus()
+}
+
+function cancel() {
+    emit('cancel')
+    close()
 }
 
 function close() {
@@ -82,6 +87,7 @@ onUnmounted(() => {
 })
 
 defineExpose([
+    cancel,
     close
 ])
 </script>
