@@ -54,15 +54,11 @@ export class SearchModel {
      */
     toQueryString() {
         let indices = this.indices ? this.indices.filter((e) => e.selected).map((e) => e.id) : []
-        const m = {
+        return {
             q: this.query,
-            index: indices.length === 1 ? indices[0] : indices
+            index: indices.length === 1 ? indices[0] : indices,
+            p: this.page
         }
-        if (this.page > 1) {
-            m.p = this.page
-        }
-
-        return m
     }
 
     /**
@@ -96,7 +92,7 @@ export class SearchModel {
         }
         this.indices = this.indices.map((i) => Object.assign(
             {}, i, {selected: !queryIndices.length ? i.selected : queryIndices.includes(i.id)}))
-        this.page = Math.min(this.pageMax, Math.max(1, parseInt(queryString.p) || 1))
+        this.page = Math.min(this.maxPage, Math.max(1, parseInt(queryString.p) || 1))
         this.response = null
     }
 
@@ -106,8 +102,8 @@ export class SearchModel {
      *
      * @param indices list of `IndexDesc` objects or undefined
      */
-    updateIndices(indices) {
-        if (!indices) {
+    updateIndices(indices = undefined) {
+        if (indices === undefined) {
             indices = window.DATA.indices ? window.DATA.indices.map((a) => new IndexDesc(a)) : []
         }
         this.indices = indices
