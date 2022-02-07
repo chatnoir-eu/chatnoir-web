@@ -53,13 +53,14 @@
     </div>
 
     <footer v-if="searchModel.response && searchModel.maxPage > 0" class="my-16 mx-auto max-w-3xl text-center">
-        <pagination v-model:page="searchModel.page" :max-page="searchModel.maxPage" :page-size="searchModel.pageSize" />
+        <pagination v-model:page="searchModel.page" :max-page="searchModel.maxPage" :page-size="searchModel.pageSize"
+                    @update:page="search()" />
     </footer>
 </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { buildQueryString } from '@/common'
@@ -161,10 +162,6 @@ function numFormat(num, opts) {
 }
 
 onMounted(() => {
-    search()
-})
-
-watch(() => searchModel.page, () => {
     search()
 })
 </script>
