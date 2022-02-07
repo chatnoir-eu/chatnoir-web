@@ -43,6 +43,10 @@ export class SearchModel {
         this.maxPage =  parseInt(maxPage) || 1000
         this.page = Math.min(this.maxPage, Math.max(1, parseInt(page)) || 1)
         this.response = null
+
+        if (this.indices.length === 0) {
+            this.updateIndices()
+        }
     }
 
     /**
@@ -79,18 +83,33 @@ export class SearchModel {
      * Update request model data from a query string object and reset response.
      *
      * @param queryString query string Object
-     * @param availableIndices {IndexDesc[]} list of available indices as IndexDesc objects
      */
-    updateFromQueryString(queryString, availableIndices) {
-        let indices = queryString.index || []
-        if (typeof indices === 'string') {
-            indices = [indices]
+    updateFromQueryString(queryString) {
+        let queryIndices = queryString.index || []
+        if (typeof queryIndices === 'string') {
+            queryIndices = [queryIndices]
         }
 
         this.query = queryString.q || ''
-        this.indices = availableIndices.map((i) => Object.assign(
-            {}, i, {selected: !indices.length ? i.selected : indices.includes(i.id)}))
+        if (this.indices.length === 0) {
+            this.updateIndices()
+        }
+        this.indices = this.indices.map((i) => Object.assign(
+            {}, i, {selected: !queryIndices.length ? i.selected : queryIndices.includes(i.id)}))
         this.page = Math.min(this.pageMax, Math.max(1, parseInt(queryString.p) || 1))
         this.response = null
+    }
+
+    /**
+     * Update list of available and selected indices from a given list of `IndexDesc` objects.
+     * If `indices` is unset, the list will be refreshed from `window.DATA.indices` if available.
+     *
+     * @param indices list of `IndexDesc` objects or undefined
+     */
+    updateIndices(indices) {
+        if (!indices) {
+            indices = window.DATA.indices ? window.DATA.indices.map((a) => new IndexDesc(a)) : []
+        }
+        this.indices = indices
     }
 }

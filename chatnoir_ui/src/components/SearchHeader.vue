@@ -64,9 +64,7 @@ async function emitSubmit() {
 
 onMounted(() => {
     if (!searchFieldModel.query) {
-        let availableIndices = window.DATA.indices ? window.DATA.indices : []
-        availableIndices = availableIndices.map((a) => new IndexDesc(a))
-        searchFieldModel.updateFromQueryString(route.query, availableIndices)
+        searchFieldModel.updateFromQueryString(route.query)
     }
 })
 
