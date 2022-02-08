@@ -40,7 +40,7 @@
             </div>
         </div>
         <div v-else-if="$route.name === 'ApikeyRequest_Research' || $route.name === 'ApikeyRequest_Passcode'">
-            <div v-if="$route.name === 'ApikeyRequest_Research'">
+            <div v-if="isAcademic()">
                 <p class="my-3">
                     We offer free API keys for members of verified research institutes for academic use.
                 </p>
@@ -54,32 +54,40 @@
                 </p>
             </div>
 
-            <h2 v-if="$route.name === 'ApikeyRequest_Research'" class="text-lg font-bold mt-8 mb-4">API key request form (academic):</h2>
+            <h2 v-if="isAcademic()" class="text-lg font-bold mt-8 mb-4">API key request form (academic):</h2>
+            <h2 v-else class="text-lg font-bold mt-8 mb-4">API key request form (passcode):</h2>
+
             <form action="" method="post" novalidate class="sm:ml-1 mb-20" @submit.prevent="submitForm()">
-                <form-field v-model="form.name" label="Name" name="name" placeholder="Please enter your name" :validator="v$.name" />
+                <form-field v-model="form.name" label="Name" name="name" placeholder="Name which key will be issued to" :validator="v$.name" />
 
                 <form-field v-model="form.email" label="Email address" name="email" type="email"
-                            placeholder="Email address issued by your institute" :validator="v$.email" />
+                            :placeholder="isAcademic() ? 'Email address issued by your institute' : 'Email address for sending the key'"
+                            :validator="v$.email" />
 
-                <form-field v-model="form.org" label="Organization" name="org"
-                            placeholder="Academic institute (full name)" :validator="v$.org" />
+                <form-field v-if="isAcademic()" v-model="form.org" label="Organization" name="org"
+                            placeholder="Academic institute (full name)" :validator="v$.org" class="my-3 mb-10" />
+                <form-field v-else v-model="form.org" label="Organization" name="org" class="my-3 mt-10" />
 
-                <form-field v-model="form.address" label="Postal address" name="address" class="my-3 mt-10" />
+                <form-field v-model="form.address" label="Postal address" name="address" />
                 <form-field v-model="form.zip" label="ZIP code" name="zip" />
                 <form-field v-model="form.state" label="Federal State" name="state" />
                 <form-field v-model="form.country" label="Country" name="country" />
 
-                <form-field v-if="$route.name === 'ApikeyRequest_Research'" v-model="form.comment"
+                <form-field v-if="isAcademic()" v-model="form.comment"
                             label="What will you use the API key for?" name="comment" type="textarea" class="my-3 mt-10"
-                            placeholder="lease give a short description (max. 200 characters)"
+                            placeholder="Please give a short description (max. 200 characters)"
                             :validator="v$.comment" />
 
-                <form-field v-if="$route.name === 'ApikeyRequest_Research'" v-model="form.agreeTos"
-                            :label-html="agreeTosLabel" name="agree-tos" type="checkbox" class="mt-10"
-                            :validator="v$.agreeTos" />
+                <form-field v-if="!isAcademic()" v-model="form.passcode" label="Passcode" name="passcode" class="my-3 mt-10"
+                            :validator="v$.passcode" />
 
-                <div v-if="$route.name === 'ApikeyRequest_Research'" class="my-10">
-                    <input type="submit" value="Request Academic API Key" class="btn input-lg primary mr-4">
+                <form-field v-model="form.agreeTos" :label-html="agreeTosLabel()" name="agree-tos" type="checkbox"
+                            class="mt-10" :validator="v$.agreeTos" />
+
+                <div class="my-10">
+                    <input v-if="isAcademic()"
+                           type="submit" value="Request Academic API Key" class="btn input-lg primary mr-4">
+                    <input v-else type="submit" value="Request API Key" class="btn input-lg primary mr-4">
                     <button class="btn input-lg" @click.prevent="cancelModalState = true">Cancel and Go Back</button>
                 </div>
             </form>
@@ -103,7 +111,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import useVuelidate from '@vuelidate/core'
 import { email, helpers, required, sameAs } from '@vuelidate/validators'
 
@@ -113,6 +121,7 @@ import { SearchModel } from '@/search-model'
 import FormField from '@/components/FormField'
 
 const router = useRouter()
+const route = useRoute()
 const searchHeaderModel = reactive(new SearchModel())
 
 const formNameField = ref(null)
@@ -128,6 +137,7 @@ const form = reactive({
     state: '',
     country: '',
     comment: '',
+    passcode: '',
     agreeTos: false
 })
 
@@ -136,25 +146,28 @@ const rules = {
     email: { required, email },
     org: { required },
     comment: { required },
+    passcode: { required },
     agreeTos: { required: helpers.withMessage('You must accept the Terms of Service', sameAs(true)) },
 }
 
 const v$ = useVuelidate(rules, form)
 
-const agreeTosLabel = 'I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the ' +
-    '<a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>'
+
+function isAcademic() {
+    return route.name === 'ApikeyRequest_Research'
+}
+
+function agreeTosLabel() {
+    if (isAcademic()) {
+        return 'I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the ' +
+            '<a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>'
+    }
+    return 'By requesting an API key, I agree to the <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>'
+}
 
 function submitForm() {
     v$.value.$validate()
     console.log(v$.value.name)
-}
-
-function isValid(field) {
-    return field.$errors.length === 0
-}
-
-function concatErrors(errors) {
-    return errors.map((e) => e.$message).join(', ')
 }
 
 function redirectSearch() {

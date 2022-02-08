@@ -70,7 +70,7 @@ export default {
 import { ref, watch } from 'vue'
 
 const props = defineProps({
-    modelValue: {type: String},
+    modelValue: {},
     type: {type: String, default: 'text'},
     name: {type: String, required: true},
     placeholder: {type: String},
