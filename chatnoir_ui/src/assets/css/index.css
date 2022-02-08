@@ -225,6 +225,14 @@
         @apply font-bold;
         @apply italic;
     }
+
+    .invalid {
+        @apply text-red-500;
+    }
+
+    .form-error {
+        @apply font-bold text-red-500;
+    }
 }
 
 @layer utilities {
