@@ -16,10 +16,12 @@ Build production distribution:
 npm run build
 ```
 
-Run debug server (for development only):
+Run dev server (for development only):
 ```bash
 npm run serve
 ```
+
+Hint: If the website is missing assets (images or CSS) when running the dev server, delete `node_modules/.cache` and restart the Node dev server.
 
 ## Build Search Backend
 Install Python dependencies:
