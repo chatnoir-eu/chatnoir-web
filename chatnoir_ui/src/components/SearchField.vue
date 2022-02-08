@@ -27,7 +27,7 @@
 
         <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button"
                 class="mr-18 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
-            <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/settings.svg').default" arial-label="Options" />
+            <img svg-inline class="h-full mx-auto align-middle" src="@/assets/icons/settings.svg" aria-label="Options"/>
         </button>
         <options-drop-down
             v-if="searchModel.indices.length > 0"
@@ -38,7 +38,7 @@
         />
 
         <button type="submit" class="mr-11" :class="$style['btn-submit']">
-            <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/search.svg').default" arial-label="Search" />
+            <img svg-inline class="h-full mx-auto align-middle" src="@/assets/icons/search.svg" aria-label="Search"/>
         </button>
     </form>
 </div>
@@ -52,10 +52,10 @@ export default {
 
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router';
 
 import { SearchModel } from '@/search-model'
 import OptionsDropDown from './OptionsDropDown'
-import { useRoute } from 'vue-router';
 
 const optionsButton = ref(null)
 const emit = defineEmits(['update:modelValue', 'submit', 'change', 'option-change', 'keyup'])

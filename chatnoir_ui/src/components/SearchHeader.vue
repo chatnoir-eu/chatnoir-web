@@ -38,7 +38,7 @@ import { onMounted, reactive, ref, toRef, watch } from 'vue'
 import CatLogo from '@/components/CatLogo';
 import SearchField from '@/components/SearchField';
 import ProgressBar from '@/components/ProgressBar'
-import { IndexDesc, SearchModel } from '@/search-model'
+import { SearchModel } from '@/search-model'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()

@@ -54,7 +54,7 @@
             </span>
 
             <button ref="detailsButton" type="button" class="w-3 h-3 ml-3 -mt-0.5 text-center align-middle inline-block" @click="detailsShown = !detailsShown">
-                <inline-svg :src="require('@/assets/icons/settings.svg').default" class="h-full mx-auto align-middle" aria-label="Details" />
+                <img svg-inline src="@/assets/icons/settings.svg" class="h-full mx-auto align-middle" aria-label="Details" />
             </button>
 
             <ToolTipPopup :visible="detailsShown" :aria-hidden="(!detailsShown).toString()" :ref-element="$refs.detailsButton"

@@ -16,8 +16,8 @@
 
 <template>
 <span aria-hidden="true" role="img">
-    <inline-svg class="inline-block h-full w-auto max-w-full"
-                :src="require('@/assets/img/chatnoir.svg').default" @loaded="logoElement = $event" />
+    <img svg-inline class="inline-block h-full w-auto max-w-full" src="@/assets/img/chatnoir.svg" alt=""
+         @loaded="logoElement = $event" />
 </span>
 </template>
 

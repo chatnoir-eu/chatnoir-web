@@ -18,7 +18,8 @@
 <nav class="text-lg" aria-label="Pagination" role="navigation">
     <a v-for="p in pagesBefore()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
        @click.prevent="navigateToPage(p.num)">
-        <inline-svg v-if="p.icon" :src="p.icon" :arial-label="p.label" :title="p.label" />
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <span v-if="p.icon" v-html="p.icon"></span>
         <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
     </a>
     <span :class="$style['page-button']" class="text-gray-800 font-bold text-2xl pt-0.5"
@@ -27,7 +28,8 @@
     </span>
     <a v-for="p in pagesAfter()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
        @click.prevent="navigateToPage(p.num)">
-        <inline-svg v-if="p.icon" :src="p.icon" :arial-label="p.label" :title="p.label" />
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <span v-if="p.icon" v-html="p.icon"></span>
         <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
     </a>
 </nav>
@@ -47,6 +49,10 @@ const props = defineProps({
     maxPage: {type: Number, default: 1000},
 })
 const emit = defineEmits(['update:page'])
+
+const firstIcon = '<img svg-inline src="@/assets/icons/angle-double-left.svg" alt="Go to first page" title="Go to first page" />'
+const prevIcon = '<img svg-inline src="@/assets/icons/angle-left.svg" alt="Previous" title="Previous" />'
+const nextIcon = '<img svg-inline src="@/assets/icons/angle-right.svg" alt="Next" title="Next" />'
 
 function navigateToPage(p) {
     router.push({query: getPageQuery(p)})
@@ -74,16 +80,14 @@ function pagesBefore() {
 
     if (min > 1) {
         pages.push({
-            label: 'Go to first page',
-            icon: require('@/assets/icons/angle-double-left.svg').default,
+            icon: firstIcon,
             num: 1
         })
     }
 
     if (props.page > 1) {
         pages.push({
-            label: 'Previous',
-            icon: require('@/assets/icons/angle-left.svg').default,
+            icon: prevIcon,
             num: props.page - 1
         })
     }
@@ -91,7 +95,6 @@ function pagesBefore() {
     for (let i = min; i < props.page; ++i) {
         pages.push({
             label: i.toString(),
-            icon: null,
             num: i
         })
     }
@@ -109,7 +112,6 @@ function pagesAfter() {
     for (let i = props.page + 1; i <= max; ++i) {
         pages.push({
             label: i.toString(),
-            icon: null,
             num: i
         })
     }
@@ -117,8 +119,7 @@ function pagesAfter() {
 
     if (props.page < props.maxPage) {
         pages.push({
-            label: 'Next',
-            icon: require('@/assets/icons/angle-right.svg').default,
+            icon: nextIcon,
             num: props.page + 1
         })
     }
@@ -133,7 +134,7 @@ function pagesAfter() {
     @apply px-2 inline-block align-middle leading-relaxed;
 
     svg {
-        @apply h-5 inline-block -mt-0.5;
+        @apply h-5 inline-block -mt-0.5 fill-red;
     }
 }
 </style>
