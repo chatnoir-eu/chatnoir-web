@@ -56,68 +56,28 @@
 
             <h2 v-if="$route.name === 'ApikeyRequest_Research'" class="text-lg font-bold mt-8 mb-4">API key request form (academic):</h2>
             <form action="" method="post" novalidate class="sm:ml-1 mb-20" @submit.prevent="submitForm()">
-                <div class="my-3">
-                    <label for="form-name" class="lbl-block lbl-required" :class="!isValid(v$.name) ? 'form-error' : ''">
-                        Name: *
-                        <span v-if="v$.name.$errors.length > 0">({{ concatErrors(v$.name.$errors) }})</span>
-                    </label>
-                    <input id="form-name" ref="formNameField" v-model="form.name" type="text" name="name"
-                           required placeholder="Please enter your name" class="text-field md:w-1/2 w-full"
-                           :class="!isValid(v$.name) ? 'invalid' : ''" @blur="v$.name.$touch()">
-                </div>
-                <div class="my-3">
-                    <label for="form-email" class="lbl-block lbl-required" :class="!isValid(v$.email) ? 'form-error' : ''">
-                        Email address: *
-                        <span v-if="v$.email.$errors.length > 0">({{ concatErrors(v$.email.$errors) }})</span>
-                    </label>
-                    <input id="form-email" v-model="form.email" type="email" name="email"
-                           required placeholder="Email address issued by your institute" class="text-field md:w-1/2 w-full"
-                           :class="!isValid(v$.email) ? 'invalid' : ''" @blur="v$.email.$touch()">
-                </div>
-                <div class="my-3">
-                    <label for="form-org" class="lbl-block lbl-required" :class="!isValid(v$.org) ? 'form-error' : ''">
-                        Organization: *
-                        <span v-if="v$.org.$errors.length > 0">({{ concatErrors(v$.org.$errors) }})</span>
-                    </label>
-                    <input id="form-org" v-model="form.org" type="text" name="org"
-                           required placeholder="Academic institute (full name)" class="text-field md:w-1/2 w-full"
-                           :class="!isValid(v$.org) ? 'invalid' : ''" @blur="v$.org.$touch()">
-                </div>
-                <div class="my-3 mt-10">
-                    <label for="form-address" class="lbl-block">Postal address (optional):</label>
-                    <input id="form-address" v-model="form.address" type="text" name="address" class="text-field md:w-1/2 w-full">
-                </div>
-                <div class="my-3">
-                    <label for="form-zip" class="lbl-block">ZIP code (optional):</label>
-                    <input id="form-zip" v-model="form.zip" type="text" name="zip" class="text-field md:w-1/2 w-full">
-                </div>
-                <div class="my-3">
-                    <label for="form-state" class="lbl-block">Federal State (optional):</label>
-                    <input id="form-state" v-model="form.state" type="text" name="state" class="text-field md:w-1/2 w-full">
-                </div>
-                <div class="my-3">
-                    <label for="form-country" class="lbl-block">Country (optional):</label>
-                    <input id="form-country" v-model="form.country" type="text" name="country" class="text-field md:w-1/2 w-full">
-                </div>
-                <div v-if="$route.name === 'ApikeyRequest_Research'" class="my-3 mt-10">
-                    <label for="form-comment" class="lbl-block lbl-required" :class="!isValid(v$.comment) ? 'form-error' : ''">
-                        What will you use the API key for? *
-                        <span v-if="v$.comment.$errors.length > 0">({{ concatErrors(v$.comment.$errors) }})</span>
-                    </label>
-                    <textarea id="form-comment" v-model="form.comment" type="text" name="form-org" maxlength="200"
-                              required placeholder="Please give a short description (max. 200 characters)"
-                              class="text-field md:w-1/2 w-full" :class="!isValid(v$.comment) ? 'invalid' : ''"
-                              @blur="v$.comment.$touch()"></textarea>
-                </div>
-                <div v-if="$route.name === 'ApikeyRequest_Research'" class="my-10">
-                    <div v-if="!isValid(v$.agreeTos)" class="form-error text-sm">You must accept the Terms of Service</div>
-                    <input id="form-agree-tos" v-model="form.agreeTos" type="checkbox" name="agree-tos" required
-                           class="chk" @blur="v$.agreeTos.$touch()">
-                    <label for="form-agree-tos">
-                        I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the
-                        <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>.
-                    </label>
-                </div>
+                <form-field v-model="form.name" label="Name" name="name" placeholder="Please enter your name" :validator="v$.name" />
+
+                <form-field v-model="form.email" label="Email address" name="email" type="email"
+                            placeholder="Email address issued by your institute" :validator="v$.email" />
+
+                <form-field v-model="form.org" label="Organization" name="org"
+                            placeholder="Academic institute (full name)" :validator="v$.org" />
+
+                <form-field v-model="form.address" label="Postal address" name="address" class="my-3 mt-10" />
+                <form-field v-model="form.zip" label="ZIP code" name="zip" />
+                <form-field v-model="form.state" label="Federal State" name="state" />
+                <form-field v-model="form.country" label="Country" name="country" />
+
+                <form-field v-if="$route.name === 'ApikeyRequest_Research'" v-model="form.comment"
+                            label="What will you use the API key for?" name="comment" type="textarea" class="my-3 mt-10"
+                            placeholder="lease give a short description (max. 200 characters)"
+                            :validator="v$.comment" />
+
+                <form-field v-if="$route.name === 'ApikeyRequest_Research'" v-model="form.agreeTos"
+                            :label-html="agreeTosLabel" name="agree-tos" type="checkbox" class="mt-10"
+                            :validator="v$.agreeTos" />
+
                 <div v-if="$route.name === 'ApikeyRequest_Research'" class="my-10">
                     <input type="submit" value="Request Academic API Key" class="btn input-lg primary mr-4">
                     <button class="btn input-lg" @click.prevent="cancelModalState = true">Cancel and Go Back</button>
@@ -145,11 +105,12 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import useVuelidate from '@vuelidate/core'
-import { email, required, sameAs } from '@vuelidate/validators'
+import { email, helpers, required, sameAs } from '@vuelidate/validators'
 
 import SearchHeader from '@/components/SearchHeader'
 import ModalDialog from '@/components/ModalDialog'
 import { SearchModel } from '@/search-model'
+import FormField from '@/components/FormField'
 
 const router = useRouter()
 const searchHeaderModel = reactive(new SearchModel())
@@ -175,14 +136,17 @@ const rules = {
     email: { required, email },
     org: { required },
     comment: { required },
-    agreeTos: { sameAs: sameAs(true) },
+    agreeTos: { required: helpers.withMessage('You must accept the Terms of Service', sameAs(true)) },
 }
 
 const v$ = useVuelidate(rules, form)
 
+const agreeTosLabel = 'I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the ' +
+    '<a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>'
+
 function submitForm() {
     v$.value.$validate()
-    console.log(v$.value)
+    console.log(v$.value.name)
 }
 
 function isValid(field) {
