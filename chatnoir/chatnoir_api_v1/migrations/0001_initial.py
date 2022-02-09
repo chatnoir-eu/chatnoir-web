@@ -95,7 +95,8 @@ class Migration(migrations.Migration):
                 ('zip_code', models.CharField(blank=True, max_length=50, null=True, verbose_name='ZIP Code')),
                 ('state', models.CharField(blank=True, max_length=50, null=True, verbose_name='State')),
                 ('country', models.CharField(blank=True, max_length=50, null=True, verbose_name='Country')),
-                ('passcode', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='chatnoir_api_v1.apikeypasscode', verbose_name='Passcode')),
+                ('passcode', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='chatnoir_api_v1.apikeypasscode', verbose_name='Passcode')),
+                ('comments', models.TextField(blank=True, max_length=200, null=True, verbose_name='Comments')),
             ],
             options={
                 'verbose_name': 'Pending API User',

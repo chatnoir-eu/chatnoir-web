@@ -132,3 +132,45 @@ export function objSnake2Camel(obj) {
     }
     return obj
 }
+
+/**
+ * Request token data class.
+ */
+export class ReqToken {
+    constructor({token, timestamp, maxAge}) {
+        this.token = token
+        this.timestamp = timestamp
+        this.maxAge = maxAge
+    }
+
+}
+
+/**
+ * Get the current request token for API and form requests.
+ *
+ * @returns {ReqToken} token
+ */
+export function getReqToken() {
+    if (!window.DATA || !window.DATA.token) {
+        return null
+    }
+    if (!(window.DATA.token instanceof ReqToken)) {
+        window.DATA.token = new ReqToken(objSnake2Camel(window.DATA.token))
+    }
+    return window.DATA.token
+}
+
+/**
+ * Update the current request token string. Required after issuing a server request.
+ *
+ * The current token is returned by the server in the `X-Token` header.
+ *
+ * @param tokenStr new token string
+ */
+export function updateReqToken(tokenStr) {
+    if (!(window.DATA.token instanceof ReqToken)) {
+        window.DATA.token = new ReqToken(objSnake2Camel(window.DATA.token))
+    }
+    window.DATA.token.token = tokenStr
+    window.DATA.token.timestamp = Date.now() / 1000
+}

@@ -61,20 +61,19 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { buildQueryString } from '@/common'
+
+import { buildQueryString, getReqToken, updateReqToken } from '@/common'
+import { SearchModel } from '@/search-model'
 
 import SearchHeader from '@/components/SearchHeader'
 import SearchResult from '@/components/SearchResult'
 import Pagination from '@/components/Pagination'
-import { SearchModel } from '@/search-model'
 
 const route = useRoute()
 const router = useRouter()
 
 const searchHeaderRef = ref(null)
 const resultsElement = ref(null)
-
-const requestToken = window.DATA.token
 
 const searchModel = reactive(new SearchModel())
 const requestProgress = ref(0)
@@ -85,7 +84,8 @@ const error = ref(null)
  */
 async function requestResults() {
     // Refresh stale search token
-    if (Date.now() / 1000 - requestToken.timestamp >= requestToken.max_age) {
+    const requestToken = getReqToken()
+    if (Date.now() / 1000 - requestToken.timestamp >= requestToken.maxAge) {
         location.reload()
         return
     }
@@ -118,9 +118,7 @@ async function requestResults() {
         error.value = ''
 
         const response = await axios(requestOptions)
-        requestToken.token = response.headers['x-token']
-        requestToken.timestamp = Date.now() / 1000
-
+        updateReqToken(response.headers['x-token'])
         return response.data
     } catch (ex) {
         if (ex.code === 'ECONNABORTED') {

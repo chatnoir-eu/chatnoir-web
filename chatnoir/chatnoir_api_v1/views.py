@@ -18,6 +18,7 @@ from rest_framework.response import Response
 from concurrent.futures import ThreadPoolExecutor
 
 from django.core.mail import EmailMultiAlternatives
+from django.middleware.csrf import get_token
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
 from django.utils.crypto import get_random_string
@@ -308,7 +309,14 @@ send_mail_executor = ThreadPoolExecutor(max_workers=20)
 def management_index(request):
     """API key management frontend index."""
     if request.method == 'POST':
+        from django.http import HttpResponse
+        import json
+
         form = KeyRequestForm(request.POST)
+        print(form.is_valid(), form.errors)
+
+        return HttpResponse(str(form.errors),
+                            headers={settings.CSRF_HEADER_SET_NAME: get_token(request)})
 
         if form.is_valid():
             activation_code = get_random_string(length=36)
@@ -336,10 +344,8 @@ def management_index(request):
             send_mail_executor.submit(mail.send)
 
             return redirect('apikey_management:request_sent')
-    else:
-        form = KeyRequestForm()
 
-    return render(request, 'index.html', {'form': form})
+    return render(request, 'index.html')
 
 
 def management_request_sent(request):

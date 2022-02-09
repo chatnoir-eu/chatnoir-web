@@ -29,41 +29,50 @@ class KeyRequestForm(forms.ModelForm):
             'zip_code',
             'state',
             'country',
-            'passcode'
-
+            'passcode',
+            'comments'
         ]
-        widgets = {
-            'common_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'organization': forms.TextInput(attrs={'class': 'form-control'}),
-            'address': forms.TextInput(attrs={'class': 'form-control'}),
-            'zip_code': forms.TextInput(attrs={'class': 'form-control'}),
-            'state': forms.TextInput(attrs={'class': 'form-control'}),
-            'country': forms.TextInput(attrs={'class': 'form-control'}),
-            'passcode': forms.TextInput(attrs={'class': 'form-control'})
-        }
 
-    tos_accepted = forms.BooleanField(widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    tos_accepted = forms.BooleanField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.data.get('passcode'):
+            print('dsafdsf')
+            self.fields['organization'].required = True
+            self.fields['comments'].required = True
 
     def clean(self):
+
+        # No passcode provided, assume academic key request
+        # if not self.data.get('passcode'):
+        #     print(dir(self.fields['comments']))
+        #     self.fields['comments'].required = True
+        #     self.fields['comments'].clean('')
+
         cleaned_data = super().clean()
-        try:
-            pc = ApiKeyPasscode.objects.get(passcode=self.data.get('passcode'))
-            cleaned_data['passcode'] = pc
-            del self._errors['passcode']
+        if cleaned_data.get('passcode'):
+            try:
+                pc = ApiKeyPasscode.objects.get(passcode=cleaned_data.get('passcode'))
+                cleaned_data['passcode'] = pc
+                del self._errors['passcode']
 
-            # check if API key for this email address / passcode combination has already been issued
-            redeemed = PasscodeRedemption.objects.filter(passcode=pc,
-                                                         api_key__user__email=cleaned_data.get('email')).exists()
-            if not redeemed:
-                redeemed = PendingApiUser.objects.filter(passcode=pc, email=cleaned_data.get('email')).exists()
+                # check if API key for this email address / passcode combination has already been issued
+                redeemed = PasscodeRedemption.objects.filter(passcode=pc,
+                                                             api_key__user__email=cleaned_data.get('email')).exists()
+                if not redeemed:
+                    redeemed = PendingApiUser.objects.filter(passcode=pc, email=cleaned_data.get('email')).exists()
 
-            if redeemed:
-                self._errors['passcode'] = self.error_class([
-                    _('Passcode already redeemed.')])
-        except ApiKeyPasscode.DoesNotExist:
-            self._errors['passcode'] = self.error_class([_('The passcode "{}" is invalid.').format(
-                self.data.get('passcode', ''))])
+                if redeemed:
+                    self.add_error('passcode', _('Passcode already redeemed.'))
+            except ApiKeyPasscode.DoesNotExist:
+
+                self.add_error('passcode', _('The passcode "{}" is invalid.').format(self.data.get('passcode', '')))
+        else:
+            if not cleaned_data.get('organization'):
+                self.add_error('organization', _('Your academic institute is required.'))
+            if not cleaned_data.get('comments'):
+                self.add_error('comments', _('Please describe your use case.'))
 
         return cleaned_data
 

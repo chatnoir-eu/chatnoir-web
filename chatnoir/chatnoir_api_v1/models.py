@@ -256,7 +256,8 @@ class PendingApiUser(models.Model):
 
     activation_code = models.CharField(verbose_name=_('Activation Code'), max_length=255,
                                        default=generate_apikey, primary_key=True)
-    passcode = models.ForeignKey(ApiKeyPasscode, verbose_name=_('Passcode'), on_delete=models.CASCADE)
+    passcode = models.ForeignKey(ApiKeyPasscode, verbose_name=_('Passcode'), on_delete=models.CASCADE,
+                                 null=True, blank=True)
     common_name = models.CharField(verbose_name=_('Common Name'), max_length=100)
     email = models.EmailField(verbose_name=_('Email Address'), max_length=200)
     organization = models.CharField(verbose_name=_('Organization'), max_length=100, null=True, blank=True)
@@ -264,6 +265,7 @@ class PendingApiUser(models.Model):
     zip_code = models.CharField(verbose_name=_('ZIP Code'), max_length=50, null=True, blank=True)
     state = models.CharField(verbose_name=_('State'), max_length=50, null=True, blank=True)
     country = models.CharField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
+    comments = models.TextField(verbose_name=_('Comments'), max_length=200, null=True, blank=True)
 
     @staticmethod
     def activate_by_code(activation_code: str):

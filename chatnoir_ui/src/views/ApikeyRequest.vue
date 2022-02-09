@@ -16,7 +16,7 @@
 
 <template>
 <div class="max-w-full px-5">
-    <search-header v-model="searchHeaderModel" @submit="redirectSearch()" />
+    <search-header v-model="searchHeaderModel" @submit="redirectSearch()" :progress="requestProgress" />
 
     <div class="max-w-3xl mx-auto mt-10">
         <h1 class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
@@ -47,40 +47,51 @@
                     We will verify your request and you will receive your API key within 1&ndash;2 working days if eligible.
                 </p>
                 <p class="my-3">
-                    If you do not qualify for a free API key or need a key for non-academic purposes, please contact us directly via email,
+                    If you do not qualify for a free API key or need a key for non-academic purposes, please contact us directly by email,
                     so we can assess your use case and potentially work out an agreement.
+                </p>
+            </div>
+            <div v-else>
+                <p class="my-3">
+                    If you have a ChatNoir passcode, you can use it to issue an API to yourself. Passcodes are handed out at special
+                    events such as shared tasks, so participants can obtain their personal API keys. API keys issued via
+                    passcodes are bound to the participant's email address and are usually time-limited.
+                </p>
+                <p class="my-3">
+                    You are a shared task organizer yourself and want a passcode for your participants? Please contact us by email with details
+                    about your task and we'll be more than happy to help you out.
                 </p>
             </div>
 
             <h2 v-if="isAcademic()" class="text-lg font-bold mt-8 mb-4">API key request form (academic):</h2>
             <h2 v-else class="text-lg font-bold mt-8 mb-4">API key request form (passcode):</h2>
 
-            <form action="" method="post" novalidate class="sm:ml-1 mb-20" @submit.prevent="submitForm()">
-                <form-field v-model="form.name" label="Name" name="name" placeholder="Name which key will be issued to" :validator="v$.name" />
+            <form ref="requestFormRef" action="" method="post" novalidate class="sm:ml-1 mb-20" @submit.prevent="submitForm()">
+                <form-field v-model="form.commonName" label="Name" name="common_name" placeholder="Name which key will be issued to" :validator="v$.commonName" />
 
                 <form-field v-model="form.email" label="Email address" name="email" type="email"
                             :placeholder="isAcademic() ? 'Email address issued by your institute' : 'Email address for sending the key'"
                             :validator="v$.email" />
 
-                <form-field v-if="isAcademic()" v-model="form.org" label="Organization" name="org"
-                            placeholder="Academic institute (full name)" :validator="v$.org" class="my-3 mb-10" />
-                <form-field v-else v-model="form.org" label="Organization" name="org" class="my-3 mt-10" />
+                <form-field v-if="isAcademic()" v-model="form.organization" label="Organization" name="organization"
+                            placeholder="Academic institute (full name)" :validator="v$.organization" class="my-3 mb-10" />
+                <form-field v-else v-model="form.organization" label="Organization" name="organization" class="my-3 mt-10" />
 
                 <form-field v-model="form.address" label="Postal address" name="address" />
-                <form-field v-model="form.zip" label="ZIP code" name="zip" />
+                <form-field v-model="form.zip_code" label="ZIP code" name="zip_code" />
                 <form-field v-model="form.state" label="Federal State" name="state" />
                 <form-field v-model="form.country" label="Country" name="country" />
 
-                <form-field v-if="isAcademic()" v-model="form.comment"
-                            label="What will you use the API key for?" name="comment" type="textarea" class="my-3 mt-10"
+                <form-field v-if="isAcademic()" v-model="form.comments"
+                            label="What will you use the API key for?" name="comments" type="textarea" class="my-3 mt-10"
                             placeholder="Please give a short description (max. 200 characters)"
-                            :validator="v$.comment" />
+                            :validator="v$.comments" />
 
                 <form-field v-if="!isAcademic()" v-model="form.passcode" label="Passcode" name="passcode" class="my-3 mt-10"
                             :validator="v$.passcode" />
 
-                <form-field v-model="form.agreeTos" :label-html="agreeTosLabel()" name="agree-tos" type="checkbox"
-                            class="mt-10" :validator="v$.agreeTos" />
+                <form-field v-model="form.tosAccepted" :label-html="tosAcceptedLabel()" name="tos_accepted" type="checkbox"
+                            class="mt-10" :validator="v$.tosAccepted" />
 
                 <div class="my-10">
                     <input v-if="isAcademic()"
@@ -108,15 +119,17 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useVuelidate from '@vuelidate/core'
+import axios from 'axios'
 import { email, helpers, required, sameAs } from '@vuelidate/validators'
 
 import SearchHeader from '@/components/SearchHeader'
 import ModalDialog from '@/components/ModalDialog'
 import { SearchModel } from '@/search-model'
 import FormField from '@/components/FormField'
+import { getReqToken, updateReqToken } from '@/common'
 
 const router = useRouter()
 const route = useRoute()
@@ -124,30 +137,42 @@ const searchHeaderModel = reactive(new SearchModel())
 
 const formNameField = ref(null)
 const cancelModalState = ref(false)
+const requestProgress = ref(0)
+
 let routeGuardDestination = null
 
+const requestFormRef = ref(null)
 const form = reactive({
-    name: '',
+    commonName: '',
     email: '',
-    org: '',
+    organization: '',
     address: '',
-    zip: '',
+    zip_code: '',
     state: '',
     country: '',
-    comment: '',
+    comments: '',
     passcode: '',
-    agreeTos: false
+    tosAccepted: false
 })
 
-const rules = {
-    name: { required },
-    email: { required, email },
-    org: { required },
-    comment: { required },
-    passcode: { required },
-    agreeTos: { required: helpers.withMessage('You must accept the Terms of Service', sameAs(true)) },
-}
-
+const rules = computed(() => {
+    const tos = helpers.withMessage('You must accept the Terms of Service', sameAs(true))
+    if (isAcademic()) {
+        return {
+            commonName: {required},
+            email: {required, email},
+            organization: {required},
+            comments: {required},
+            tosAccepted: {required: tos},
+        }
+    }
+    return {
+        commonName: {required},
+        email: {required, email},
+        passcode: {required},
+        tosAccepted: {required: tos},
+    }
+})
 const v$ = useVuelidate(rules, form)
 
 
@@ -155,16 +180,12 @@ function isAcademic() {
     return route.name === 'ApikeyRequest_Research'
 }
 
-function agreeTosLabel() {
+function tosAcceptedLabel() {
     if (isAcademic()) {
         return 'I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the ' +
             '<a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>'
     }
     return 'By requesting an API key, I agree to the <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>'
-}
-
-function submitForm() {
-    v$.value.$validate()
 }
 
 function redirectSearch() {
@@ -205,4 +226,46 @@ router.beforeEach((to, from) => {
     routeGuardDestination = to
     return true
 })
+
+async function submitForm() {
+    if (!await v$.value.$validate()) {
+        return
+    }
+
+    const requestOptions = {
+        method: 'POST',
+        url: route.path,
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            'X-Token': getReqToken().token
+        },
+        data: new FormData(requestFormRef.value),
+        timeout: 25000,
+        onDownloadProgress(e) {
+            requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
+        }
+    }
+
+    try {
+        const response = await axios(requestOptions)
+        updateReqToken(response.headers['x-token'])
+        console.log(response.data)
+    } catch (ex) {
+    //     if (ex.code === 'ECONNABORTED') {
+    //         error.value = 'Search took too long (Timeout).'
+    //     } else if (ex.response.status === 403 && location.hash !== '#reload') {
+    //         // Probably a CSRF token error, try to refresh page
+    //         location.hash = 'reload'
+    //         location.reload()
+    //     } else if (ex.response.status !== 200) {
+    //         error.value = `${ex.response.status} ${ex.response.statusText}`
+    //     }
+    //     return new Promise(() => {})
+    // } finally {
+    //     requestProgress.value = 100
+    //     if (resultsElement.value) {
+    //         resultsElement.value.classList.remove('opacity-50', 'pointer-events-none')
+    //     }
+    }
+}
 </script>
