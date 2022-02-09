@@ -1,6 +1,4 @@
 <!--
-    Search page view.
-
     Copyright 2022 Janek Bevendorff
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -167,7 +165,6 @@ function agreeTosLabel() {
 
 function submitForm() {
     v$.value.$validate()
-    console.log(v$.value.name)
 }
 
 function redirectSearch() {
