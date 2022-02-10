@@ -1,0 +1,14 @@
+Dear {{ common_name }},
+
+Thank you for signing up for {{ app_name }} API key!
+
+To complete your application, please click the following link to
+verify your email address:
+
+{{ activation_url }}
+
+If the link is not clickable for you, simply copy the URL into
+your browser's address bar.
+
+Warmest regards,
+Your {{ app_name }} team

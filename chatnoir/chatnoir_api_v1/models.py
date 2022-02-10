@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from concurrent.futures import ThreadPoolExecutor
 import logging
-import uuid
 import secrets
+import uuid
 
+from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError, models, transaction
+from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
 
@@ -248,6 +252,9 @@ class PasscodeRedemption(models.Model):
     passcode = models.ForeignKey(ApiKeyPasscode, on_delete=models.CASCADE)
 
 
+SEND_MAIL_EXECUTOR = ThreadPoolExecutor(max_workers=20)
+
+
 class PendingApiUser(models.Model):
     """
     Passcode API users pending activation.
@@ -272,13 +279,78 @@ class PendingApiUser(models.Model):
     comments = models.TextField(verbose_name=_('Comments'), max_length=200, null=True, blank=True)
     email_verified = models.BooleanField(verbose_name=_('Email verified'), default=False)
 
-    def activate(self):
+    def generate_activation_code(self, save=True):
         """
-        Activate pending user.
+        Generate and set a random activation code for the user that can be used in a verification email.
+
+        :param save: save the model afterwards with the new code
+        :return: activation code as a string
+        """
+        self.activation_code = get_random_string(length=36)
+        if save:
+            self.save()
+        return self.activation_code
+
+    def send_verification_mail(self, verification_url):
+        """
+        Send an email with a verification/activation link to the user.
+
+        :param verification_url: absolute verification URL to embed into the email
+        :raises RuntimeError: if user has no activation code (use :meth:`generate_activation_code` for that)
+        """
+        if not self.activation_code:
+            raise RuntimeError('Trying to send verification email, but user has no activation code.')
+
+        mail_context = {
+            'app_name': settings.APPLICATION_NAME,
+            'common_name': self.common_name,
+            'verification_url': verification_url
+        }
+        mail_content_plain = render_to_string('email/apikey_verification.txt', mail_context)
+        mail_content_html = render_to_string('email/apikey_verification.html', mail_context)
+        mail = EmailMultiAlternatives(
+            _('Complete your %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
+            mail_content_plain,
+            f'{settings.APPLICATION_NAME} <{settings.EMAIL_SENDER_ADDRESS}>',
+            [self.email]
+        )
+        mail.attach_alternative(mail_content_html, 'text/html')
+        SEND_MAIL_EXECUTOR.submit(mail.send)
+
+    @staticmethod
+    def verify_email_by_activation_code(activation_code):
+        """
+        Try to verify a user's email address with the given activation code.
+
+        On success, this will only mark the user's email as verified. The user themselves will not be
+        activated (this has to be done explicitly with :meth:`activate`).
+
+        :param activation_code: the user's activation code
+        :return: the pending user model on success or False if code is invalid or email already activated
+        """
+        try:
+            pending_user = PendingApiUser.objects.get(activation_code=activation_code)
+            if pending_user.email_verified:
+                # Email already verified
+                return False
+
+            with transaction.atomic():
+                pending_user.email_verified = True
+                pending_user.save(force_update=True)
+            return pending_user
+
+        except PendingApiUser.DoesNotExist:
+            return False
+
+    def activate(self, send_email=False):
+        """
+        Activate the pending user and optionally send a confirmation email to the user.
+
+        :param send_email: send a confirmation email with the new API key to the user
         """
         try:
             with transaction.atomic():
-                user, _ = ApiUser.objects.update_or_create(
+                user, created = ApiUser.objects.update_or_create(
                     email=self.email,
                     defaults=dict(
                         common_name=self.common_name,
@@ -297,28 +369,27 @@ class PendingApiUser(models.Model):
                 if self.passcode:
                     redemption = PasscodeRedemption(api_key=api_key, passcode=self.passcode)
                     redemption.save()
-                self.delete()
+                # self.delete()
+
+            if send_email:
+                mail_context = {
+                    'app_name': settings.APPLICATION_NAME,
+                    'common_name': user.common_name,
+                    'api_key': api_key.api_key
+                }
+                mail_content_plain = render_to_string('email/apikey_confirmation.txt', mail_context)
+                mail_content_html = render_to_string('email/apikey_confirmation.html', mail_context)
+                mail = EmailMultiAlternatives(
+                    _('Your %(appname)s API key') % {'appname': settings.APPLICATION_NAME},
+                    mail_content_plain,
+                    f'{settings.APPLICATION_NAME} <{settings.EMAIL_SENDER_ADDRESS}>',
+                    [user.email]
+                )
+                mail.attach_alternative(mail_content_html, 'text/html')
+                SEND_MAIL_EXECUTOR.submit(mail.send)
+
             return user, api_key
         except IntegrityError as e:
             logger.error('Error activating user %s (%s):', self.common_name, self.email)
             logger.exception(e)
             return None
-
-    @staticmethod
-    def activate_by_code(activation_code: str):
-        """
-        :param activation_code: activation code
-        :raise ValidationError: if user has no passcode, email is not verified, or user does not exist
-        :return: activated user
-        """
-        try:
-            pending_user = PendingApiUser.objects.get(activation_code=activation_code)
-            if not pending_user.passcode:
-                raise ValidationError(_('User has no associated passcode.'))
-            if not pending_user.email_verified:
-                raise ValidationError(_('Email address not verified.'))
-
-            return pending_user.activate()
-
-        except PendingApiUser.DoesNotExist:
-            raise ValidationError(_('User does not exist.'))

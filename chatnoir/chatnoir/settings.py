@@ -123,7 +123,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
@@ -135,6 +134,8 @@ USE_TZ = True
 USE_THOUSAND_SEPARATOR = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# ChatNoir notification email sender address
 EMAIL_SENDER_ADDRESS = 'no-reply@localhost'
 
 # Static files (CSS, JavaScript, Images)

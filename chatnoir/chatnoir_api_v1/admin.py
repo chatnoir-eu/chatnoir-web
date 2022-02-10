@@ -98,23 +98,27 @@ class PendingApiUserAdmin(admin.ModelAdmin):
     search_fields = ('common_name', 'passcode__passcode', 'email', 'organization', 'address',
                      'zip_code', 'state', 'country')
     autocomplete_fields = ('passcode', 'issue_key')
-    actions = ['activate_pending_user']
+    actions = ['activate_pending_user', 'activate_pending_user_and_send_mail']
 
-    @admin.action(description=_('Activate selected Pending API Users'))
-    def activate_pending_user(self, request, queryset):
+    @admin.action(description=_('Activate selected API Users'))
+    def activate_pending_user(self, request, queryset, send_emails=False):
         successful = 0
         for user in queryset:
             if not user.issue_key and not user.passcode:
                 self.message_user(request, _('User "%s" failed to activate: No parent key or passcode set.')
                                   % user.common_name, messages.ERROR)
                 continue
-            user.activate()
+            user.activate(send_emails)
             successful += 1
 
         if successful > 0:
             self.message_user(request, ngettext('%s user successfully activated.',
                                                 '%s users successfully activated.',
                                                 successful) % successful, messages.SUCCESS)
+
+    @admin.action(description=_('Activate selected API Users and notify by email'))
+    def activate_pending_user_and_send_mail(self, request, queryset):
+        self.activate_pending_user(request, queryset, send_emails=True)
 
 
 class ApiKeyRoleAdmin(admin.ModelAdmin):

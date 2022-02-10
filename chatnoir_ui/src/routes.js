@@ -32,6 +32,7 @@ export default createRouter({
                 { path: 'request_academic', name: 'ApikeyRequest_Academic', component: () => import('./views/ApikeyRequest.vue')},
                 { path: 'request_passcode', name: 'ApikeyRequest_Passcode', component: () => import('./views/ApikeyRequest.vue')},
                 { path: 'request_received', name: 'ApikeyRequest_Received', component: () => import('./views/ApikeyRequest.vue')},
+                { path: 'verify/:activation_code', name: 'ApikeyRequest_Verified', component: () => import('./views/ApikeyRequest.vue')},
             ]
         }
     ]

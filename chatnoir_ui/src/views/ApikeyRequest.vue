@@ -20,6 +20,7 @@
 
     <div class="max-w-3xl mx-auto mt-10">
         <h1 v-if="$route.name === 'ApikeyRequest_Received'" class="text-2xl font-bold my-3">Thank you!</h1>
+        <h1 v-else-if="$route.name === 'ApikeyRequest_Verified'" class="text-2xl font-bold my-3">Email verified</h1>
         <h1 v-else class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
 
         <div v-if="$route.name === 'ApikeyRequest'">
@@ -108,6 +109,11 @@
             <p class="my-3">
                 {{ $route.params.message }}
             </p>
+        </div>
+
+        <div v-else-if="$route.name === 'ApikeyRequest_Verified'">
+            <p class="my-3">Thanks! Your email has been verified.</p>
+            <p class="my-3">Thanks! Your email has been verified.</p>
         </div>
     </div>
 
@@ -269,7 +275,7 @@ async function submitForm() {
             $externalResults.value[k] = response.data.errors[k].map((e) => e.message.replace(/\.$/, ''))
         })
     } else {
-        await router.push({name: 'ApikeyRequest_Received', params: {message: response.data.message}})
+        // await router.push({name: 'ApikeyRequest_Received', params: {message: response.data.message}})
     }
 }
 </script>

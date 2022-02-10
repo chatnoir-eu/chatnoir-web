@@ -12,24 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from django.core.mail import mail_managers
+from django.http import JsonResponse, Http404
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_http_methods
 from rest_framework import routers, viewsets
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
-from concurrent.futures import ThreadPoolExecutor
-
-from django.core.mail import EmailMultiAlternatives
-from django.middleware.csrf import get_token
-from django.http import JsonResponse
-from django.shortcuts import redirect, render
-from django.template.loader import get_template
-from django.utils.crypto import get_random_string
-from django.utils.translation import gettext_lazy as _
-from django.views.decorators.http import require_http_methods
 
 from .authentication import *
 from .forms import KeyRequestForm
 from .metadata import *
-from .models import PendingApiUser
+from .models import SEND_MAIL_EXECUTOR
 from .serializers import *
 
 from chatnoir_search_v1.search import SimpleSearch, PhraseSearch
@@ -306,33 +302,30 @@ class ManageKeysRevokeViewSet(ManageKeysUpdateViewSet):
         })
 
 
-send_mail_executor = ThreadPoolExecutor(max_workers=20)
-
-
-def management_index(request):
+def apikey_request_index(request):
     """API key request index view."""
     return render(request, 'index.html')
 
 
-def management_request_academic(request):
+def apikey_request_academic(request):
     """Request form view for academic API keys."""
     if request.method == 'GET':
-        return management_index(request)
+        return apikey_request_index(request)
 
-    return _management_request(request, False)
+    return _apikey_request(request, False)
 
 
-def management_request_passcode(request):
+def apikey_request_passcode(request):
     """Request form view for passcode-issued API keys."""
     if request.method == 'GET':
-        return management_index(request)
+        return apikey_request_index(request)
 
-    return _management_request(request, True)
+    return _apikey_request(request, True)
 
 
 @require_http_methods(['POST'])
 @with_csrf_header
-def _management_request(request, passcode):
+def _apikey_request(request, passcode):
     form = KeyRequestForm(request.POST, passcode=passcode)
 
     if not form.is_valid():
@@ -355,24 +348,10 @@ def _management_request(request, passcode):
     except PendingApiUser.DoesNotExist:
         pass
 
-    activation_code = get_random_string(length=36)
     instance = form.save(commit=False)
-    instance.activation_code = activation_code
-    instance.save()
-
-    # mail_context = {
-    #     'activation_code': activation_code
-    # }
-    # mail_content_plain = get_template('apikey_email/confirmation_email.txt').render(mail_context, request)
-    # mail_content_html = get_template('apikey_email/confirmation_email.html').render(mail_context, request)
-    # mail = EmailMultiAlternatives(
-    #     _('Complete your %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
-    #     mail_content_plain,
-    #     settings.EMAIL_SENDER_ADDRESS,
-    #     [instance.email]
-    # )
-    # mail.attach_alternative(mail_content_html, 'text/html')
-    # send_mail_executor.submit(mail.send)
+    activation_code = instance.generate_activation_code(save=True)
+    instance.send_verification_mail(
+        request.build_absolute_uri(reverse('chatnoir_api:apikey_request_verify', args=[activation_code])))
 
     if passcode:
         return JsonResponse({
@@ -388,29 +367,29 @@ def _management_request(request, passcode):
     })
 
 
-def management_request_sent(request):
-    """API key management frontend: API key request sent confirmation."""
-    return render(request, 'apikey_frontend/request_sent.html', {})
+def apikey_request_verify(request, activation_code):
+    """User email verification view."""
+    if not activation_code:
+        raise Http404
 
+    return render(request, 'index.html')
+    user = PendingApiUser.verify_email_by_activation_code(activation_code)
 
-def management_activate(request, activation_code):
-    """API key management frontend: activate API key."""
-    context = {}
+    if not user:
+        raise Http404
 
-    user = PendingApiUser.activate_by_code(activation_code)
-    if user:
-        user, api_key = user
-        context['api_key'] = api_key
-
-        mail_content_plain = get_template('apikey_email/apikey_email.txt').render(context, request)
-        mail_content_html = get_template('apikey_email/apikey_email.html').render(context, request)
-        mail = EmailMultiAlternatives(
-            _('Your %(appname)s API key') % {'appname': settings.APPLICATION_NAME},
-            mail_content_plain,
-            settings.EMAIL_SENDER_ADDRESS,
-            [user.email]
+    # Activate user instantly if they have a passcode, otherwise notify managers
+    if user.passcode:
+        user.activate(send_email=True)
+    else:
+        mail_context = {
+            'app_name': settings.APPLICATION_NAME,
+            'user': user,
+        }
+        SEND_MAIL_EXECUTOR.submit(mail_managers,
+                                  _('New pending %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
+                                  render_to_string('email/apikey_request_notification.txt', mail_context),
+                                  fail_silently=True
         )
-        mail.attach_alternative(mail_content_html, 'text/html')
-        send_mail_executor.submit(mail.send)
 
-    return render(request, 'apikey_frontend/activate.html', context)
+    return render(request, 'index.html')

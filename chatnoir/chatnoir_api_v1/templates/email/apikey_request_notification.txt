@@ -1,0 +1,13 @@
+Dear {{ app_name }} maintainer,
+
+A new pending API key request is awaiting approval.
+
+New request by:
+
+    Name: {{ user.common_name }}
+    Email: {{ user.email }}
+    Organization: {{ user.organization }}
+
+User comments: {% if user.comments %}{{ user.comments }}{% else %} [ No comments provided ]{% endif %}
+
+Please log into the ChatNoir backend to approve or reject the request.

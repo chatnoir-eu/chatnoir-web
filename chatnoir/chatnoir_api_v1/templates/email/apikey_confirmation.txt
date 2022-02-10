@@ -1,0 +1,34 @@
+Dear {{ common_name }},
+
+Thanks again for signing up! This is your {{ app_name }} API key:
+
+    {{ api_key }}
+
+To get started with the API, please check out our API documentation:
+https://www.chatnoir.eu/doc/
+
+If you have any further questions regarding the service, feel
+free to contact us.
+
+Also, please don't forget to cite our ECIR 2018 demo paper and provide
+a link to https://www.chatnoir.eu/ if you publish your work. We are
+looking forward to seeing what people will do with our service. :-)
+
+Paper BibTeX for your convenience:
+
+{% verbatim %}@InProceedings{bevendorff:2018,
+  address =   {Berlin Heidelberg New York},
+  author =    {Janek Bevendorff and Benno Stein and Matthias Hagen and Martin Potthast},
+  booktitle = {Advances in Information Retrieval. 40th European Conference on IR Research (ECIR 2018)},
+  editor =    {Leif Azzopardi and Allan Hanbury and Gabriella Pasi and Benjamin Piwowarski},
+  ids =       {potthast:2018c,stein:2018c},
+  month =     mar,
+  publisher = {Springer},
+  series =    {Lecture Notes in Computer Science},
+  site =      {Grenoble, France},
+  title =     {{Elastic ChatNoir: Search Engine for the ClueWeb and the Common Crawl}},
+  year =      2018
+}{% endverbatim %}
+
+Warmest regards,
+Your {{ app_name }} team
