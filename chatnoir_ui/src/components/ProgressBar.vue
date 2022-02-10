@@ -31,6 +31,9 @@ const mainElement = ref(null)
 const displayedProgress = ref(0)
 
 function updateProgress() {
+    if (!mainElement.value) {
+        return
+    }
     if (props.progress > 0) {
         mainElement.value.classList.remove('invisible')
     }
