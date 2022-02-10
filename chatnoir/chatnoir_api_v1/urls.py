@@ -38,8 +38,8 @@ urlpatterns = [
     path(r'api/v1/', include(router_v1.urls)),
 
     path(r'apikey/', views.management_index, name='management_index'),
-    path(r'apikey/request_research', views.management_index, name='management_index'),
-    path(r'apikey/request_passcode', views.management_index, name='management_index'),
+    path(r'apikey/request_academic', views.management_request_academic, name='management_request_academic'),
+    path(r'apikey/request_passcode', views.management_request_passcode, name='management_request_passcode'),
     path(r'apikey/activate/<slug:activation_code>', views.management_activate, name='management_activate'),
     path(r'apikey/request_sent', views.management_request_sent, name='management_request_sent'),
 ]

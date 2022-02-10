@@ -19,10 +19,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 from django.core.mail import EmailMultiAlternatives
 from django.middleware.csrf import get_token
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_http_methods
 
 from .authentication import *
 from .forms import KeyRequestForm
@@ -31,6 +33,7 @@ from .models import PendingApiUser
 from .serializers import *
 
 from chatnoir_search_v1.search import SimpleSearch, PhraseSearch
+from chatnoir_web.middleware import with_csrf_header
 
 
 def api_exception_handler(exc, _):
@@ -307,45 +310,73 @@ send_mail_executor = ThreadPoolExecutor(max_workers=20)
 
 
 def management_index(request):
-    """API key management frontend index."""
-    if request.method == 'POST':
-        from django.http import HttpResponse
-        import json
-
-        form = KeyRequestForm(request.POST)
-        print(form.is_valid(), form.errors)
-
-        return HttpResponse(str(form.errors),
-                            headers={settings.CSRF_HEADER_SET_NAME: get_token(request)})
-
-        if form.is_valid():
-            activation_code = get_random_string(length=36)
-            try:
-                instance = PendingApiUser.objects.get(email=form.cleaned_data['email'],
-                                                      passcode=form.cleaned_data['passcode'])
-                form.update_instance(instance, activation_code)
-            except PendingApiUser.DoesNotExist:
-                instance = form.save(commit=False)
-                instance.activation_code = activation_code
-                instance.save()
-
-            mail_context = {
-                'activation_code': activation_code
-            }
-            mail_content_plain = get_template('apikey_email/confirmation_email.txt').render(mail_context, request)
-            mail_content_html = get_template('apikey_email/confirmation_email.html').render(mail_context, request)
-            mail = EmailMultiAlternatives(
-                _('Complete your %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
-                mail_content_plain,
-                settings.EMAIL_SENDER_ADDRESS,
-                [instance.email]
-            )
-            mail.attach_alternative(mail_content_html, 'text/html')
-            send_mail_executor.submit(mail.send)
-
-            return redirect('apikey_management:request_sent')
-
+    """API key request index view."""
     return render(request, 'index.html')
+
+
+def management_request_academic(request):
+    """Request form view for academic API keys."""
+    if request.method == 'GET':
+        return management_index(request)
+
+    return _management_request(request, False)
+
+
+def management_request_passcode(request):
+    """Request form view for passcode-issued API keys."""
+    if request.method == 'GET':
+        return management_index(request)
+
+    return _management_request(request, True)
+
+
+@require_http_methods(['POST'])
+@with_csrf_header
+def _management_request(request, passcode):
+    form = KeyRequestForm(request.POST, passcode=passcode)
+
+    if not form.is_valid():
+        return JsonResponse({
+            'valid': False,
+            'errors': form.errors.get_json_data()
+        })
+
+    activation_code = get_random_string(length=36)
+    try:
+        instance = PendingApiUser.objects.get(email=form.cleaned_data['email'],
+                                              passcode=form.cleaned_data['passcode'])
+        form.update_instance(instance, activation_code)
+    except PendingApiUser.DoesNotExist:
+        instance = form.save(commit=False)
+        instance.activation_code = activation_code
+        instance.save()
+
+    # mail_context = {
+    #     'activation_code': activation_code
+    # }
+    # mail_content_plain = get_template('apikey_email/confirmation_email.txt').render(mail_context, request)
+    # mail_content_html = get_template('apikey_email/confirmation_email.html').render(mail_context, request)
+    # mail = EmailMultiAlternatives(
+    #     _('Complete your %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
+    #     mail_content_plain,
+    #     settings.EMAIL_SENDER_ADDRESS,
+    #     [instance.email]
+    # )
+    # mail.attach_alternative(mail_content_html, 'text/html')
+    # send_mail_executor.submit(mail.send)
+
+    if passcode:
+        return JsonResponse({
+            'valid': True,
+            'message': _('We have received your API key request. To complete the process, '
+                         'please check your inbox and click the activation link contained in the email.')
+        })
+
+    return JsonResponse({
+        'valid': True,
+        'message': _('We have received your API key request and will review your application.'
+                     'If approved, you will receive your API key within the next few days by email.')
+    })
 
 
 def management_request_sent(request):

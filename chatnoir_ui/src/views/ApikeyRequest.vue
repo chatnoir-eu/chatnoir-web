@@ -19,7 +19,8 @@
     <search-header v-model="searchHeaderModel" @submit="redirectSearch()" :progress="requestProgress" />
 
     <div class="max-w-3xl mx-auto mt-10">
-        <h1 class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
+        <h1 v-if="$route.name === 'ApikeyRequest_Received'" class="text-2xl font-bold my-3">Thank you!</h1>
+        <h1 v-else class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
 
         <div v-if="$route.name === 'ApikeyRequest'">
             <p class="my-3">Purr&hellip; Thank you for your interest in ChatNoir, we are glad to see you here!</p>
@@ -33,11 +34,12 @@
             </p>
 
             <div class="my-10 text-center">
-                <button class="btn input-xl primary mx-4" @click="$router.push({name: 'ApikeyRequest_Research'})">Apply for a free API key</button>
+                <button class="btn input-xl primary mx-4" @click="$router.push({name: 'ApikeyRequest_Academic'})">Apply for a free API key</button>
                 <button class="btn input-xl mx-4" @click="$router.push({name: 'ApikeyRequest_Passcode'})">I have a passcode</button>
             </div>
         </div>
-        <div v-else-if="$route.name === 'ApikeyRequest_Research' || $route.name === 'ApikeyRequest_Passcode'">
+
+        <div v-else-if="$route.name === 'ApikeyRequest_Academic' || $route.name === 'ApikeyRequest_Passcode'">
             <div v-if="isAcademic()">
                 <p class="my-3">
                     We offer free API keys for members of verified research institutes for academic use.
@@ -101,6 +103,12 @@
                 </div>
             </form>
         </div>
+
+        <div v-else-if="$route.name === 'ApikeyRequest_Received'">
+            <p class="my-3">
+                {{ $route.params.message }}
+            </p>
+        </div>
     </div>
 
     <modal-dialog v-if="cancelModalState" v-model="cancelModalState" @cancel="cancelModal()">
@@ -154,6 +162,8 @@ const form = reactive({
     passcode: '',
     tosAccepted: false
 })
+const $externalResults = ref({})
+const serverResponseMessage = ref('')
 
 const rules = computed(() => {
     const tos = helpers.withMessage('You must accept the Terms of Service', sameAs(true))
@@ -173,11 +183,11 @@ const rules = computed(() => {
         tosAccepted: {required: tos},
     }
 })
-const v$ = useVuelidate(rules, form)
+const v$ = useVuelidate(rules, form, {$externalResults})
 
 
 function isAcademic() {
-    return route.name === 'ApikeyRequest_Research'
+    return route.name === 'ApikeyRequest_Academic'
 }
 
 function tosAcceptedLabel() {
@@ -213,8 +223,12 @@ onMounted(() => {
 })
 
 router.beforeEach((to, from) => {
+    if (to.name === 'ApikeyRequest_Received') {
+        return true
+    }
+
     // Request form route, guard with modal
-    if (from.name === 'ApikeyRequest_Research' || from.name === 'ApikeyRequest_Passcode') {
+    if (from.name === 'ApikeyRequest_Academic' || from.name === 'ApikeyRequest_Passcode') {
         if (routeGuardDestination === null) {
             routeGuardDestination = to
             cancelModalState.value = true
@@ -228,6 +242,7 @@ router.beforeEach((to, from) => {
 })
 
 async function submitForm() {
+    $externalResults.value = {}
     if (!await v$.value.$validate()) {
         return
     }
@@ -246,26 +261,15 @@ async function submitForm() {
         }
     }
 
-    try {
-        const response = await axios(requestOptions)
-        updateReqToken(response.headers['x-token'])
-        console.log(response.data)
-    } catch (ex) {
-    //     if (ex.code === 'ECONNABORTED') {
-    //         error.value = 'Search took too long (Timeout).'
-    //     } else if (ex.response.status === 403 && location.hash !== '#reload') {
-    //         // Probably a CSRF token error, try to refresh page
-    //         location.hash = 'reload'
-    //         location.reload()
-    //     } else if (ex.response.status !== 200) {
-    //         error.value = `${ex.response.status} ${ex.response.statusText}`
-    //     }
-    //     return new Promise(() => {})
-    // } finally {
-    //     requestProgress.value = 100
-    //     if (resultsElement.value) {
-    //         resultsElement.value.classList.remove('opacity-50', 'pointer-events-none')
-    //     }
+    const response = await axios(requestOptions)
+    updateReqToken(response.headers['x-token'])
+
+    if (!response.data.valid) {
+        Object.keys(response.data.errors).forEach((k) => {
+            $externalResults.value[k] = response.data.errors[k].map((e) => e.message.replace(/\.$/, ''))
+        })
+    } else {
+        await router.push({name: 'ApikeyRequest_Received', params: {message: response.data.message}})
     }
 }
 </script>

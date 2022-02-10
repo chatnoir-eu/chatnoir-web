@@ -15,7 +15,6 @@
 
 from django.conf import settings
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
-from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods, require_safe
 
@@ -44,7 +43,7 @@ def cache(request):
 
 
 @require_http_methods(['POST'])
-@time_limited_csrf
+@time_limited_csrf()
 def search(request):
     query_string = request.GET.get('q')
 
@@ -63,5 +62,4 @@ def search(request):
     search.explain = bool_param_set('explain', request.GET)
     serp_context = search.search(query_string)
 
-    return JsonResponse(serp_context.to_dict(hits=True, meta=True, meta_extra=True),
-                        headers={settings.CSRF_HEADER_SET_NAME: get_token(request)})
+    return JsonResponse(serp_context.to_dict(hits=True, meta=True, meta_extra=True))
