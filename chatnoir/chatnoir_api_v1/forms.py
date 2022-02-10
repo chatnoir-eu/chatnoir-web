@@ -79,13 +79,3 @@ class KeyRequestForm(forms.ModelForm):
                 self.add_error('comments', ValidationError(_('Please describe your use case.'), 'required'))
 
         return cleaned_data
-
-    def update_instance(self, instance, activation_code):
-        instance.activation_code = activation_code
-        instance.organization = self.cleaned_data.get('organization', '')
-        instance.address = self.cleaned_data.get('address', '')
-        instance.zip_code = self.cleaned_data.get('zip_code', '')
-        instance.state = self.cleaned_data.get('state', '')
-        instance.country = self.cleaned_data.get('country', '')
-        instance.comments = self.cleaned_data.get('comments', '')
-        instance.save()

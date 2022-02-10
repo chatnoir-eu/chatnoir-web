@@ -17,6 +17,7 @@ import uuid
 import secrets
 
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 from django.utils.html import mark_safe
@@ -258,6 +259,7 @@ class PendingApiUser(models.Model):
                                        default=generate_apikey, primary_key=True)
     passcode = models.ForeignKey(ApiKeyPasscode, verbose_name=_('Passcode'), on_delete=models.CASCADE,
                                  null=True, blank=True)
+    issue_key = models.ForeignKey(ApiKey, verbose_name=_('Issue Key'), on_delete=models.CASCADE, null=True, blank=True)
     common_name = models.CharField(verbose_name=_('Common Name'), max_length=100)
     email = models.EmailField(verbose_name=_('Email Address'), max_length=200)
     organization = models.CharField(verbose_name=_('Organization'), max_length=100, null=True, blank=True)
@@ -266,43 +268,55 @@ class PendingApiUser(models.Model):
     state = models.CharField(verbose_name=_('State'), max_length=50, null=True, blank=True)
     country = models.CharField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
     comments = models.TextField(verbose_name=_('Comments'), max_length=200, null=True, blank=True)
+    email_verified = models.BooleanField(verbose_name=_('Email verified'), default=False)
+
+    def activate(self):
+        """
+        Activate pending user.
+        """
+        try:
+            with transaction.atomic():
+                user, _ = ApiUser.objects.update_or_create(
+                    email=self.email,
+                    defaults=dict(
+                        common_name=self.common_name,
+                        organization=self.organization,
+                        address=self.address,
+                        zip_code=self.zip_code,
+                        state=self.state,
+                        country=self.country,
+                    )
+                )
+                issue_key = self.issue_key
+                if self.passcode:
+                    issue_key = self.passcode.issue_key
+                api_key = ApiKey(api_key=generate_apikey(), parent=issue_key, user=user)
+                api_key.save()
+                if self.passcode:
+                    redemption = PasscodeRedemption(api_key=api_key, passcode=self.passcode)
+                    redemption.save()
+                self.delete()
+            return user, api_key
+        except IntegrityError as e:
+            logger.error('Error activating user %s (%s):', self.common_name, self.email)
+            logger.exception(e)
+            return None
 
     @staticmethod
     def activate_by_code(activation_code: str):
         """
         :param activation_code: activation code
-        :return: activated user or False if activation code does not exist
+        :raise ValidationError: if user has no passcode, email is not verified, or user does not exist
+        :return: activated user
         """
         try:
             pending_user = PendingApiUser.objects.get(activation_code=activation_code)
             if not pending_user.passcode:
-                logger.error('Pending user %s (%s) has no associated passcode.',
-                             pending_user.common_name, pending_user.email)
-                return None
+                raise ValidationError(_('User has no associated passcode.'))
+            if not pending_user.email_verified:
+                raise ValidationError(_('Email address not verified.'))
+
+            return pending_user.activate()
 
         except PendingApiUser.DoesNotExist:
-            return None
-
-        try:
-            with transaction.atomic():
-                user, _ = ApiUser.objects.update_or_create(
-                    email=pending_user.email,
-                    defaults=dict(
-                        common_name=pending_user.common_name,
-                        organization=pending_user.organization,
-                        address=pending_user.address,
-                        zip_code=pending_user.zip_code,
-                        state=pending_user.state,
-                        country=pending_user.country,
-                    )
-                )
-                api_key = ApiKey(api_key=generate_apikey(), parent=pending_user.passcode.issue_key, user=user)
-                api_key.save()
-                redemption = PasscodeRedemption(api_key=api_key, passcode=pending_user.passcode)
-                redemption.save()
-                pending_user.delete()
-            return user, api_key
-        except IntegrityError as e:
-            logger.error('Error activating user %s (%s):', pending_user.common_name, pending_user.email)
-            logger.exception(e)
-            return None
+            raise ValidationError(_('User does not exist.'))

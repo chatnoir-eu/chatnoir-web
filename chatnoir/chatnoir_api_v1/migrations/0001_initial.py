@@ -10,9 +10,6 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
-
     operations = [
         migrations.CreateModel(
             name='ApiKey',
@@ -96,7 +93,9 @@ class Migration(migrations.Migration):
                 ('state', models.CharField(blank=True, max_length=50, null=True, verbose_name='State')),
                 ('country', models.CharField(blank=True, max_length=50, null=True, verbose_name='Country')),
                 ('passcode', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='chatnoir_api_v1.apikeypasscode', verbose_name='Passcode')),
+                ('issue_key', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='chatnoir_api_v1.apikey', verbose_name='Issue Key')),
                 ('comments', models.TextField(blank=True, max_length=200, null=True, verbose_name='Comments')),
+                ('email_verified', models.BooleanField(default=False, verbose_name='Email verified'),)
             ],
             options={
                 'verbose_name': 'Pending API User',
@@ -117,3 +116,6 @@ class Migration(migrations.Migration):
             },
         ),
     ]
+    dependencies = [
+    ]
+

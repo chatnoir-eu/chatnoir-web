@@ -341,15 +341,24 @@ def _management_request(request, passcode):
             'errors': form.errors.get_json_data()
         })
 
-    activation_code = get_random_string(length=36)
     try:
-        instance = PendingApiUser.objects.get(email=form.cleaned_data['email'],
-                                              passcode=form.cleaned_data['passcode'])
-        form.update_instance(instance, activation_code)
+        if passcode:
+            PendingApiUser.objects.get(email=form.cleaned_data['email'], passcode=form.cleaned_data['passcode'])
+        else:
+            PendingApiUser.objects.get(email=form.cleaned_data['email'])
+
+        form.add_error('email', ValidationError('API key request for user already submitted.', 'duplicate'))
+        return JsonResponse({
+            'valid': False,
+            'errors': form.errors.get_json_data()
+        })
     except PendingApiUser.DoesNotExist:
-        instance = form.save(commit=False)
-        instance.activation_code = activation_code
-        instance.save()
+        pass
+
+    activation_code = get_random_string(length=36)
+    instance = form.save(commit=False)
+    instance.activation_code = activation_code
+    instance.save()
 
     # mail_context = {
     #     'activation_code': activation_code
