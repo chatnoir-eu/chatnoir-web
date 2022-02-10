@@ -40,8 +40,8 @@ class Migration(migrations.Migration):
                 ('issue_key', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='chatnoir_api_v1.apikey', verbose_name='Issue Key')),
             ],
             options={
-                'verbose_name': 'API Key Passcode',
-                'verbose_name_plural': 'API Key Passcodes',
+                'verbose_name': 'API Passcode',
+                'verbose_name_plural': 'API Passcodes',
             },
         ),
         migrations.CreateModel(
@@ -113,6 +113,8 @@ class Migration(migrations.Migration):
             ],
             options={
                 'unique_together': {('api_key', 'passcode')},
+                'verbose_name': 'API Passcode Redemption Log',
+                'verbose_name_plural': 'API Passcode Redemption Log',
             },
         ),
     ]

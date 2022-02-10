@@ -128,8 +128,19 @@ class ApiKeyPasscodeAdmin(admin.ModelAdmin):
     autocomplete_fields = ('issue_key',)
 
 
+class ApiKeyPasscodeRedemptionAdmin(admin.ModelAdmin):
+    list_display = ('api_key', 'redemption_date', 'passcode')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(ApiUser, ApiUserAdmin)
 admin.site.register(ApiKeyRole, ApiKeyRoleAdmin)
 admin.site.register(ApiKeyPasscode, ApiKeyPasscodeAdmin)
+admin.site.register(PasscodeRedemption, ApiKeyPasscodeRedemptionAdmin)
 admin.site.register(PendingApiUser, PendingApiUserAdmin)

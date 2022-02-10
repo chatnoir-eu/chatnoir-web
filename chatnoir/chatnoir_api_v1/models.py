@@ -223,8 +223,8 @@ class ApiKeyPasscode(models.Model):
     API key issue pass codes.
     """
     class Meta:
-        verbose_name = _('API Key Passcode')
-        verbose_name_plural = _('API Key Passcodes')
+        verbose_name = _('API Passcode')
+        verbose_name_plural = _('API Passcodes')
 
     issue_key = models.ForeignKey(ApiKey, verbose_name=_('Issue Key'), on_delete=models.CASCADE)
     passcode = models.CharField(verbose_name=_('Passcode'), max_length=100, unique=True)
@@ -240,6 +240,8 @@ class PasscodeRedemption(models.Model):
     """
     class Meta:
         unique_together = ('api_key', 'passcode')
+        verbose_name = _('API Passcode Redemption Log')
+        verbose_name_plural = _('API Passcode Redemption Log')
 
     api_key = models.ForeignKey(ApiKey, on_delete=models.CASCADE)
     redemption_date = models.DateTimeField(default=timezone.now)
