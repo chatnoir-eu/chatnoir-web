@@ -30,7 +30,6 @@ CSRF_MAX_TOKEN_AGE = 5 * 60
 INSTALLED_APPS = [
     'chatnoir_web.apps.ChatnoirWebConfig',
     'chatnoir_api_v1.apps.ChatnoirApiConfig',
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -199,3 +198,8 @@ try:
    from .local_settings import *
 except ImportError:
     raise RuntimeError("Could not find local_settings.py.")
+
+
+if DEBUG:
+    # Admin GUI should be run as a separate app behind the firewall in production
+    INSTALLED_APPS.append('django.contrib.admin')

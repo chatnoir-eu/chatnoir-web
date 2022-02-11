@@ -23,9 +23,6 @@ urlpatterns = [
     path(r'', include('chatnoir_api_v1.urls', namespace='chatnoir_api'))
 ]
 
-if settings.DEBUG:
-    urlpatterns.append(path(r'admin/', admin.site.urls))
-
 handler404 = 'chatnoir_web.error_views.not_found'
 handler500 = 'chatnoir_web.error_views.server_error'
 handler403 = 'chatnoir_web.error_views.permission_denied'

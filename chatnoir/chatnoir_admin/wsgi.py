@@ -12,19 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 
-from django.conf import settings
-from django.urls import include, path
-from django.contrib import admin
+from django.core.wsgi import get_wsgi_application
 
-app_name = 'chatnoir'
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chatnoir_admin.settings")
+os.environ.setdefault("CHATNOIR_SETTINGS_MODULE", "chatnoir.settings")
 
-urlpatterns = [
-    path(r'', include('chatnoir_web.urls', namespace='chatnoir_web')),
-    path(r'', include('chatnoir_api_v1.urls', namespace='chatnoir_api'))
-]
-
-handler404 = 'chatnoir_web.error_views.not_found'
-handler500 = 'chatnoir_web.error_views.server_error'
-handler403 = 'chatnoir_web.error_views.permission_denied'
-handler400 = 'chatnoir_web.error_views.bad_request'
+application = get_wsgi_application()

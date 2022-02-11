@@ -14,17 +14,14 @@
 
 
 from django.conf import settings
-from django.urls import include, path
+from django.urls import path
 from django.contrib import admin
 
-app_name = 'chatnoir'
+app_name = 'chatnoir_admin'
 
 urlpatterns = [
-    path(r'', include('chatnoir_web.urls', namespace='chatnoir_web')),
-    path(r'', include('chatnoir_api_v1.urls', namespace='chatnoir_api'))
+    path(r'', admin.site.urls)
 ]
 
-handler404 = 'chatnoir_web.error_views.not_found'
-handler500 = 'chatnoir_web.error_views.server_error'
-handler403 = 'chatnoir_web.error_views.permission_denied'
-handler400 = 'chatnoir_web.error_views.bad_request'
+admin.site.site_url = getattr(settings, 'SITE_URL', None)
+admin.site.site_header = f'{settings.APPLICATION_NAME} Admin Panel'
