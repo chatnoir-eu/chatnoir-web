@@ -19,11 +19,9 @@
     <search-header v-model="searchHeaderModel" @submit="redirectSearch()" :progress="requestProgress" />
 
     <div class="max-w-3xl mx-auto mt-10">
-        <h1 v-if="$route.name === 'ApikeyRequest_Received'" class="text-2xl font-bold my-3">Thank you!</h1>
-        <h1 v-else-if="$route.name === 'ApikeyRequest_Verified'" class="text-2xl font-bold my-3">Email verified</h1>
-        <h1 v-else class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
-
         <div v-if="$route.name === 'ApikeyRequest'">
+            <h1 class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
+
             <p class="my-3">Purr&hellip; Thank you for your interest in ChatNoir, we are glad to see you here!</p>
             <p class="my-3">
                 We offer free API keys for members of verified research institutes. If you qualify for a free API key, you can
@@ -41,6 +39,8 @@
         </div>
 
         <div v-else-if="$route.name === 'ApikeyRequest_Academic' || $route.name === 'ApikeyRequest_Passcode'">
+            <h1 class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
+
             <div v-if="isAcademic()">
                 <p class="my-3">
                     We offer free API keys for members of verified research institutes for academic use.
@@ -106,14 +106,34 @@
         </div>
 
         <div v-else-if="$route.name === 'ApikeyRequest_Received'">
+            <h1 class="text-2xl font-bold my-3">Thank you!</h1>
             <p class="my-3">
                 {{ $route.params.message }}
             </p>
         </div>
 
         <div v-else-if="$route.name === 'ApikeyRequest_Verified'">
-            <p class="my-3">Thanks! Your email has been verified.</p>
-            <p class="my-3">Thanks! Your email has been verified.</p>
+            <div v-if="$route.query.success !== undefined">
+                <h1 class="text-2xl font-bold my-3">Email verified</h1>
+                <p class="my-3">Thanks! Your email has been verified.</p>
+                <p v-if="$route.query.passcode !== undefined">
+                    Your new API key has been sent to you by email. If you do not receive a message within the next few
+                    minutes, please check your spam folder.
+                </p>
+                <p v-else>
+                    We have received your API key request and will review it within the next few days.
+                </p>
+            </div>
+            <div v-else-if="$route.query.already_verified !== undefined">
+                <h1 class="text-2xl font-bold my-3">No need :-)</h1>
+                <p class="my-3">Your email address has been verified already.</p>
+            </div>
+            <div v-else>
+                <h1 class="text-2xl font-bold my-3">Error!</h1>
+                <p class="my-3">
+                    Your email address could not be verified<span v-if="$route.query.error"> ({{ $route.query.error }})</span>.
+                </p>
+            </div>
         </div>
     </div>
 
@@ -226,6 +246,10 @@ onMounted(() => {
         formNameField.value.focus()
     }
     routeGuardDestination = null
+
+    if (route.name === 'ApikeyRequest_Received' && !route.params.message) {
+        router.push({name: 'ApikeyRequest'})
+    }
 })
 
 router.beforeEach((to, from) => {
@@ -275,7 +299,7 @@ async function submitForm() {
             $externalResults.value[k] = response.data.errors[k].map((e) => e.message.replace(/\.$/, ''))
         })
     } else {
-        // await router.push({name: 'ApikeyRequest_Received', params: {message: response.data.message}})
+        await router.push({name: 'ApikeyRequest_Received', params: {message: response.data.message}})
     }
 }
 </script>

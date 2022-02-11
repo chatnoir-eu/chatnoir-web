@@ -4,8 +4,7 @@ DEBUG = True
 
 # Configure email backend
 EMAIL_HOST = 'localhost'
-EMAIL_SENDER_ADDRESS = 'no-reply@localhost'
-APIKEY_REQUEST_NOTIFY_EMAIL = 'janek.bevendorff@uni-weimar.de'
+SERVER_EMAIL = 'no-reply@localhost'
 
 # Configure managers to receive notifications about pending API requests
 MANAGERS = [

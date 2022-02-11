@@ -14,13 +14,13 @@
 
 import os
 
-from django.conf import settings
 from django.contrib import admin, messages
 from django.db.models import Q
 from django.forms import ModelForm, TextInput
 from django.utils.translation import gettext_lazy as _, ngettext
 
 from .models import *
+from .forms import PendingApiUserAdminForm
 
 
 _keycreate_roles = (settings.API_ADMIN_ROLE, settings.API_KEY_CREATE_ROLE)
@@ -100,7 +100,30 @@ class PendingApiUserAdmin(admin.ModelAdmin):
     autocomplete_fields = ('passcode', 'issue_key')
     actions = ['activate_pending_user', 'activate_pending_user_and_send_mail']
 
-    @admin.action(description=_('Activate selected API Users'))
+    form = PendingApiUserAdminForm
+    fieldsets = (
+        (_('User details:'), {'fields': (
+            'common_name',
+            'email',
+            'email_verified',
+            'issue_key',
+            'passcode',
+            'organization',
+            'address',
+            'zip_code',
+            'state',
+            'country',
+            'comments')
+        }),
+        (_('Approve or deny API key request:'), {
+            'fields': (
+                'activate_user',
+                ('deny_request', 'confirm_denial'))
+        })
+    )
+    readonly_fields = ['email_verified']
+
+    @admin.action(description=_('Activate selected API Users and notify by email'))
     def activate_pending_user(self, request, queryset, send_emails=False):
         successful = 0
         for user in queryset:
@@ -116,9 +139,30 @@ class PendingApiUserAdmin(admin.ModelAdmin):
                                                 '%s users successfully activated.',
                                                 successful) % successful, messages.SUCCESS)
 
-    @admin.action(description=_('Activate selected API Users and notify by email'))
-    def activate_pending_user_and_send_mail(self, request, queryset):
-        self.activate_pending_user(request, queryset, send_emails=True)
+    def save_model(self, request, obj, form, change):
+        if change:
+            if form.cleaned_data.get('activate_user'):
+                obj.activate(send_email=True)
+                return
+
+            deny_reason = form.cleaned_data.get('deny_request')
+            if deny_reason:
+                if deny_reason == 'academic-status':
+                    deny_reason = _('We could not verify your academic status. If you are indeed affiliated with '
+                                    'an academic institute, please re-apply with more information. You are also '
+                                    'welcome to apply again whenever your academic status changes.')
+                elif deny_reason == 'already-issued':
+                    deny_reason = _('An API key has already been issued to this user. If you lost your key and need '
+                                    'a new one please contact us directly.')
+                elif deny_reason == 'applications-suspended':
+                    deny_reason = _('We are not accepting new applications at the time. Please apply again later.')
+                else:
+                    deny_reason = 'No reason given'
+
+                obj.delete(email_reason=deny_reason)
+                return
+
+        super().save_model(request, obj, form, change)
 
 
 class ApiKeyRoleAdmin(admin.ModelAdmin):

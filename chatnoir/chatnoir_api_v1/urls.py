@@ -40,6 +40,7 @@ urlpatterns = [
     path(r'apikey/', views.apikey_request_index, name='apikey_request_index'),
     path(r'apikey/request_academic', views.apikey_request_academic, name='apikey_request_academic'),
     path(r'apikey/request_passcode', views.apikey_request_passcode, name='apikey_request_passcode'),
-    path(r'apikey/verify/<slug:activation_code>', views.apikey_request_verify, name='apikey_request_verify'),
     path(r'apikey/request_received', views.apikey_request_index, name='request_received'),
+    path(r'apikey/verify/', views.apikey_request_verify_index, name='apikey_request_verify_index'),
+    path(r'apikey/verify/<slug:activation_code>', views.apikey_request_verify, name='apikey_request_verify'),
 ]

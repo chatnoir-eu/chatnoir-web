@@ -14,7 +14,6 @@
 
 from concurrent.futures import ThreadPoolExecutor
 import logging
-import secrets
 import uuid
 
 from django.conf import settings
@@ -32,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_apikey():
-    return secrets.token_urlsafe(16)
+    return get_random_string(32)
 
 
 class ApiUser(models.Model):
@@ -311,11 +310,42 @@ class PendingApiUser(models.Model):
         mail = EmailMultiAlternatives(
             _('Complete your %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
             mail_content_plain,
-            f'{settings.APPLICATION_NAME} <{settings.EMAIL_SENDER_ADDRESS}>',
+            f'{settings.APPLICATION_NAME} <{settings.SERVER_EMAIL}>',
             [self.email]
         )
         mail.attach_alternative(mail_content_html, 'text/html')
         SEND_MAIL_EXECUTOR.submit(mail.send)
+
+    def delete(self, using=None, keep_parents=False, email_reason=None):
+        """
+        Delete pending API user.
+
+        If you are deleting the user without migrating them to a permanent API user, you
+        can specify a reason which will be emailed to the user to inform them why their
+        API key request was denied.
+
+        :param using: DB alias
+        :param keep_parents: keep parent model's data
+        :param email_reason: if set, user will be notified by email with this reason phrase
+        """
+        if email_reason:
+            mail_context = {
+                'app_name': settings.APPLICATION_NAME,
+                'common_name': self.common_name,
+                'reason': email_reason
+            }
+            mail_content_plain = render_to_string('email/apikey_denied.txt', mail_context)
+            mail_content_html = render_to_string('email/apikey_denied.html', mail_context)
+            mail = EmailMultiAlternatives(
+                _('Your %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
+                mail_content_plain,
+                f'{settings.APPLICATION_NAME} <{settings.SERVER_EMAIL}>',
+                [self.email]
+            )
+            mail.attach_alternative(mail_content_html, 'text/html')
+            SEND_MAIL_EXECUTOR.submit(mail.send)
+
+        return super().delete(using, keep_parents)
 
     @staticmethod
     def verify_email_by_activation_code(activation_code):
@@ -326,7 +356,7 @@ class PendingApiUser(models.Model):
         activated (this has to be done explicitly with :meth:`activate`).
 
         :param activation_code: the user's activation code
-        :return: the pending user model on success or False if code is invalid or email already activated
+        :return: the pending user model on success or `None` if code is invalid or `False` email already activated
         """
         try:
             pending_user = PendingApiUser.objects.get(activation_code=activation_code)
@@ -340,7 +370,7 @@ class PendingApiUser(models.Model):
             return pending_user
 
         except PendingApiUser.DoesNotExist:
-            return False
+            return None
 
     def activate(self, send_email=False):
         """
@@ -366,10 +396,10 @@ class PendingApiUser(models.Model):
                     issue_key = self.passcode.issue_key
                 api_key = ApiKey(api_key=generate_apikey(), parent=issue_key, user=user)
                 api_key.save()
-                if self.passcode:
+                if self.passcode and not self.issue_key:
                     redemption = PasscodeRedemption(api_key=api_key, passcode=self.passcode)
                     redemption.save()
-                # self.delete()
+                self.delete()
 
             if send_email:
                 mail_context = {
@@ -382,7 +412,7 @@ class PendingApiUser(models.Model):
                 mail = EmailMultiAlternatives(
                     _('Your %(appname)s API key') % {'appname': settings.APPLICATION_NAME},
                     mail_content_plain,
-                    f'{settings.APPLICATION_NAME} <{settings.EMAIL_SENDER_ADDRESS}>',
+                    f'{settings.APPLICATION_NAME} <{settings.SERVER_EMAIL}>',
                     [user.email]
                 )
                 mail.attach_alternative(mail_content_html, 'text/html')

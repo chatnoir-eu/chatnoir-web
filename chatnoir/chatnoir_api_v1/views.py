@@ -14,11 +14,11 @@
 
 from django.core.mail import mail_managers
 from django.http import JsonResponse, Http404
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
-from rest_framework import routers, viewsets
+from rest_framework import routers, viewsets, exceptions as rest_exceptions
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
 
@@ -49,7 +49,10 @@ def api_exception_handler(exc, _):
 
 
 def bool_param_set(name, request_params):
-    return ImplicitBooleanField().to_internal_value(request_params.get(name, False))
+    try:
+        return ImplicitBooleanField().to_internal_value(request_params.get(name, False))
+    except rest_exceptions.ValidationError:
+        return False
 
 
 class APIRoot(routers.APIRootView):
@@ -367,16 +370,24 @@ def _apikey_request(request, passcode):
     })
 
 
+def apikey_request_verify_index(request):
+    """User email verification view (default index)."""
+    return render(request, 'index.html')
+
+
 def apikey_request_verify(request, activation_code):
     """User email verification view."""
+
     if not activation_code:
         raise Http404
 
-    return render(request, 'index.html')
     user = PendingApiUser.verify_email_by_activation_code(activation_code)
-
-    if not user:
-        raise Http404
+    if user is None:
+        # Invalid code
+        return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?error=invalid+code')
+    if user is False:
+        # Already activated
+        return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?already_verified')
 
     # Activate user instantly if they have a passcode, otherwise notify managers
     if user.passcode:
@@ -392,4 +403,7 @@ def apikey_request_verify(request, activation_code):
                                   fail_silently=True
         )
 
-    return render(request, 'index.html')
+    query_string = f'?success'
+    if user.passcode:
+        query_string += '&passcode'
+    return redirect(reverse('chatnoir_api:apikey_request_verify_index') + query_string)

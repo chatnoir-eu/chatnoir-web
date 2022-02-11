@@ -79,3 +79,33 @@ class KeyRequestForm(forms.ModelForm):
                 self.add_error('comments', ValidationError(_('Please describe your use case.'), 'required'))
 
         return cleaned_data
+
+
+class PendingApiUserAdminForm(forms.ModelForm):
+    class Meta:
+        model = PendingApiUser
+        exclude = []
+
+    activate_user = forms.BooleanField(label=_('Activate user and notify by email'), required=False)
+    deny_request = forms.ChoiceField(label=_('Deny request with reason:'), required=False, choices=(
+        ('', ''),
+        ('academic-status', _('Could not verify academic affiliation')),
+        ('already-issued', _('API key already issued to user')),
+        ('applications-suspended', _('New applications temporarily suspended'))
+    ))
+    confirm_denial = forms.BooleanField(label=_('Confirm denial'), required=False)
+
+    def clean(self):
+        if self.cleaned_data.get('activate_user') and (
+                self.cleaned_data.get('deny_request') or self.cleaned_data.get('confirm_denial')):
+            self.add_error('activate_user', _('Cannot approve and deny request at the same time'))
+        elif self.cleaned_data.get('deny_request') and not self.cleaned_data.get('confirm_denial'):
+            self.add_error('confirm_denial', _('Check to confirm API key request denial'))
+        elif self.cleaned_data.get('confirm_denial') and not self.cleaned_data.get('deny_request'):
+            self.add_error('confirm_denial', _('You must select a reason'))
+
+        if self.cleaned_data.get('activate_user') and not \
+                self.cleaned_data.get('issue_key') and not self.cleaned_data.get('passcode'):
+            self.add_error('issue_key', _('API user must be assigned either an issue key or a passcode.'))
+
+        return super().clean()

@@ -134,6 +134,8 @@ USE_TZ = True
 USE_THOUSAND_SEPARATOR = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_SUBJECT_PREFIX = ''
+SERVER_EMAIL = 'no-reply@localhost'
 
 # ChatNoir notification email sender address
 EMAIL_SENDER_ADDRESS = 'no-reply@localhost'
