@@ -14,14 +14,32 @@ def init_root_api_key(apps, schema_editor):
         for role in settings.API_NOLOG_ROLES:
             ApiKeyRole(role=role).save()
 
+        # Root user
         ApiUser = apps.get_model('chatnoir_api_v1', 'ApiUser')
-        api_user = ApiUser(common_name=_('API ROOT'), email='root@localhost')
+        api_user = ApiUser(common_name=_('ROOT'), email='root@localhost')
         api_user.save()
 
+        # API root key
         ApiKey = apps.get_model('chatnoir_api_v1', 'ApiKey')
-        api_key = ApiKey(user=api_user, allowed_remote_hosts='127.0.0.1,::1')
-        api_key.save()
-        api_key.roles.add(admin_role)
+        root_key = ApiKey(user=api_user,
+                          allowed_remote_hosts='127.0.0.1,::1',
+                          comment=_('ROOT KEY'))
+        root_key.save()
+        root_key.roles.add(admin_role)
+
+        # Default issue key
+        default_limit = 10000
+        keycreate_role = ApiKeyRole(role=settings.API_KEY_CREATE_ROLE)
+        keycreate_role.save()
+        default_key = ApiKey(user=api_user,
+                             allowed_remote_hosts='127.0.0.1,::1',
+                             parent=root_key,
+                             limits_day=default_limit,
+                             limits_week=default_limit * 7,
+                             limits_month=default_limit * 30,
+                             comment=_('DEFAULT ISSUE KEY'))
+        default_key.save()
+        default_key.roles.add(admin_role)
 
 
 def create_cache_table(apps, schema_editor):
