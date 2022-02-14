@@ -79,12 +79,12 @@
 }
 
 @layer components {
-    .btn, .text-field, .chk, .radio {
+    .btn, .text-field, .chk, .radio, .select {
         @apply shadow-sm;
         @apply outline-none;
     }
 
-    .btn, .text-field {
+    .btn, .text-field, .select {
         @apply border border-gray-300 rounded-md;
         @apply px-4 py-1;
         @apply bg-white;
@@ -100,7 +100,16 @@
         }
     }
 
-    .text-field {
+    .select {
+        @apply py-1.5;
+    }
+
+    .select option {
+        @apply border-gray-500;
+        @apply py-1;
+    }
+
+    .text-field, .select {
         @apply shadow-inner;
 
         &:hover, &:focus {
@@ -108,7 +117,7 @@
         }
     }
 
-    .text-field:focus {
+    .text-field:focus, .select:focus {
         @apply border-red-100;
     }
 

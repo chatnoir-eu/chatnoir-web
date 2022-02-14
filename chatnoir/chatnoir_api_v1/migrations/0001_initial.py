@@ -2,8 +2,8 @@
 
 import chatnoir_api_v1.models
 from django.db import migrations, models
-import django.db.models.deletion
 import django.utils.timezone
+import django_countries.fields
 
 
 class Migration(migrations.Migration):
@@ -64,7 +64,7 @@ class Migration(migrations.Migration):
                 ('address', models.CharField(blank=True, max_length=200, null=True, verbose_name='Address')),
                 ('zip_code', models.CharField(blank=True, max_length=50, null=True, verbose_name='ZIP Code')),
                 ('state', models.CharField(blank=True, max_length=50, null=True, verbose_name='State')),
-                ('country', models.CharField(blank=True, max_length=50, null=True, verbose_name='Country')),
+                ('country', django_countries.fields.CountryField(blank=True, max_length=50, null=True, verbose_name='Country')),
             ],
             options={
                 'verbose_name': 'API User',
@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
                 ('address', models.CharField(blank=True, max_length=200, null=True, verbose_name='Address')),
                 ('zip_code', models.CharField(blank=True, max_length=50, null=True, verbose_name='ZIP Code')),
                 ('state', models.CharField(blank=True, max_length=50, null=True, verbose_name='State')),
-                ('country', models.CharField(blank=True, max_length=50, null=True, verbose_name='Country')),
+                ('country', django_countries.fields.CountryField(blank=True, max_length=50, null=True, verbose_name='Country')),
                 ('passcode', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='chatnoir_api_v1.apikeypasscode', verbose_name='Passcode')),
                 ('issue_key', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='chatnoir_api_v1.apikey', verbose_name='Issue Key')),
                 ('comments', models.TextField(blank=True, max_length=200, null=True, verbose_name='Comments')),

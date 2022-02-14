@@ -25,6 +25,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
+from django_countries.fields import CountryField
 
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ class ApiUser(models.Model):
     address = models.CharField(verbose_name=_('Address'), max_length=200, null=True, blank=True)
     zip_code = models.CharField(verbose_name=_('ZIP Code'), max_length=50, null=True, blank=True)
     state = models.CharField(verbose_name=_('State'), max_length=50, null=True, blank=True)
-    country = models.CharField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
+    country = CountryField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
 
     def __str__(self):
         return '{0} ({1})'.format(self.common_name, self.email)
@@ -274,7 +275,7 @@ class PendingApiUser(models.Model):
     address = models.CharField(verbose_name=_('Address'), max_length=200, null=True, blank=True)
     zip_code = models.CharField(verbose_name=_('ZIP Code'), max_length=50, null=True, blank=True)
     state = models.CharField(verbose_name=_('State'), max_length=50, null=True, blank=True)
-    country = models.CharField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
+    country = CountryField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
     comments = models.TextField(verbose_name=_('Comments'), max_length=200, null=True, blank=True)
     email_verified = models.BooleanField(verbose_name=_('Email verified'), default=False)
 

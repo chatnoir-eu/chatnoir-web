@@ -80,10 +80,10 @@
                             placeholder="Academic institute (full name)" :validator="v$.organization" class="my-3 mb-10" />
                 <form-field v-else v-model="form.organization" label="Organization" name="organization" class="my-3 mt-10" />
 
-                <form-field v-model="form.address" label="Postal address" name="address" />
-                <form-field v-model="form.zip_code" label="ZIP code" name="zip_code" />
-                <form-field v-model="form.state" label="Federal State" name="state" />
-                <form-field v-model="form.country" label="Country" name="country" />
+                <form-field v-model="form.address" :validator="v$.address" label="Postal address" name="address" />
+                <form-field v-model="form.zip_code" :validator="v$.zip_code" label="ZIP code" name="zip_code" />
+                <form-field v-model="form.state" :validator="v$.state" label="Federal State" name="state" />
+                <form-field-country v-model="form.country" :validator="v$.country" label="Country" name="country" type="select" />
 
                 <form-field v-if="isAcademic()" v-model="form.comments"
                             label="What will you use the API key for?" name="comments" type="textarea" class="my-3 mt-10"
@@ -157,12 +157,13 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useVuelidate from '@vuelidate/core'
 import axios from 'axios'
-import { email, helpers, required, sameAs } from '@vuelidate/validators'
+import { email, helpers, required, requiredIf, sameAs } from '@vuelidate/validators'
 
 import SearchHeader from '@/components/SearchHeader'
 import ModalDialog from '@/components/ModalDialog'
 import { SearchModel } from '@/search-model'
 import FormField from '@/components/FormField'
+import FormFieldCountry from '@/components/FormFieldCountry'
 import { getReqToken, updateReqToken } from '@/common'
 
 const router = useRouter()
@@ -174,6 +175,11 @@ const cancelModalState = ref(false)
 const requestProgress = ref(0)
 
 let routeGuardDestination = null
+
+const countryOptions = [
+    {value: 'A', text: 'Hello'},
+    {value: 'B', text: 'World'}
+]
 
 const requestFormRef = ref(null)
 const form = reactive({
@@ -193,20 +199,17 @@ const serverResponseMessage = ref('')
 
 const rules = computed(() => {
     const tos = helpers.withMessage('You must accept the Terms of Service', sameAs(true))
-    if (isAcademic()) {
-        return {
-            commonName: {required},
-            email: {required, email},
-            organization: {required},
-            comments: {required},
-            tosAccepted: {required: tos},
-        }
-    }
     return {
         commonName: {required},
         email: {required, email},
-        passcode: {required},
+        address: {_: () => true},   // stub validator, otherwise `null` will be passed to <form-field />
+        zip_code: {_: () => true},
+        state: {_: () => true},
+        country: {_: () => true},
+        organization: {required: requiredIf(isAcademic)},
+        comments: {required: requiredIf(isAcademic)},
         tosAccepted: {required: tos},
+        passcode: {required: requiredIf(() => !isAcademic())},
     }
 })
 const v$ = useVuelidate(rules, form, {$externalResults})

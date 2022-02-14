@@ -13,9 +13,7 @@
 # limitations under the License.
 
 
-from django.conf import settings
 from django.urls import include, path
-from django.contrib import admin
 
 app_name = 'chatnoir'
 

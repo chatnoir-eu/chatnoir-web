@@ -22,7 +22,26 @@
         <span v-if="!isValid()"> ({{ errors() }})</span>
         <span v-if="isRequired()"> *</span><span v-else> (optional)</span>
     </label>
-    <input v-if="$props.type !== 'textarea'"
+    <select v-if="$props.type === 'select'"
+            :id="'form-' + $props.name"
+            v-model="model"
+            :name="$props.name"
+            :required="isRequired()"
+            class="select md:w-1/2 w-full" :class="inputCls()"
+            v-bind="$attrs"
+            @blur="touch()">
+        <option v-for="[value, text] of $props.options" :key="value" :value="value">{{ text }}</option>
+    </select>
+    <textarea v-else-if="$props.type === 'textarea'"
+              :id="'form-' + $props.name"
+              v-model="model"
+              :name="$props.name"
+              :required="isRequired()"
+              :placeholder="$props.placeholder"
+              class="text-field md:w-1/2 w-full" :class="inputCls()"
+              v-bind="$attrs"
+              @blur="touch()"></textarea>
+    <input v-else
            :id="'form-' + $props.name"
            v-model="model"
            :type="$props.type"
@@ -32,15 +51,6 @@
            class="text-field md:w-1/2 w-full" :class="inputCls()"
            v-bind="$attrs"
            @blur="touch()">
-    <textarea v-else
-              :id="'form-' + $props.name"
-              v-model="model"
-              :name="$props.name"
-              :required="isRequired()"
-              :placeholder="$props.placeholder"
-              class="text-field md:w-1/2 w-full" :class="inputCls()"
-              v-bind="$attrs"
-              @blur="touch()"></textarea>
 </div>
 <div v-else :class="$props.class">
     <div v-if="!isValid()" class="form-error text-sm">{{ errors() }}</div>
@@ -67,10 +77,11 @@ export default {
 </script>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
     modelValue: {},
+    options: {},
     type: {type: String, default: 'text'},
     name: {type: String, required: true},
     placeholder: {type: String},
@@ -79,11 +90,13 @@ const props = defineProps({
     class: {type: String, default: 'my-3'},
     validator: {type: Object, default: null},
 })
-const model = ref(null)
 
 const emit = defineEmits(['update:modelValue'])
-watch(model, (newValue) => {
-    emit('update:modelValue', newValue)
+const model = computed({
+    get: () => props.modelValue,
+    set: (value) => {
+        emit('update:modelValue', value)
+    }
 })
 
 function isTextField() {
@@ -98,7 +111,19 @@ function isValid() {
 }
 
 function isRequired() {
-    return props.validator && props.validator.required
+    if (!props.validator) {
+        return false
+    }
+    for (let r of Object.keys(props.validator)) {
+        if (r.startsWith('$')) {
+            continue
+        }
+        const p = props.validator[r]
+        if (p.$params && p.$params.type && p.$params.type.startsWith('required')) {
+            return typeof p.$params.prop === 'function' ? p.$params.prop() : true
+        }
+    }
+    return false
 }
 
 function errors() {
