@@ -14,7 +14,9 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 from .models import ApiKeyPasscode, PendingApiUser, PasscodeRedemption
 
@@ -58,7 +60,8 @@ class KeyRequestForm(forms.ModelForm):
                 return
 
             try:
-                pc = ApiKeyPasscode.objects.get(passcode=cleaned_data.get('passcode'))
+                pc = ApiKeyPasscode.objects.get(Q(passcode=cleaned_data.get('passcode')),
+                                                Q(expires__isnull=True) | Q(expires__gt=timezone.now()))
                 cleaned_data['passcode'] = pc
 
                 # check if API key for this email address / passcode combination has already been issued
