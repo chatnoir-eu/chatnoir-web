@@ -105,7 +105,7 @@
                     </span>
                 </form-field>
                 <form-field v-model="form.privacyAccepted" name="privacy_accepted" type="checkbox" :validator="v$.privacyAccepted">
-                    I agree to the <a href="https://webis.de/legal.html#privacy" target="_blank">Webis Privacy Policy</a>.
+                    I agree to the <a href="https://webis.de/legal.html#privacy" target="_blank"><strong>Webis Privacy Policy</strong></a>.
                 </form-field>
 
                 <div class="my-10">
