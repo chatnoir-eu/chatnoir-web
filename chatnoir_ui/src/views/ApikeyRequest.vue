@@ -96,13 +96,8 @@
                 <form-field v-if="!isAcademic()" v-model="form.passcode" name="passcode" class="my-3 mt-10" :validator="v$.passcode">Passcode</form-field>
 
                 <form-field v-model="form.tosAccepted" name="tos_accepted" type="checkbox" class="mt-10" :validator="v$.tosAccepted">
-                    <span v-if="isAcademic">
-                        I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the
-                        <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>.
-                    </span>
-                    <span v-else>
-                        I agree to the <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>.
-                    </span>
+                    I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the
+                    <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>.
                 </form-field>
                 <form-field v-model="form.privacyAccepted" name="privacy_accepted" type="checkbox" :validator="v$.privacyAccepted">
                     I agree to the <a href="https://webis.de/legal.html#privacy" target="_blank"><strong>Webis Privacy Policy</strong></a>.
