@@ -198,7 +198,7 @@ class ApiKey(models.Model):
     @property
     def has_expired(self):
         expires = self.resolve_inheritance('expires')
-        return expires and expires < timezone.now()
+        return expires and expires <= timezone.now()
 
     @property
     def is_revoked(self):
@@ -206,8 +206,8 @@ class ApiKey(models.Model):
 
     @property
     def is_valid(self):
-        expires_inherited = self.expires_inherited
-        return not self.is_revoked and (not expires_inherited or expires_inherited >= timezone.now())
+        expires, revoked = self.resolve_inheritance('expires', 'revoked')
+        return (not expires or expires > timezone.now()) and not revoked
 
     @property
     def is_legacy_key(self):
