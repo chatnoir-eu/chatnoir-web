@@ -16,9 +16,8 @@
 
 <template>
 <div v-if="isTextField()" :class="$props.class">
-    <label v-if="$props.label || $props.labelHtml" :for="'form-' + $props.name" class="lbl-block" :class="labelCls()">
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <span v-if="$props.labelHtml" v-html="$props.labelHtml"></span><span v-else>{{ $props.label }}</span>
+    <label v-if="$slots.default" :for="'form-' + $props.name" class="lbl-block" :class="labelCls()">
+        <slot />
         <span v-if="!isValid()"> ({{ errors() }})</span>
         <span v-if="isRequired()"> *</span><span v-else> (optional)</span>
     </label>
@@ -62,9 +61,8 @@
            :required="isRequired()"
            :class="inputCls()"
            v-bind="$attrs">
-    <label v-if="$props.label || $props.labelHtml" :for="'form-' + $props.name">
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <span v-if="$props.labelHtml" v-html="$props.labelHtml"></span><span v-else>{{ $props.label }}</span>
+    <label v-if="$slots.default" :for="'form-' + $props.name">
+        <slot />
         <span v-if="isRequired()"> *</span>
     </label>
 </div>
@@ -85,8 +83,6 @@ const props = defineProps({
     type: {type: String, default: 'text'},
     name: {type: String, required: true},
     placeholder: {type: String},
-    label: {type: String},
-    labelHtml: {type: String},
     class: {type: String, default: 'my-3'},
     validator: {type: Object, default: null},
 })
@@ -104,7 +100,7 @@ function isTextField() {
 }
 
 function isValid() {
-    if (!props.validator) {
+    if (!props.validator || !props.validator.$errors) {
         return true
     }
     return props.validator.$errors.length === 0
@@ -115,12 +111,9 @@ function isRequired() {
         return false
     }
     for (let r of Object.keys(props.validator)) {
-        if (r.startsWith('$')) {
-            continue
-        }
-        const p = props.validator[r]
-        if (p.$params && p.$params.type && p.$params.type.startsWith('required')) {
-            return typeof p.$params.prop === 'function' ? p.$params.prop() : true
+        if (r.startsWith('required')) {
+            const p = props.validator[r]
+            return (p.$params && typeof p.$params.prop === 'function') ? p.$params.prop() : true
         }
     }
     return false

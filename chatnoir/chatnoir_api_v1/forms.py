@@ -35,6 +35,7 @@ class KeyRequestForm(forms.ModelForm):
         ]
 
     tos_accepted = forms.BooleanField(required=True)
+    privacy_accepted = forms.BooleanField(required=True)
 
     def __init__(self, *args, passcode=True, **kwargs):
         super().__init__(*args, **kwargs)

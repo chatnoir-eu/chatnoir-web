@@ -70,37 +70,50 @@
             <h2 v-else class="text-lg font-bold mt-8 mb-4">API key request form (passcode):</h2>
 
             <form ref="requestFormRef" action="" method="post" novalidate class="sm:ml-1 mb-20" @submit.prevent="submitForm()">
-                <form-field v-model="form.commonName" label="Name" name="common_name" placeholder="Name which key will be issued to" :validator="v$.commonName" />
+                <form-field v-model="form.commonName" name="common_name" placeholder="Name which key will be issued to" :validator="v$.commonName">Name</form-field>
 
-                <form-field v-model="form.email" label="Email address" name="email" type="email"
-                            :placeholder="isAcademic() ? 'Email address issued by your institute' : 'Email address for sending the key'"
-                            :validator="v$.email" />
+                <form-field v-model="form.email" name="email" type="email" :validator="v$.email"
+                            :placeholder="isAcademic() ? 'Email address issued by your institute' : 'Email address for sending the key'">
+                    Email address
+                </form-field>
 
-                <form-field v-if="isAcademic()" v-model="form.organization" label="Organization" name="organization"
-                            placeholder="Academic institute (full name)" :validator="v$.organization" class="my-3 mb-10" />
-                <form-field v-else v-model="form.organization" label="Organization" name="organization" class="my-3 mt-10" />
+                <form-field v-if="isAcademic()" v-model="form.organization" name="organization" placeholder="Academic institute (full name)"
+                            :validator="v$.organization" class="my-3 mb-10">
+                    Organization
+                </form-field>
+                <form-field v-else v-model="form.organization" name="organization" class="my-3 mt-10">Organization</form-field>
 
-                <form-field v-model="form.address" :validator="v$.address" label="Postal address" name="address" />
-                <form-field v-model="form.zip_code" :validator="v$.zip_code" label="ZIP code" name="zip_code" />
-                <form-field v-model="form.state" :validator="v$.state" label="Federal State" name="state" />
-                <form-field-country v-model="form.country" :validator="v$.country" label="Country" name="country" type="select" />
+                <form-field v-model="form.address" :validator="v$.address" name="address">Postal address</form-field>
+                <form-field v-model="form.zip_code" :validator="v$.zip_code" name="zip_code">ZIP code</form-field>
+                <form-field v-model="form.state" :validator="v$.state" name="state">Federal State</form-field>
+                <form-field-country v-model="form.country" :validator="v$.country" name="country" type="select">Country</form-field-country>
 
-                <form-field v-if="isAcademic()" v-model="form.comments"
-                            label="What will you use the API key for?" name="comments" type="textarea" class="my-3 mt-10"
-                            placeholder="Please give a short description (max. 200 characters)"
-                            :validator="v$.comments" />
+                <form-field v-if="isAcademic()" v-model="form.comments" name="comments" type="textarea" class="my-3 mt-10"
+                            placeholder="Please give a short description (max. 200 characters)" :validator="v$.comments">
+                    What will you use the API key for?
+                </form-field>
 
-                <form-field v-if="!isAcademic()" v-model="form.passcode" label="Passcode" name="passcode" class="my-3 mt-10"
-                            :validator="v$.passcode" />
+                <form-field v-if="!isAcademic()" v-model="form.passcode" name="passcode" class="my-3 mt-10" :validator="v$.passcode">Passcode</form-field>
 
-                <form-field v-model="form.tosAccepted" :label-html="tosAcceptedLabel()" name="tos_accepted" type="checkbox"
-                            class="mt-10" :validator="v$.tosAccepted" />
+                <form-field v-model="form.tosAccepted" name="tos_accepted" type="checkbox" class="mt-10" :validator="v$.tosAccepted">
+                    <span v-if="isAcademic">
+                        I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the
+                        <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>.
+                    </span>
+                    <span v-else>
+                        I agree to the <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>.
+                    </span>
+                </form-field>
+                <form-field v-model="form.privacyAccepted" name="privacy_accepted" type="checkbox" :validator="v$.privacyAccepted">
+                    I agree to the <a href="https://webis.de/legal.html#privacy" target="_blank">Webis Privacy Policy</a>.
+                </form-field>
 
                 <div class="my-10">
                     <input v-if="isAcademic()"
                            type="submit" value="Request Academic API Key" class="btn input-lg primary mr-4">
                     <input v-else type="submit" value="Request API Key" class="btn input-lg primary mr-4">
                     <button class="btn input-lg" @click.prevent="cancelModalState = true">Cancel and Go Back</button>
+                    <loading-indicator v-if="requestProgress > 0" class="ml-3" />
                 </div>
             </form>
         </div>
@@ -165,6 +178,7 @@ import { SearchModel } from '@/search-model'
 import FormField from '@/components/FormField'
 import FormFieldCountry from '@/components/FormFieldCountry'
 import { getReqToken, updateReqToken } from '@/common'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 const router = useRouter()
 const route = useRoute()
@@ -192,13 +206,15 @@ const form = reactive({
     country: '',
     comments: '',
     passcode: '',
-    tosAccepted: false
+    tosAccepted: false,
+    privacyAccepted: false,
 })
 const $externalResults = ref({})
 const serverResponseMessage = ref('')
 
 const rules = computed(() => {
-    const tos = helpers.withMessage('You must accept the Terms of Service', sameAs(true))
+    const tosMsg = helpers.withMessage('You must accept the Terms of Service', sameAs(true))
+    const privacyMsg = helpers.withMessage('You must accept the Privacy Policy', sameAs(true))
     return {
         commonName: {required},
         email: {required, email},
@@ -208,7 +224,8 @@ const rules = computed(() => {
         country: {_: () => true},
         organization: {required: requiredIf(isAcademic)},
         comments: {required: requiredIf(isAcademic)},
-        tosAccepted: {required: tos},
+        tosAccepted: {required: tosMsg},
+        privacyAccepted: {required: privacyMsg},
         passcode: {required: requiredIf(() => !isAcademic())},
     }
 })
@@ -217,14 +234,6 @@ const v$ = useVuelidate(rules, form, {$externalResults})
 
 function isAcademic() {
     return route.name === 'ApikeyRequest_Academic'
-}
-
-function tosAcceptedLabel() {
-    if (isAcademic()) {
-        return 'I confirm that I will use the API key for <strong>academic purposes only</strong> and agree to the ' +
-            '<a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>'
-    }
-    return 'By requesting an API key, I agree to the <a href="https://webis.de/legal.html" target="_blank"><strong>Webis Terms of Service</strong></a>'
 }
 
 function redirectSearch() {
@@ -304,5 +313,6 @@ async function submitForm() {
     } else {
         await router.push({name: 'ApikeyRequest_Received', params: {message: response.data.message}})
     }
+    setTimeout(() => requestProgress.value = 0, 150)
 }
 </script>

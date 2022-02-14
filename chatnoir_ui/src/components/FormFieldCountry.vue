@@ -1,5 +1,5 @@
 <template>
-<form-field :options="countries" />
+<form-field :options="countries"><slot /></form-field>
 </template>
 
 <script setup>
