@@ -27,7 +27,7 @@ def validate_index_names(index_names, search_version=1):
     for i in index_names:
         if i not in settings.SEARCH_INDICES or \
                 search_version not in settings.SEARCH_INDICES[i]['compat_search_versions']:
-            raise ValidationError({'index': _('"{}" is not a valid index.').format(i)}, 'invalid_index')
+            raise ValidationError({'index': _('"%s" is not a valid index.') % i}, 'invalid_index')
 
 
 def validate_cidr_address(address):
@@ -41,7 +41,7 @@ def validate_api_role_exists(role):
     try:
         ApiKeyRole.objects.get(role=role)
     except ApiKeyRole.DoesNotExist:
-        raise ValidationError(_('Role "{}" does not exist.').format(role), 'invalid_role')
+        raise ValidationError(_('Role "%s" does not exist.') % role, 'invalid_role')
 
 
 def validate_api_key(data, no_parent_ok=False):
@@ -79,7 +79,7 @@ def validate_api_key(data, no_parent_ok=False):
         elif parent_limits[i] is not None and limits.get(lim) is not None and limits[lim] > parent_limits[i]:
             # If parent is not unlimited, key limits must be within bounds
             raise ValidationError({
-                'limits': _('Request limit for "{}" cannot exceed parent request limit.').format(lim)
+                'limits': {lim: _('Request limit for "%s" cannot exceed parent request limit.') % lim}
             }, 'limit_out_of_bounds')
 
     if data.get('expires'):
@@ -95,5 +95,5 @@ def validate_api_key(data, no_parent_ok=False):
         for role in data.get('roles', []):
             if role not in parent_roles:
                 raise ValidationError({
-                    'roles': _('Cannot assign role "{}" which you do not possess yourself.'.format(role))
+                    'roles': _('Cannot assign role "%s" which you do not possess yourself.') % role
                 }, 'invalid_role')
