@@ -19,7 +19,7 @@
     <transition name="fade" @enter="enterHandler()">
         <div v-if="modalState"
              class="fixed z-50 top-0 left-0 w-full h-full bg-black bg-opacity-50 border border-gray-700 flex items-center"
-             @click.self="cancel()" @keyup.esc="cancel()">
+             @click.self="cancel()" @keyup.enter="confirm()" @keyup.esc="cancel()">
             <section ref="modalMain" tabindex="-1" class="bg-white rounded-md -mt-28 mx-auto shadow shadow-md overscroll-auto flex flex-col outline-none">
                 <header class="h-4 flex flex-row border-b border-gray-200 rounded-t-lg bg-gray-100 mb-4 pt-4 pb-9 px-6">
                     <h2 class="flex-grow text-lg font-bold"><slot name="header" /></h2>
@@ -49,7 +49,7 @@ const modalState = ref(false)
 const props = defineProps({
     modelValue: {type: Boolean, default: false}
 })
-const emit = defineEmits(['update:modelValue', 'cancel'])
+const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
 
 watch(toRef(props, 'modelValue'), (newValue, oldValue) => {
     if (newValue === oldValue) {
@@ -64,6 +64,11 @@ watch(toRef(props, 'modelValue'), (newValue, oldValue) => {
 
 function enterHandler() {
     modalMain.value.focus()
+}
+
+function confirm() {
+    emit('confirm')
+    close()
 }
 
 function cancel() {

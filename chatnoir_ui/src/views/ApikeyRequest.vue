@@ -145,7 +145,7 @@
         </div>
     </div>
 
-    <modal-dialog v-if="cancelModalState" v-model="cancelModalState" @cancel="cancelModal()">
+    <modal-dialog v-if="cancelModalState" v-model="cancelModalState" @confirm.enter="cancelModal()" @cancel="cancelModal()">
         <template #header>
             Cancel API key application?
         </template>
