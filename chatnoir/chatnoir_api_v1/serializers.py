@@ -237,7 +237,7 @@ class ApiKeySerializer(ApiSerializer):
             revoked=False,
             expires=self.validated_data.get('expires'),
             allowed_remote_hosts=','.join(self.validated_data.get('remote_hosts', '')),
-            comment=self.validated_data.get('comment', '')
+            comments=self.validated_data.get('comment', '')
         )
 
         api_key = self.validated_data.get('apikey')

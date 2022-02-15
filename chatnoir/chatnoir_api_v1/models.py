@@ -103,7 +103,7 @@ class ApiKey(models.Model):
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
     allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
-    comment = models.CharField(verbose_name=_('Comment'), max_length=255, blank=True)
+    comments = models.CharField(verbose_name=_('Comments'), max_length=255, blank=True)
     quota_used = models.BinaryField(blank=True, default=b'')
 
     # Inherited fields
@@ -287,10 +287,10 @@ class ApiKey(models.Model):
         return [h.strip() for h in self.allowed_remote_hosts.split(',')]
 
     def __str__(self):
-        comment = self.comment or ''
-        if comment:
-            comment = ''.join((' (', comment, ')'))
-        return '{0}: {1}{2}'.format(self.user.common_name, self.api_key, comment)
+        comments = self.comments or ''
+        if comments:
+            comments = ''.join((' (', comments, ')'))
+        return '{0}: {1}{2}'.format(self.user.common_name, self.api_key, comments)
 
     @property
     def roles_str(self):
@@ -491,13 +491,13 @@ class PendingApiUser(models.Model):
                         address=self.address,
                         zip_code=self.zip_code,
                         state=self.state,
-                        country=self.country,
+                        country=self.country
                     )
                 )
                 issue_key = self.issue_key
                 if self.passcode:
                     issue_key = self.passcode.issue_key
-                api_key = ApiKey(api_key=generate_apikey(), parent=issue_key, user=user)
+                api_key = ApiKey(api_key=generate_apikey(), parent=issue_key, user=user, comments=self.comments)
                 api_key.save()
                 if self.passcode and not self.issue_key:
                     redemption = PasscodeRedemption(api_key=api_key, passcode=self.passcode)

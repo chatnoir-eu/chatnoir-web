@@ -23,7 +23,7 @@ def init_root_api_key(apps, schema_editor):
         ApiKey = apps.get_model('chatnoir_api_v1', 'ApiKey')
         root_key = ApiKey(user=api_user,
                           allowed_remote_hosts='127.0.0.1,::1',
-                          comment=_('ROOT KEY'))
+                          comments=_('ROOT KEY'))
         root_key.save()
         root_key.roles.add(admin_role)
 
@@ -37,7 +37,7 @@ def init_root_api_key(apps, schema_editor):
                              limits_day=default_limit,
                              limits_week=default_limit * 7,
                              limits_month=default_limit * 30,
-                             comment=_('DEFAULT ISSUE KEY'))
+                             comments=_('DEFAULT ISSUE KEY'))
         default_key.save()
         default_key.roles.add(admin_role)
 

@@ -28,7 +28,7 @@ _keycreate_roles = (settings.API_ADMIN_ROLE, settings.API_KEY_CREATE_ROLE)
 
 class ApiKeyAdminBase:
     autocomplete_fields = ('parent', 'user', 'roles')
-    search_fields = ('api_key', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comment')
+    search_fields = ('api_key', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comments')
     formfield_overrides = {
         models.TextField: {'widget': TextInput(attrs={'class': 'vTextField'})}
     }
@@ -40,12 +40,12 @@ class ApiKeyAdminBase:
         ('_limits_day', '_limits_week', '_limits_month'),
         'roles',
         'allowed_remote_hosts',
-        'comment'
+        'comments'
     )
 
 
 class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
-    list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comment')
+    list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comments')
     list_filter = ('roles', 'user')
 
     # Django ignores `boolean` attribute of computed properties
