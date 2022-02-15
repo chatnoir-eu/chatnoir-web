@@ -23,6 +23,7 @@
     </label>
     <select v-if="$props.type === 'select'"
             :id="'form-' + $props.name"
+            ref="formFieldRef"
             v-model="model"
             :name="$props.name"
             :required="isRequired()"
@@ -33,6 +34,7 @@
     </select>
     <textarea v-else-if="$props.type === 'textarea'"
               :id="'form-' + $props.name"
+              ref="formFieldRef"
               v-model="model"
               :name="$props.name"
               :required="isRequired()"
@@ -42,6 +44,7 @@
               @blur="touch()"></textarea>
     <input v-else
            :id="'form-' + $props.name"
+           ref="formFieldRef"
            v-model="model"
            :type="$props.type"
            :name="$props.name"
@@ -55,6 +58,7 @@
     <div v-if="!isValid()" class="form-error text-sm">{{ errors() }}</div>
     <input v-if="$props.type !== 'textarea'"
            :id="'form-' + $props.name"
+           ref="formFieldRef"
            v-model="model"
            :type="$props.type"
            :name="$props.name"
@@ -75,7 +79,7 @@ export default {
 </script>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
     modelValue: {},
@@ -94,6 +98,8 @@ const model = computed({
         emit('update:modelValue', value)
     }
 })
+
+const formFieldRef = ref(null)
 
 function isTextField() {
     return props.type !== 'checkbox' && props.type !== 'radio'
@@ -155,4 +161,19 @@ function touch() {
         props.validator.$touch()
     }
 }
+
+defineExpose({
+    blur: () => {
+        formFieldRef.value.blur()
+    },
+    click: () => {
+        formFieldRef.value.click()
+    },
+    focus: () => {
+        formFieldRef.value.focus()
+    },
+    select: () => {
+        formFieldRef.value.select()
+    }
+})
 </script>

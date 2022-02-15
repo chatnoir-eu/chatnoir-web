@@ -16,7 +16,7 @@
 
 <template>
 <div class="max-w-full px-5">
-    <search-header v-model="searchHeaderModel" @submit="redirectSearch()" :progress="requestProgress" />
+    <search-header v-model="searchHeaderModel" :progress="requestProgress" @submit="redirectSearch()" />
 
     <div class="max-w-3xl mx-auto mt-10">
         <div v-if="$route.name === 'ApikeyRequest'">
@@ -70,8 +70,10 @@
             <h2 v-else class="text-lg font-bold mt-8 mb-4">API key request form (passcode):</h2>
 
             <form ref="requestFormRef" action="" method="post" novalidate class="sm:ml-1 mb-20" @submit.prevent="submitForm()">
-                <form-field v-model="form.commonName" name="common_name" placeholder="Name which key will be issued to" :validator="v$.commonName">Name</form-field>
-
+                <form-field ref="formNameField" v-model="form.commonName" name="common_name"
+                            placeholder="Name which key will be issued to" :validator="v$.commonName">
+                    Name
+                </form-field>
                 <form-field v-model="form.email" name="email" type="email" :validator="v$.email"
                             :placeholder="isAcademic() ? 'Email address issued by your institute' : 'Email address for sending the key'">
                     Email address
@@ -179,7 +181,6 @@ const router = useRouter()
 const route = useRoute()
 const searchHeaderModel = reactive(new SearchModel())
 
-const formNameField = ref(null)
 const cancelModalState = ref(false)
 const requestProgress = ref(0)
 
@@ -225,6 +226,7 @@ const rules = computed(() => {
     }
 })
 const v$ = useVuelidate(rules, form, {$externalResults})
+const formNameField = ref(null)
 
 
 function isAcademic() {
