@@ -152,8 +152,8 @@
         <div class="m-3">
             <p>Do you want to discard all input and cancel the application process?</p>
             <div class="text-center mt-6">
-                <button class="btn primary input-lg mx-2" @click.prevent="cancelApplication()">Cancel Application</button>
-                <button class="btn input-lg mx-2" @click.prevent="cancelModal()">Go Back To Form</button>
+                <button class="btn input-lg mx-2" @click.prevent="cancelApplication()">Cancel Application</button>
+                <button class="btn primary input-lg mx-2" @click.prevent="cancelModal()">Go Back To Form</button>
             </div>
         </div>
     </modal-dialog>
