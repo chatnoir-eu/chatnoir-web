@@ -109,12 +109,12 @@ class ApiKey(models.Model):
     # Inherited fields
     _expires = models.DateTimeField(verbose_name=_('Expiration Date'), null=True, blank=True, db_column='expires')
     _revoked = models.BooleanField(verbose_name=_('Revoked'), blank=True, default=False, db_column='revoked')
-    _limits_day = models.IntegerField(verbose_name=_('Request Limit Day'), null=True,
-                                      blank=True, db_column='limits_day')
-    _limits_week = models.IntegerField(verbose_name=_('Request Limit Week'), null=True,
-                                       blank=True, db_column='limits_week')
-    _limits_month = models.IntegerField(verbose_name=_('Request Limit Month'), null=True,
-                                        blank=True, db_column='limits_month')
+    _limits_day = models.PositiveIntegerField(verbose_name=_('Request Limit Day'), null=True,
+                                              blank=True, db_column='limits_day')
+    _limits_week = models.PositiveIntegerField(verbose_name=_('Request Limit Week'), null=True,
+                                               blank=True, db_column='limits_week')
+    _limits_month = models.PositiveIntegerField(verbose_name=_('Request Limit Month'), null=True,
+                                                blank=True, db_column='limits_month')
 
     class _Inherited:
         def __init__(self):

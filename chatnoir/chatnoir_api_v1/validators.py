@@ -76,12 +76,11 @@ def validate_api_key(data, no_parent_ok=False):
         if limits.get(lim) is None or parent_limits[i] is None:
             # All good if no explicit limit set or parent is unlimited
             continue
-        elif parent_limits[i] is not None:
+        elif parent_limits[i] is not None and limits.get(lim) is not None and limits[lim] > parent_limits[i]:
             # If parent is not unlimited, key limits must be within bounds
-            if limits.get(lim) > parent_limits[i] or data['limits'][lim] < 0:
-                raise ValidationError({
-                    'limits': _('Request limit for "{}" cannot exceed parent request limit.').format(lim)
-                }, 'limit_out_of_bounds')
+            raise ValidationError({
+                'limits': _('Request limit for "{}" cannot exceed parent request limit.').format(lim)
+            }, 'limit_out_of_bounds')
 
     if data.get('expires'):
         if parent.expires is not None and data['expires'] > parent.expires:

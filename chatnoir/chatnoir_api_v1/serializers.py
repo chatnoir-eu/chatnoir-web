@@ -191,9 +191,9 @@ class ApiUserSerializer(ApiModelSerializer):
 
 
 class ApiLimitsSerializer(ApiSerializer):
-    day = serializers.IntegerField(allow_null=True, required=True)
-    week = serializers.IntegerField(allow_null=True, required=True)
-    month = serializers.IntegerField(allow_null=True, required=True)
+    day = serializers.IntegerField(allow_null=True, required=True, min_value=1)
+    week = serializers.IntegerField(allow_null=True, required=True, min_value=1)
+    month = serializers.IntegerField(allow_null=True, required=True, min_value=1)
 
 
 class ApiKeySerializer(ApiSerializer):

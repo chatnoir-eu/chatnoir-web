@@ -25,9 +25,9 @@ class Migration(migrations.Migration):
                 ('quota_used', models.BinaryField(blank=True, default=b'')),
                 ('_expires', models.DateTimeField(blank=True, db_column='expires', null=True, verbose_name='Expiration Date')),
                 ('_revoked', models.BooleanField(blank=True, db_column='revoked', default=False, verbose_name='Revoked')),
-                ('_limits_day', models.IntegerField(blank=True, db_column='limits_day', null=True, verbose_name='Request Limit Day')),
-                ('_limits_week', models.IntegerField(blank=True, db_column='limits_week', null=True, verbose_name='Request Limit Week')),
-                ('_limits_month', models.IntegerField(blank=True, db_column='limits_month', null=True, verbose_name='Request Limit Month')),
+                ('_limits_day', models.PositiveIntegerField(blank=True, db_column='limits_day', null=True, verbose_name='Request Limit Day')),
+                ('_limits_week', models.PositiveIntegerField(blank=True, db_column='limits_week', null=True, verbose_name='Request Limit Week')),
+                ('_limits_month', models.PositiveIntegerField(blank=True, db_column='limits_month', null=True, verbose_name='Request Limit Month')),
                 ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='chatnoir_api_v1.apikey', verbose_name='Parent Key')),
             ],
             options={
