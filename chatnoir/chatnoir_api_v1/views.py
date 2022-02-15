@@ -195,13 +195,12 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
     def list(self, request, **kwargs):
         try:
             api_key = ApiKey.objects.get(api_key=request.auth.api_key)
-            limits = api_key.limits_inherited
             user = api_key.user
 
             return Response({
                 'apikey': api_key.api_key,
-                'expires': api_key.expires_inherited,
-                'revoked': api_key.is_revoked,
+                'expires': api_key.expires,
+                'revoked': api_key.revoked,
                 'user': {
                     'common_name': user.common_name,
                     'email': user.email,
@@ -214,9 +213,9 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
                 'roles': [r.role for r in api_key.roles.all()],
                 'remote_hosts': api_key.allowed_remote_hosts_list,
                 'limits': {
-                    'day': limits[0],
-                    'week': limits[1],
-                    'month': limits[2],
+                    'day': api_key.limits_day,
+                    'week': api_key.limits_week,
+                    'month': api_key.limits_month,
                 },
                 'comment': api_key.comment
             })

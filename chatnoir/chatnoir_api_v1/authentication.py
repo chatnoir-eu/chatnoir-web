@@ -31,7 +31,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
     @staticmethod
     def validate_revocation(api_key):
-        if api_key.is_revoked:
+        if api_key.revoked:
             raise exceptions.AuthenticationFailed(_('API key has been revoked.'))
 
     @staticmethod

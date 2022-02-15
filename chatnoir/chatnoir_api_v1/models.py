@@ -101,59 +101,76 @@ class ApiKey(models.Model):
     user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key', on_delete=models.CASCADE)
     issue_date = models.DateTimeField(verbose_name=_('Issue Date'), default=timezone.now, null=True, blank=True)
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
-    expires = models.DateTimeField(verbose_name=_('Expiration Date'), null=True, blank=True)
-    revoked = models.BooleanField(verbose_name=_('Is Revoked'), blank=True, default=False)
-    limits_day = models.IntegerField(verbose_name=_('Request Limit Day'), null=True, blank=True)
-    limits_week = models.IntegerField(verbose_name=_('Request Limit Week'), null=True, blank=True)
-    limits_month = models.IntegerField(verbose_name=_('Request Limit Month'), null=True, blank=True)
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
     allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
     comment = models.CharField(verbose_name=_('Comment'), max_length=255, blank=True)
     quota_used = models.BinaryField(blank=True, default=b'')
 
-    def __str__(self):
-        comment = self.comment or ''
-        if comment:
-            comment = ''.join((' (', comment, ')'))
-        return '{0}: {1}{2}'.format(self.user.common_name, self.api_key, comment)
+    # Inherited fields
+    _expires = models.DateTimeField(verbose_name=_('Expiration Date'), null=True, blank=True, db_column='expires')
+    _revoked = models.BooleanField(verbose_name=_('Revoked'), blank=True, default=False, db_column='revoked')
+    _limits_day = models.IntegerField(verbose_name=_('Request Limit Day'), null=True,
+                                      blank=True, db_column='limits_day')
+    _limits_week = models.IntegerField(verbose_name=_('Request Limit Week'), null=True,
+                                       blank=True, db_column='limits_week')
+    _limits_month = models.IntegerField(verbose_name=_('Request Limit Month'), null=True,
+                                        blank=True, db_column='limits_month')
+
+    class _Inherited:
+        def __init__(self):
+            self.expires = None
+            self.revoked = None
+            self.limits_day = None
+            self.limits_week = None
+            self.limits_month = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._inherited = self._Inherited()
+
+    @classmethod
+    def from_db(cls, *args, **kwargs):
+        instance = super().from_db(*args, **kwargs)
+        # noinspection PyProtectedMember
+        instance._resolve_inheritance()
+        return instance
+
+    def refresh_from_db(self, *args, **kwargs):
+        super().refresh_from_db(*args, **kwargs)
+        self._resolve_inheritance()
 
     def save(self, *args, **kwargs):
         if self.parent and self.api_key == self.parent.api_key:
             raise ValueError('Cannot parent an API key to itself')
-        super().save(*args, **kwargs)
 
-    def resolve_inheritance(self, *field_names):
+        super().save(*args, **kwargs)
+        self._resolve_inheritance()
+
+    def _resolve_inheritance(self):
+        """Resolve inherited field values and cache them."""
         if self.pk is None:
             raise RuntimeError('Cannot resolve inheritance on unsaved model.')
 
-        cache_key = '.'.join((__name__, self.__class__.__name__, self.pk, ':'.join(field_names)))
+        if not self.parent:
+            return
+
+        cache_key = '.'.join((__name__, self.__class__.__name__, self.pk))
         cached = cache.get(cache_key)
         if cached is not None:
-            return cached
+            self._inherited = cached
+            return
 
-        if len(field_names) < 1:
-            raise ValueError('field_names must at least be length 1')
+        self._inherited = self._Inherited()
+        field_names = [f for f in dir(self._inherited) if not f.startswith('_')]
 
-        obj = self
-        resolved = {f: getattr(obj, f) for f in field_names if getattr(obj, f)}
-        unresolved = {f: None for f in field_names if not getattr(obj, f)}
+        for f in field_names:
+            self_val = getattr(self, '_' + f)
+            parent_val = getattr(self.parent, f)
+            setattr(self._inherited, f, parent_val)
+            if self_val is not None:
+                setattr(self._inherited, f, getattr(self, f))
 
-        while unresolved and obj.parent:
-            obj = obj.parent
-            for f in set(unresolved.keys()):
-                if getattr(obj, f):
-                    resolved[f] = getattr(obj, f)
-                    del unresolved[f]
-
-        resolved.update(unresolved)
-        if len(resolved) == 1:
-            val = next(iter(resolved.values()))
-            cache.set(cache_key, val)
-            return val
-
-        resolved = [resolved[k] for k in field_names]
-        cache.set(cache_key, resolved)
-        return resolved
+        cache.set(cache_key, self._inherited)
 
     def is_sub_key_of(self, key, strict=True):
         """
@@ -177,12 +194,84 @@ class ApiKey(models.Model):
         return False
 
     @property
-    def roles_str(self):
-        return ', '.join([r.role for r in self.roles.all()])
+    def expires(self):
+        if self._inherited.expires is not None:
+            return min(self._inherited.expires, self._expires or self._inherited.expires)
+        return self._expires
+
+    @expires.setter
+    def expires(self, expires):
+        self._inherited.expires = expires
+        self._expires = expires
+
+    expires.fget.short_description = _expires.verbose_name
 
     @property
-    def expires_inherited(self):
-        return self.resolve_inheritance('expires')
+    def revoked(self):
+        if self._inherited.revoked is not None:
+            return (self._inherited.revoked is True) or (self._revoked is True)
+        return self._revoked
+
+    @revoked.setter
+    def revoked(self, revoked):
+        self._inherited.revoked = revoked
+        self._revoked = revoked
+
+    revoked.fget.short_description = _revoked.verbose_name
+
+    @property
+    def limits_day(self):
+        if self._inherited.limits_day is not None:
+            return min(self._inherited.limits_day, self._limits_day or self._inherited.limits_day)
+        return self._limits_day
+
+    @limits_day.setter
+    def limits_day(self, limits_day):
+        self._inherited.limits_day = limits_day
+        self._limits_day = limits_day
+
+    limits_day.fget.short_description = _limits_day.verbose_name
+
+    @property
+    def limits_week(self):
+        if self._inherited.limits_week is not None:
+            return min(self._inherited.limits_week, self._limits_week or self._inherited.limits_week)
+        return self._limits_week
+
+    @limits_week.setter
+    def limits_week(self, limits_week):
+        self._inherited.limits_week = limits_week
+        self._limits_week = limits_week
+
+    limits_week.fget.short_description = _limits_week.verbose_name
+
+    @property
+    def limits_month(self):
+        if self._inherited.limits_month is not None:
+            return min(self._inherited.limits_month, self._limits_month or self._inherited.limits_month)
+        return self._limits_month
+
+    @limits_month.setter
+    def limits_month(self, limits_month):
+        self._inherited.limits_month = limits_month
+        self._limits_month = limits_month
+
+    limits_month.fget.short_description = _limits_month.verbose_name
+
+    @property
+    def limits(self):
+        """API key request limits as (day, week, month) tuple."""
+        return self.limits_day, self.limits_week, self.limits_month
+
+    @property
+    def has_expired(self):
+        """True if API keys has an expiry date in the past."""
+        return self.expires and self.expires <= timezone.now()
+
+    @property
+    def valid(self):
+        """True if API key has not expired and has not been revoked."""
+        return not self.has_expired and not self.revoked
 
     @property
     def allowed_remote_hosts_list(self):
@@ -190,24 +279,18 @@ class ApiKey(models.Model):
             return []
         return [h.strip() for h in self.allowed_remote_hosts.split(',')]
 
-    @property
-    def limits_inherited(self):
-        return tuple(lim if lim is not None else -1
-                     for lim in self.resolve_inheritance('limits_day', 'limits_week', 'limits_month'))
+    def __str__(self):
+        comment = self.comment or ''
+        if comment:
+            comment = ''.join((' (', comment, ')'))
+        return '{0}: {1}{2}'.format(self.user.common_name, self.api_key, comment)
 
     @property
-    def has_expired(self):
-        expires = self.resolve_inheritance('expires')
-        return expires and expires <= timezone.now()
+    def roles_str(self):
+        """API key roles as comma-separated string."""
+        return ', '.join([r.role for r in self.roles.all()])
 
-    @property
-    def is_revoked(self):
-        return self.resolve_inheritance('revoked') is True
-
-    @property
-    def is_valid(self):
-        expires, revoked = self.resolve_inheritance('expires', 'revoked')
-        return (not expires or expires > timezone.now()) and not revoked
+    roles_str.fget.short_description = roles.verbose_name
 
     @property
     def is_legacy_key(self):
@@ -216,10 +299,6 @@ class ApiKey(models.Model):
             return True
         except (ValueError, TypeError):
             return False
-
-    roles_str.fget.short_description = roles.verbose_name
-    expires_inherited.fget.short_description = expires.verbose_name
-    is_revoked.fget.short_description = _('Revoked')
 
 
 class ApiKeyPasscode(models.Model):

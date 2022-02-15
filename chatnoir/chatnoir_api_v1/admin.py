@@ -33,11 +33,11 @@ class ApiKeyAdminBase:
         models.TextField: {'widget': TextInput(attrs={'class': 'vTextField'})}
     }
     fields = (
-        ('api_key', 'revoked'),
+        ('api_key', '_revoked'),
         'user',
         'parent',
-        ('issue_date', 'expires'),
-        ('limits_day', 'limits_week', 'limits_month'),
+        ('issue_date', '_expires'),
+        ('_limits_day', '_limits_week', '_limits_month'),
         'roles',
         'allowed_remote_hosts',
         'comment'
@@ -45,11 +45,11 @@ class ApiKeyAdminBase:
 
 
 class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
-    list_display = ('api_key', 'roles_str', 'expires_inherited', 'is_valid', 'user', 'comment')
-    list_filter = ('roles', 'user', 'expires')
+    list_display = ('api_key', 'roles_str', 'expires', 'is_valid', 'user', 'comment')
+    list_filter = ('roles', 'user')
 
     def is_valid(self, obj):
-        return obj.is_valid
+        return obj.valid
 
     is_valid.boolean = True
     is_valid.short_description = _('Valid')
@@ -59,15 +59,15 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
 
         # Exclude keys which are not allowed to issue other API keys
         if '/autocomplete/' in request.path:
-            queryset = queryset.filter(Q(roles__in=_keycreate_roles) &
-                                       (Q(expires__gte=timezone.now()) | Q(expires__isnull=True)))
+            queryset = queryset.filter(Q(roles__in=_keycreate_roles, _revoked=False),
+                                       Q(_expires__gte=timezone.now()) | Q(_expires__isnull=True))
 
             # Prevent cycles through self-parenting
             if request.META.get('HTTP_REFERER') and '/apikey/' in request.META.get('HTTP_REFERER'):
                 p = os.path.basename(os.path.dirname(request.META.get('HTTP_REFERER').rstrip('/')))
                 queryset = queryset.exclude(api_key=p)
 
-            queryset = [r for r in queryset if self.is_valid(r)]
+            queryset = [r for r in queryset if r.valid]
 
         return queryset, use_distinct
 
