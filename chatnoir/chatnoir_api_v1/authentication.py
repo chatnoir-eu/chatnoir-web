@@ -27,12 +27,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
     @staticmethod
     def validate_expiration(api_key):
         if api_key.has_expired:
-            raise exceptions.AuthenticationFailed({'apikey': _('API key has expired.')}, 'expired')
+            raise exceptions.AuthenticationFailed(_('API key has expired.'), 'expired')
 
     @staticmethod
     def validate_revocation(api_key):
         if api_key.revoked:
-            raise exceptions.AuthenticationFailed({'apikey': _('API key has been revoked.')}, 'revoked')
+            raise exceptions.AuthenticationFailed(_('API key has been revoked.'), 'revoked')
 
     @staticmethod
     def validate_remote_hosts(api_key, request):
@@ -107,12 +107,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         api_key = request.data.get('apikey') or request.GET.get('apikey')
         if not api_key:
-            raise exceptions.NotAuthenticated({'apikey': _('No API key supplied.')})
+            raise exceptions.NotAuthenticated(_('No API key supplied.'))
 
         try:
             api_key = ApiKey.objects.get(api_key=api_key)
         except ApiKey.DoesNotExist:
-            raise exceptions.NotAuthenticated({'apikey': _('Invalid API key.')})
+            raise exceptions.NotAuthenticated(_('Invalid API key.'))
 
         self.validate_expiration(api_key)
         self.validate_revocation(api_key)

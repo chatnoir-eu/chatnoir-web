@@ -41,19 +41,10 @@ def api_exception_handler(exc, _):
         # Django "corrects" these codes to 403, since API keys do not rely on the Django authentication middleware
         status_code = 401
 
-    # Unroll error messages, since we are only ever returning one at a time
-    def _get_msg(obj):
-        msg = obj
-        if isinstance(obj, dict):
-            msg = next(iter(obj.values()))
-        while isinstance(msg, list):
-            msg = msg[0]
-        return msg
-
     return Response({
         'code': status_code,
-        'error': _get_msg(exc.get_codes()),
-        'message': _get_msg(exc.detail)
+        'error': exc.get_codes(),
+        'message': exc.detail
     }, status_code)
 
 
@@ -229,7 +220,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
             })
 
         except ApiKey.DoesNotExist:
-            raise exceptions.ValidationError({'apikey': _('Invalid API key.')}, 'key_not_found')
+            raise exceptions.ValidationError({'apikey': _('Invalid API key.')}, 'invalid_key')
 
 
 class ManageKeysCreateViewSet(ManageKeysViewSet):
