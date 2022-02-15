@@ -45,14 +45,15 @@ class ApiKeyAdminBase:
 
 
 class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
-    list_display = ('api_key', 'roles_str', 'expires', 'is_valid', 'user', 'comment')
+    list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comment')
     list_filter = ('roles', 'user')
 
-    def is_valid(self, obj):
+    # Django ignores `boolean` attribute of computed properties
+    def _valid_bool(self, obj):
         return obj.valid
 
-    is_valid.boolean = True
-    is_valid.short_description = _('Valid')
+    _valid_bool.boolean = True
+    _valid_bool.short_description = ApiKey.valid.fget.short_description
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
@@ -93,7 +94,7 @@ class ApiUserAdmin(admin.ModelAdmin):
 
 class PendingApiUserAdmin(admin.ModelAdmin):
     list_display = ('common_name', 'passcode', 'email', 'organization', 'address', 'zip_code', 'state',
-                    'country', 'email_verified')
+                    'country', 'email_verified', 'user_exists')
     list_filter = ('organization', 'zip_code', 'state', 'country', 'email_verified')
     search_fields = ('common_name', 'passcode__passcode', 'email', 'organization', 'address',
                      'zip_code', 'state', 'country')
@@ -106,6 +107,7 @@ class PendingApiUserAdmin(admin.ModelAdmin):
             'common_name',
             'email',
             'email_verified',
+            'user_exists',
             'issue_key',
             'passcode',
             'organization',
@@ -121,7 +123,7 @@ class PendingApiUserAdmin(admin.ModelAdmin):
                 ('deny_request', 'confirm_denial'))
         })
     )
-    readonly_fields = ['email_verified']
+    readonly_fields = ['email_verified', 'user_exists']
 
     @admin.action(description=_('Activate selected API Users and notify by email'))
     def activate_pending_user(self, request, queryset, send_emails=False):

@@ -217,6 +217,7 @@ class ApiKey(models.Model):
         self._inherited.revoked = revoked
         self._revoked = revoked
 
+    revoked.fget.boolean = True
     revoked.fget.short_description = _revoked.verbose_name
 
     @property
@@ -268,10 +269,16 @@ class ApiKey(models.Model):
         """True if API keys has an expiry date in the past."""
         return self.expires and self.expires <= timezone.now()
 
+    has_expired.fget.boolean = True
+    has_expired.fget.short_description = _('Expired')
+
     @property
     def valid(self):
         """True if API key has not expired and has not been revoked."""
         return not self.has_expired and not self.revoked
+
+    valid.fget.boolean = True
+    valid.fget.short_description = _('Valid')
 
     @property
     def allowed_remote_hosts_list(self):
@@ -299,6 +306,9 @@ class ApiKey(models.Model):
             return True
         except (ValueError, TypeError):
             return False
+
+    is_legacy_key.fget.boolean = True
+    is_legacy_key.fget.short_description = _('Legacy Key')
 
 
 class ApiKeyPasscode(models.Model):
@@ -357,6 +367,19 @@ class PendingApiUser(models.Model):
     country = CountryField(verbose_name=_('Country'), max_length=50, null=True, blank=True)
     comments = models.TextField(verbose_name=_('Comments'), max_length=200, null=True, blank=True)
     email_verified = models.BooleanField(verbose_name=_('Email verified'), default=False)
+
+    def user_exists(self):
+        """
+        Check whether a user with the email address of this pending user already exists.
+        """
+        try:
+            ApiUser.objects.get(email=self.email)
+            return True
+        except ApiUser.DoesNotExist:
+            return False
+
+    user_exists.short_description = _('User exists')
+    user_exists.boolean = True
 
     def generate_activation_code(self, save=True):
         """
