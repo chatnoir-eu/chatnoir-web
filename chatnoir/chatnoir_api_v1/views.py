@@ -38,14 +38,23 @@ def api_exception_handler(exc, _):
 
     status_code = exc.status_code
     if isinstance(exc, (exceptions.NotAuthenticated, exceptions.AuthenticationFailed)):
+        # Django "corrects" these codes to 403, since API keys do not rely on the Django authentication middleware
         status_code = 401
 
-    response = Response({
-        'code': status_code,
-        'message': exc.detail
-    }, status_code)
+    # Unroll error messages, since we are only ever returning one at a time
+    def _get_msg(obj):
+        msg = obj
+        if isinstance(obj, dict):
+            msg = next(iter(obj.values()))
+        while isinstance(msg, list):
+            msg = msg[0]
+        return msg
 
-    return response
+    return Response({
+        'code': status_code,
+        'error': _get_msg(exc.get_codes()),
+        'message': _get_msg(exc.detail)
+    }, status_code)
 
 
 def bool_param_set(name, request_params):
@@ -97,10 +106,9 @@ class ApiViewSet(viewsets.ViewSet):
     def get_serializer(self, **kwargs):
         return self.serializer_class(**kwargs)
 
-    def initialize_request(self, request, *args, **kwargs):
-        request = super().initialize_request(request, *args, **kwargs)
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
         self.pretty_print = bool_param_set('pretty', request.data) or bool_param_set('pretty', request.GET)
-        return request
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -221,7 +229,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
             })
 
         except ApiKey.DoesNotExist:
-            raise exceptions.ValidationError(_('Invalid API key.'))
+            raise exceptions.ValidationError({'apikey': _('Invalid API key.')}, 'key_not_found')
 
 
 class ManageKeysCreateViewSet(ManageKeysViewSet):
@@ -262,11 +270,11 @@ class ManageKeysUpdateViewSet(ManageKeysViewSet):
             return child_key
         except ApiKey.DoesNotExist:
             raise exceptions.ValidationError(
-                _('API key "{}" does not exist or is not a sub key.').format(child))
+                {'apikey': _('API key "{}" does not exist or is not a sub key.').format(child)}, 'invalid_key')
 
     def put(self, request, target_apikey=None, **kwargs):
         if not target_apikey:
-            raise exceptions.ValidationError(_('No target API given.'))
+            raise exceptions.ValidationError(_('No target API key given.'))
 
         self.check_is_sub_key(target_apikey, request.auth.api_key)
 
@@ -342,7 +350,7 @@ def _apikey_request(request, passcode):
         else:
             PendingApiUser.objects.get(email=form.cleaned_data['email'])
 
-        form.add_error('email', ValidationError('API key request for user already submitted.', 'duplicate'))
+        form.add_error('email', ValidationError({'email': _('API key request for user already submitted.')}, 'duplicate'))
         return JsonResponse({
             'valid': False,
             'errors': form.errors.get_json_data()

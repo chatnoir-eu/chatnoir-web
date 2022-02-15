@@ -231,11 +231,11 @@ class ApiKeySerializer(ApiSerializer):
         limits = self.validated_data.get('limits', {})
         api_key_defaults = dict(
             user=user,
-            limits_day=limits.get('day'),
-            limits_week=limits.get('week'),
-            limits_month=limits.get('month'),
-            revoked=False,
-            expires=self.validated_data.get('expires'),
+            _limits_day=limits.get('day'),
+            _limits_week=limits.get('week'),
+            _limits_month=limits.get('month'),
+            _revoked=False,
+            _expires=self.validated_data.get('expires'),
             allowed_remote_hosts=','.join(self.validated_data.get('remote_hosts', '')),
             comments=self.validated_data.get('comment', '')
         )

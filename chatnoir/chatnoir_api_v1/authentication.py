@@ -27,12 +27,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
     @staticmethod
     def validate_expiration(api_key):
         if api_key.has_expired:
-            raise exceptions.AuthenticationFailed(_('API key has expired.'))
+            raise exceptions.AuthenticationFailed({'apikey': _('API key has expired.')}, 'expired')
 
     @staticmethod
     def validate_revocation(api_key):
         if api_key.revoked:
-            raise exceptions.AuthenticationFailed(_('API key has been revoked.'))
+            raise exceptions.AuthenticationFailed({'apikey': _('API key has been revoked.')}, 'revoked')
 
     @staticmethod
     def validate_remote_hosts(api_key, request):
@@ -50,12 +50,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             if ipaddress.ip_network(host).overlaps(client_ip):
                 return
 
-        raise exceptions.PermissionDenied(_('Remote IP not allowed.'))
+        raise exceptions.PermissionDenied(_('Remote IP not allowed.'), 'not_allowed')
 
     @classmethod
     def validate_api_limits(cls, api_key, increment=True):
         limits = api_key.limits
-        if limits == (-1, -1, -1):
+        if limits == (None, None, None):
             # Entirely unlimited
             return
 
@@ -85,7 +85,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
                 week_used += bucket[1]
 
         def exceeded(u, l):
-            return -1 < l <= u
+            return l is not None and l <= u
 
         quota_exceeded = exceeded(day_used, limits[0]) or \
             exceeded(week_used, limits[1]) or exceeded(month_used, limits[2])
@@ -99,7 +99,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             api_key.save()
 
         if quota_exceeded:
-            raise exceptions.Throttled(None, _('API request limit exceeded.'))
+            raise exceptions.Throttled(None, _('API request limit exceeded.'), 'quota_exceeded')
 
     def authenticate(self, request):
         if request.method == 'OPTIONS':
@@ -107,12 +107,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         api_key = request.data.get('apikey') or request.GET.get('apikey')
         if not api_key:
-            raise exceptions.NotAuthenticated(_('No API key supplied.'))
+            raise exceptions.NotAuthenticated({'apikey': _('No API key supplied.')})
 
         try:
             api_key = ApiKey.objects.get(api_key=api_key)
         except ApiKey.DoesNotExist:
-            raise exceptions.NotAuthenticated(_('Invalid API key.'))
+            raise exceptions.NotAuthenticated({'apikey': _('Invalid API key.')})
 
         self.validate_expiration(api_key)
         self.validate_revocation(api_key)
