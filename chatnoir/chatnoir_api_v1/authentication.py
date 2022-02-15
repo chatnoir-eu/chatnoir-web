@@ -54,7 +54,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
     @classmethod
     def validate_api_limits(cls, api_key, increment=True):
-        limits = api_key.limits_inherited
+        limits = api_key.limits
         if limits == (-1, -1, -1):
             # Entirely unlimited
             return

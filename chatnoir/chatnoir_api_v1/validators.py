@@ -71,7 +71,7 @@ def validate_api_key(data, no_parent_ok=False):
         raise ValidationError(_('API key cannot be its own parent.'))
 
     limits = data.get('limits', {})
-    parent_limits = parent.limits_inherited
+    parent_limits = parent.limits
     for i, lim in enumerate(('day', 'week', 'month')):
         if limits.get(lim) is None or parent_limits[i] < 0:
             continue
@@ -79,7 +79,7 @@ def validate_api_key(data, no_parent_ok=False):
             raise ValidationError(_('Request limit for "{}" cannot exceed parent request limit.').format(lim))
 
     if data.get('expires'):
-        if data['expires'] > parent.expires_inherited:
+        if data['expires'] > parent.expires:
             raise ValidationError(_('Expiration date cannot be further in the future than parent expiration date.'))
         if data['expires'] < timezone.now():
             raise ValidationError(_('Expiration date cannot be in the past.'))

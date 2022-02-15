@@ -208,7 +208,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
                     'address': user.address,
                     'zip_code': user.zip_code,
                     'state': user.state,
-                    'country': user.country,
+                    'country': user.country.code,
                 },
                 'roles': [r.role for r in api_key.roles.all()],
                 'remote_hosts': api_key.allowed_remote_hosts_list,
@@ -217,7 +217,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
                     'week': api_key.limits_week,
                     'month': api_key.limits_month,
                 },
-                'comment': api_key.comment
+                'comment': api_key.comments
             })
 
         except ApiKey.DoesNotExist:
