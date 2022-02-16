@@ -34,9 +34,24 @@ admin.StackedInline.formfield_overrides = {
 }
 
 
-class ApiKeyAdminBase:
+class ApiKeyAdminBaseMixin:
     autocomplete_fields = ('parent', 'user', 'roles')
     search_fields = ('api_key', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comments')
+    fields = (
+        ('api_key', '_revoked'),
+        'user',
+        'parent',
+        ('issue_date', '_expires'),
+        ('_limits_day', '_limits_week', '_limits_month'),
+        'roles',
+        'allowed_remote_hosts',
+        'comments'
+    )
+
+
+class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
+    list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comments')
+    list_filter = ('roles', 'user')
     readonly_fields = (
         '_valid_bool',
         'expires',
@@ -45,26 +60,6 @@ class ApiKeyAdminBase:
         'limits_day',
         'limits_week',
         'limits_month',
-    )
-    fieldsets = (
-        (_('Key Details'), {'fields': (
-            ('api_key', '_revoked'),
-            'user',
-            'parent',
-            ('issue_date', '_expires'),
-            ('_limits_day', '_limits_week', '_limits_month'),
-            'roles',
-            'allowed_remote_hosts',
-            'comments'
-        )}),
-
-        (_('Inherited Properties'), {'fields': (
-            'expires',
-            '_has_expired_bool',
-            '_revoked_bool',
-            '_valid_bool',
-            ('limits_day', 'limits_week', 'limits_month'),
-        )}),
     )
 
     # Django ignores `boolean` attribute of computed properties
@@ -86,10 +81,25 @@ class ApiKeyAdminBase:
     _has_expired_bool.boolean = True
     _has_expired_bool.short_description = ApiKey.has_expired.fget.short_description
 
+    def get_fieldsets(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        if obj is not None:
+            # Add inherited properties if model instance exists
+            return (
+                (_('Key Details'), {'fields': fields}),
+                (_('Inherited Properties'), {'fields': (
+                    'expires',
+                    '_has_expired_bool',
+                    '_revoked_bool',
+                    '_valid_bool',
+                    ('limits_day', 'limits_week', 'limits_month'),
+                )})
+            )
 
-class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
-    list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comments')
-    list_filter = ('roles', 'user')
+        return (None, {'fields': fields}),
+
+    def get_fields(self, request, obj=None):
+        return None
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
@@ -114,12 +124,10 @@ class AlwaysChangedModelForm(ModelForm):
         return True
 
 
-class ApiKeyInlineAdmin(ApiKeyAdminBase, admin.StackedInline):
+class ApiKeyInlineAdmin(ApiKeyAdminBaseMixin, admin.StackedInline):
     model = ApiKey
     extra = 0
     form = AlwaysChangedModelForm
-    fields = ApiKeyAdminBase.fieldsets[0][1]['fields']
-    fieldsets = None
 
 
 class ApiUserAdmin(admin.ModelAdmin):
