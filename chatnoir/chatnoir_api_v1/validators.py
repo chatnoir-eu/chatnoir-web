@@ -33,8 +33,8 @@ def validate_index_names(index_names, search_version=1):
 def validate_cidr_address(address):
     try:
         ip_network(address)
-    except ValueError:
-        raise ValidationError(_('Not a valid IP address or network in CIDR notation.'), 'invalid_ip')
+    except ValueError as e:
+        raise ValidationError(e, 'invalid_ip')
 
 
 def validate_api_role_exists(role):

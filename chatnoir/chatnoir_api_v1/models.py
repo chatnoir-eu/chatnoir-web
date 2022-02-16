@@ -13,12 +13,14 @@
 # limitations under the License.
 
 from concurrent.futures import ThreadPoolExecutor
+import ipaddress
 import logging
 import re
 import uuid
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError, models, transaction
 from django.template.loader import render_to_string
@@ -27,7 +29,6 @@ from django.utils.crypto import get_random_string
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-
 
 logger = logging.getLogger(__name__)
 
@@ -140,13 +141,22 @@ class ApiKey(models.Model):
         super().refresh_from_db(*args, **kwargs)
         self._resolve_inheritance()
 
+    def clean(self):
+        if self.allowed_remote_hosts:
+            try:
+                for ip in self.allowed_remote_hosts_list:
+                    self.clean_fields()
+                    ipaddress.ip_network(ip)
+            except ValueError as e:
+                raise ValidationError({'allowed_remote_hosts': e}, 'invalid_ip')
+
     def save(self, *args, **kwargs):
         if self.parent and self.api_key == self.parent.api_key:
             raise ValueError('Cannot parent an API key to itself')
 
         # Normalize list of allowed remote hosts
         if self.allowed_remote_hosts:
-            self.allowed_remote_hosts = '\n'.join(self.allowed_remote_hosts_list)
+            self.allowed_remote_hosts = '\n'.join(set(self.allowed_remote_hosts_list))
 
         super().save(*args, **kwargs)
         self._resolve_inheritance()
