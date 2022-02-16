@@ -32,21 +32,35 @@ class ApiKeyAdminBase:
     formfield_overrides = {
         models.TextField: {'widget': TextInput(attrs={'class': 'vTextField'})}
     }
-    fields = (
-        ('api_key', '_revoked'),
-        'user',
-        'parent',
-        ('issue_date', '_expires'),
-        ('_limits_day', '_limits_week', '_limits_month'),
-        'roles',
-        'allowed_remote_hosts',
-        'comments'
+    readonly_fields = (
+        '_valid_bool',
+        'expires',
+        '_has_expired_bool',
+        '_revoked_bool',
+        'limits_day',
+        'limits_week',
+        'limits_month',
     )
+    fieldsets = (
+        (_('Key Details'), {'fields': (
+            ('api_key', '_revoked'),
+            'user',
+            'parent',
+            ('issue_date', '_expires'),
+            ('_limits_day', '_limits_week', '_limits_month'),
+            'roles',
+            'allowed_remote_hosts',
+            'comments'
+        )}),
 
-
-class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
-    list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comments')
-    list_filter = ('roles', 'user')
+        (_('Inherited Properties'), {'fields': (
+            'expires',
+            '_has_expired_bool',
+            '_revoked_bool',
+            '_valid_bool',
+            ('limits_day', 'limits_week', 'limits_month'),
+        )}),
+    )
 
     # Django ignores `boolean` attribute of computed properties
     def _valid_bool(self, obj):
@@ -54,6 +68,23 @@ class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
 
     _valid_bool.boolean = True
     _valid_bool.short_description = ApiKey.valid.fget.short_description
+
+    def _revoked_bool(self, obj):
+        return obj.revoked
+
+    _revoked_bool.boolean = True
+    _revoked_bool.short_description = ApiKey.revoked.fget.short_description
+
+    def _has_expired_bool(self, obj):
+        return obj.has_expired
+
+    _has_expired_bool.boolean = True
+    _has_expired_bool.short_description = ApiKey.has_expired.fget.short_description
+
+
+class ApiKeyAdmin(ApiKeyAdminBase, admin.ModelAdmin):
+    list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comments')
+    list_filter = ('roles', 'user')
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
@@ -82,6 +113,8 @@ class ApiKeyInlineAdmin(ApiKeyAdminBase, admin.StackedInline):
     model = ApiKey
     extra = 0
     form = AlwaysChangedModelForm
+    fields = ApiKeyAdminBase.fieldsets[0][1]['fields']
+    fieldsets = None
 
 
 class ApiUserAdmin(admin.ModelAdmin):
