@@ -61,6 +61,7 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
         'limits_week',
         'limits_month',
     )
+    actions = ('revoke_keys', 'unrevoke_keys')
 
     # Django ignores `boolean` attribute of computed properties
     def _valid_bool(self, obj):
@@ -117,6 +118,32 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
             queryset = [r for r in queryset if r.valid]
 
         return queryset, use_distinct
+
+    @admin.action(description=_('Revoke selected API Keys'))
+    def revoke_keys(self, request, queryset):
+        count = 0
+        for key in queryset:
+            key._revoked = True
+            count += 1
+        ApiKey.objects.bulk_update(queryset, ['_revoked'])
+
+        if count > 0:
+            self.message_user(request, ngettext('%s API key successfully revoked.',
+                                                '%s API keys successfully revoked.',
+                                                count) % count, messages.SUCCESS)
+
+    @admin.action(description=_('Unrevoke selected API Keys'))
+    def unrevoke_keys(self, request, queryset):
+        count = 0
+        for key in queryset:
+            key._revoked = False
+            count += 1
+        ApiKey.objects.bulk_update(queryset, ['_revoked'])
+
+        if count > 0:
+            self.message_user(request, ngettext('%s API key successfully unrevoked.',
+                                                '%s API keys successfully unrevoked.',
+                                                count) % count, messages.SUCCESS)
 
 
 class AlwaysChangedModelForm(ModelForm):
