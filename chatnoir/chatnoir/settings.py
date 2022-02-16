@@ -199,8 +199,3 @@ try:
    from .local_settings import *
 except ImportError:
     raise RuntimeError("Could not find local_settings.py.")
-
-
-if DEBUG:
-    # Admin GUI should be run as a separate app behind the firewall in production
-    INSTALLED_APPS.append('django.contrib.admin')
