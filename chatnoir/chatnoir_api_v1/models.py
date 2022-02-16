@@ -287,10 +287,11 @@ class ApiKey(models.Model):
         return [h.strip() for h in self.allowed_remote_hosts.split(',')]
 
     def __str__(self):
-        comments = self.comments or ''
-        if comments:
-            comments = ''.join((' (', comments, ')'))
-        return '{0}: {1}{2}'.format(self.user.common_name, self.api_key, comments)
+        if self.comments:
+            key = f'{self.comments} ({self.api_key})'
+        else:
+            key = self.api_key
+        return f'{self.user.common_name}: {key}'
 
     @property
     def roles_str(self):
