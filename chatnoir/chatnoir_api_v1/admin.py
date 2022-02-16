@@ -16,7 +16,7 @@ import os
 
 from django.contrib import admin, messages
 from django.db.models import Q
-from django.forms import ModelForm, TextInput
+from django.forms import ModelForm, Textarea
 from django.utils.translation import gettext_lazy as _, ngettext
 
 from .models import *
@@ -25,13 +25,18 @@ from .forms import PendingApiUserAdminForm
 
 _keycreate_roles = (settings.API_ADMIN_ROLE, settings.API_KEY_CREATE_ROLE)
 
+# Textareas are way too large
+admin.ModelAdmin.formfield_overrides = {
+    models.TextField: {'widget': Textarea(attrs={'rows': 4, 'cols': 60})},
+}
+admin.StackedInline.formfield_overrides = {
+    models.TextField: {'widget': Textarea(attrs={'rows': 4, 'cols': 60})},
+}
+
 
 class ApiKeyAdminBase:
     autocomplete_fields = ('parent', 'user', 'roles')
     search_fields = ('api_key', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comments')
-    formfield_overrides = {
-        models.TextField: {'widget': TextInput(attrs={'class': 'vTextField'})}
-    }
     readonly_fields = (
         '_valid_bool',
         'expires',

@@ -14,6 +14,7 @@
 
 from concurrent.futures import ThreadPoolExecutor
 import logging
+import re
 import uuid
 
 from django.conf import settings
@@ -142,6 +143,10 @@ class ApiKey(models.Model):
     def save(self, *args, **kwargs):
         if self.parent and self.api_key == self.parent.api_key:
             raise ValueError('Cannot parent an API key to itself')
+
+        # Normalize list of allowed remote hosts
+        if self.allowed_remote_hosts:
+            self.allowed_remote_hosts = '\n'.join(self.allowed_remote_hosts_list)
 
         super().save(*args, **kwargs)
         self._resolve_inheritance()
@@ -284,7 +289,7 @@ class ApiKey(models.Model):
     def allowed_remote_hosts_list(self):
         if not self.allowed_remote_hosts:
             return []
-        return [h.strip() for h in self.allowed_remote_hosts.split(',')]
+        return re.split(r'[\s;,]+', self.allowed_remote_hosts.strip())
 
     def __str__(self):
         if self.comments:
