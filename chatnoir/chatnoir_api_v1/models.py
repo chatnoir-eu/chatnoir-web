@@ -272,7 +272,7 @@ class ApiKey(models.Model):
     @property
     def has_expired(self):
         """True if API keys has an expiry date in the past."""
-        return self.expires and self.expires <= timezone.now()
+        return self.expires is not None and self.expires <= timezone.now()
 
     has_expired.fget.boolean = True
     has_expired.fget.short_description = _('Expired')
