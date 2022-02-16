@@ -103,7 +103,7 @@ class ApiKey(models.Model):
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
     allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
-    comments = models.CharField(verbose_name=_('Comments'), max_length=255, blank=True)
+    comments = models.TextField(verbose_name=_('Comments'), blank=True)
     quota_used = models.BinaryField(blank=True, default=b'')
 
     # Inherited fields

@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('api_key', models.CharField(default=chatnoir_api_v1.models.generate_apikey, max_length=255, primary_key=True, serialize=False, verbose_name='API Key')),
                 ('issue_date', models.DateTimeField(blank=True, default=django.utils.timezone.now, null=True, verbose_name='Issue Date')),
                 ('allowed_remote_hosts', models.TextField(blank=True, null=True, verbose_name='Allowed Remote Hosts')),
-                ('comments', models.CharField(blank=True, max_length=255, verbose_name='Comments')),
+                ('comments', models.TextField(blank=True, verbose_name='Comments')),
                 ('quota_used', models.BinaryField(blank=True, default=b'')),
                 ('_expires', models.DateTimeField(blank=True, db_column='expires', null=True, verbose_name='Expiration Date')),
                 ('_revoked', models.BooleanField(blank=True, db_column='revoked', default=False, verbose_name='Revoked')),
