@@ -51,7 +51,7 @@ class ApiKeyAdminBaseMixin:
 
 class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
     list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comments')
-    list_filter = ('roles', 'user')
+    list_filter = ('roles', )
     readonly_fields = (
         '_valid_bool',
         'expires',
