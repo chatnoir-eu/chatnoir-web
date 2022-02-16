@@ -16,7 +16,9 @@ if not os.getenv('CHATNOIR_SETTINGS_MODULE'):
 
 __settings = importlib.import_module(os.getenv('CHATNOIR_SETTINGS_MODULE'))
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INSTALLED_APPS = []
+TEMPLATES = []
 
 for attr in dir(__settings):
     globals()[attr] = getattr(__settings, attr)
@@ -24,3 +26,5 @@ for attr in dir(__settings):
 ROOT_URLCONF = 'chatnoir_admin.urls'
 if 'django.contrib.admin' not in INSTALLED_APPS:
     INSTALLED_APPS.append('django.contrib.admin')
+
+TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'chatnoir_admin', 'templates'))

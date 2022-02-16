@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% block extrastyle %}
+    {{ block.super }}
+    <style>
+        /* Fix misaligned labels */
+        .aligned label {
+            padding-top: 2px !important;
+        }
+        .readonly > img {
+            vertical-align: -3px !important;
+        }
+        .aligned .vCheckboxLabel {
+            vertical-align: -2px !important;
+        }
+
+        /* Dim read-only field text colour */
+        .readonly {
+            color: #777;
+        }
+
+        /* Increase horizontal spacing between inline form fields */
+        .form-row .fieldBox {
+            margin-right: 50px;
+        }
+    </style>
+{% endblock %}
