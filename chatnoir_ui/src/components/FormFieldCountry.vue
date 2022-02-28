@@ -3,8 +3,6 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
-
 import FormField from '@/components/FormField'
 
 const props = defineProps({

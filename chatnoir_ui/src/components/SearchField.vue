@@ -27,7 +27,7 @@
 
         <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button"
                 class="mr-18 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
-            <img svg-inline class="h-full mx-auto align-middle" src="@/assets/icons/settings.svg" alt="Options">
+            <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/settings.svg')" alt="Options" />
         </button>
         <options-drop-down
             v-if="searchModel.indices.length > 0"
@@ -38,7 +38,7 @@
         />
 
         <button type="submit" class="mr-11" :class="$style['btn-submit']">
-            <img svg-inline class="h-full mx-auto align-middle" src="@/assets/icons/search.svg" alt="Search">
+            <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/search.svg')" alt="Search" />
         </button>
     </form>
 </div>

@@ -18,8 +18,7 @@
 <nav class="text-lg" aria-label="Pagination" role="navigation">
     <a v-for="p in pagesBefore()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
        @click.prevent="navigateToPage(p.num)">
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <span v-if="p.icon" v-html="p.icon"></span>
+        <inline-svg v-if="p.icon" :src="p.icon" />
         <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
     </a>
     <span :class="$style['page-button']" class="text-gray-800 font-bold text-2xl pt-0.5"
@@ -28,8 +27,7 @@
     </span>
     <a v-for="p in pagesAfter()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
        @click.prevent="navigateToPage(p.num)">
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <span v-if="p.icon" v-html="p.icon"></span>
+        <inline-svg v-if="p.icon" :src="p.icon" />
         <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
     </a>
 </nav>
@@ -49,10 +47,6 @@ const props = defineProps({
     maxPage: {type: Number, default: 1000},
 })
 const emit = defineEmits(['update:page'])
-
-const firstIcon = '<img svg-inline src="@/assets/icons/angle-double-left.svg" alt="Go to first page" title="Go to first page" />'
-const prevIcon = '<img svg-inline src="@/assets/icons/angle-left.svg" alt="Previous" title="Previous" />'
-const nextIcon = '<img svg-inline src="@/assets/icons/angle-right.svg" alt="Next" title="Next" />'
 
 function navigateToPage(p) {
     router.push({query: getPageQuery(p)})
@@ -80,14 +74,14 @@ function pagesBefore() {
 
     if (min > 1) {
         pages.push({
-            icon: firstIcon,
+            icon: require('@/assets/icons/angle-double-left.svg'),
             num: 1
         })
     }
 
     if (props.page > 1) {
         pages.push({
-            icon: prevIcon,
+            icon: require('@/assets/icons/angle-left.svg'),
             num: props.page - 1
         })
     }
@@ -119,7 +113,7 @@ function pagesAfter() {
 
     if (props.page < props.maxPage) {
         pages.push({
-            icon: nextIcon,
+            icon: require('@/assets/icons/angle-right.svg'),
             num: props.page + 1
         })
     }
