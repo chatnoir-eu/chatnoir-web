@@ -105,7 +105,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         if request.method == 'OPTIONS':
             return None
 
-        api_key = request.data.get('apikey') or request.GET.get('apikey')
+        bearer = authentication.get_authorization_header(request).decode().split()
+        if len(bearer) == 2 and bearer[0].lower() in ['bearer', 'token']:
+            api_key = bearer[1]
+        else:
+            api_key = request.data.get('apikey') or request.GET.get('apikey')
+
         if not api_key:
             raise exceptions.NotAuthenticated(_('No API key supplied.'))
 
