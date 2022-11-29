@@ -100,7 +100,8 @@ class ApiKey(models.Model):
         verbose_name_plural = _('API Keys')
 
     api_key = models.CharField(verbose_name=_('API Key'), max_length=255, primary_key=True, default=generate_apikey)
-    user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key', on_delete=models.CASCADE)
+    user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key',
+                             null=True, on_delete=models.CASCADE)
     issue_date = models.DateTimeField(verbose_name=_('Issue Date'), default=timezone.now, null=True, blank=True)
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
@@ -127,8 +128,8 @@ class ApiKey(models.Model):
             self.limits_month = None
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._inherited = self._Inherited()
+        super().__init__(*args, **kwargs)
 
     @classmethod
     def from_db(cls, *args, **kwargs):
@@ -306,7 +307,8 @@ class ApiKey(models.Model):
             key = f'{self.comments} ({self.api_key})'
         else:
             key = self.api_key
-        return f'{self.user.common_name}: {key}'
+        user = self.user.common_name if hasattr(self, 'user') and self.user else '<anonymous>'
+        return f'{user}: {key}'
 
     @property
     def roles_str(self):

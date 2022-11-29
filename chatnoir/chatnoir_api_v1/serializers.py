@@ -54,7 +54,7 @@ class ApiModelSerializer(ApiSerializer, serializers.ModelSerializer):
 
 class AuthenticatedApiSerializer(ApiSerializer):
     apikey = serializers.CharField(
-        required=True,
+        required=False,
         max_length=255,
         initial=_('<apikey>'),
         label=_('API Key'),

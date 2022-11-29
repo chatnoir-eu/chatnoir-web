@@ -17,6 +17,8 @@ import ipaddress
 import pickle
 
 from django.conf import settings
+from django.core import serializers
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import authentication, exceptions, permissions
 
@@ -24,6 +26,8 @@ from .models import ApiKey
 
 
 class ApiKeyAuthentication(authentication.BaseAuthentication):
+    SESSION_APIKEY_KEY = 'session_api_key'
+
     @staticmethod
     def validate_expiration(api_key):
         if api_key.has_expired:
@@ -96,10 +100,22 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         pickled = pickle.dumps(quota_used)
         if api_key.quota_used != pickled:
             api_key.quota_used = pickled
-            api_key.save()
+            if api_key._state.db:
+                api_key.save()
 
         if quota_exceeded:
             raise exceptions.Throttled(None, _('API request limit exceeded.'), 'quota_exceeded')
+
+    @classmethod
+    def _save_session_apikey(cls, request, api_key):
+        """Store serialized API key in session."""
+        request.session[cls.SESSION_APIKEY_KEY] = serializers.serialize('json', [api_key])
+
+    @classmethod
+    def _get_session_apikey(cls, request):
+        """Retrieve API key from session or return ``None`` if no API key ist set."""
+        for serialized in serializers.deserialize('json', request.session.get(cls.SESSION_APIKEY_KEY, '[]')):
+            return serialized.object
 
     def authenticate(self, request):
         if request.method == 'OPTIONS':
@@ -107,24 +123,59 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         bearer = authentication.get_authorization_header(request).decode().split()
         if len(bearer) == 2 and bearer[0].lower() in ['bearer', 'token']:
-            api_key = bearer[1]
+            api_key_str = bearer[1]
         else:
-            api_key = request.data.get('apikey') or request.GET.get('apikey')
+            api_key_str = request.data.get('apikey') or request.GET.get('apikey')
 
-        if not api_key:
+        if not api_key_str:
             raise exceptions.NotAuthenticated(_('No API key supplied.'))
 
-        try:
-            api_key = ApiKey.objects.get(api_key=api_key)
-        except ApiKey.DoesNotExist:
-            raise exceptions.NotAuthenticated(_('Invalid API key.'))
+        # Test for temporary session API keys first
+        api_key = self._get_session_apikey(request)
+        if api_key and (not hasattr(api_key, 'api_key') or api_key.api_key != api_key_str):
+            api_key = None
+        is_temporary_key = api_key is not None
+
+        # Fall back to regular API keys if temporary session key is invalid or unset
+        if not api_key:
+            try:
+                api_key = ApiKey.objects.get(api_key=api_key_str)
+            except ApiKey.DoesNotExist:
+                raise exceptions.NotAuthenticated(_('Invalid API key.'))
 
         self.validate_expiration(api_key)
         self.validate_revocation(api_key)
         self.validate_remote_hosts(api_key, request)
         self.validate_api_limits(api_key)
 
+        if is_temporary_key:
+            # Store updated API limits
+            self._save_session_apikey(request, api_key)
+
         return api_key.user, api_key
+
+    @classmethod
+    def issue_temporary_session_apikey(cls, request, validity=300, request_limit=10, parent=None, user=None):
+        """
+        Issue a temporary session API key. The key will be stored in the session automatically.
+
+        :param request: HTTP requests with initialized session object
+        :param validity: API key validity in seconds
+        :param request_limit: request quota for this API key
+        :param parent: parent API key (default: unparented)
+        :param user: user which to attach the key to (default: anonymous)
+        :return: temporary API key
+        """
+        api_key = ApiKey(
+            parent=parent,
+            user=user,
+            expires=timezone.now() + timedelta(seconds=validity),
+            limits_day=request_limit,
+            limits_week=request_limit,
+            limits_month=request_limit
+        )
+        cls._save_session_apikey(request, api_key)
+        return api_key
 
 
 def validate_roles(request, roles):

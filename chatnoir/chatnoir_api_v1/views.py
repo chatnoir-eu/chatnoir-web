@@ -25,7 +25,6 @@ from rest_framework.response import Response
 from .authentication import *
 from .forms import KeyRequestForm
 from .metadata import *
-from .models import SEND_MAIL_EXECUTOR
 from .serializers import *
 
 from chatnoir_search_v1.search import SimpleSearch, PhraseSearch
