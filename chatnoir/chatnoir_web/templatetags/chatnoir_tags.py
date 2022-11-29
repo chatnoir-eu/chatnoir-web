@@ -3,8 +3,9 @@ from time import time
 
 from django import template
 from django.conf import settings
-from django.middleware.csrf import get_token, CSRF_SESSION_KEY
 from django.utils.safestring import mark_safe
+
+from chatnoir_api_v1.authentication import ApiKeyAuthentication
 
 register = template.Library()
 
@@ -20,15 +21,13 @@ def app_name():
 
 
 @register.simple_tag(takes_context=True)
-def search_request_token(context):
+def search_session_apikey(context):
     """
-    Get time-limited CSRF token as JSON with timestamps.
-    A side-effect of this template tag is that it refreshes the lifetime of the current token.
+    Get a temporary session API key.
+    Using this template tag will invalidate any previous session API key.
     """
-    ts = time()
-    context['request'].session[CSRF_SESSION_KEY + '_TIME'] = ts
-
+    apikey = ApiKeyAuthentication.issue_temporary_session_apikey(context['request'])
     return mark_safe(json.dumps(dict(
-        token=get_token(context['request']),
-        timestamp=int(ts),
-        max_age=settings.CSRF_MAX_TOKEN_AGE)))
+        token=apikey.api_key,
+        timestamp=int(apikey.issue_date.timestamp()),
+        max_age=int((apikey.expires - apikey.issue_date).total_seconds()) + 1)))

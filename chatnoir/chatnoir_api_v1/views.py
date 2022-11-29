@@ -28,7 +28,6 @@ from .metadata import *
 from .serializers import *
 
 from chatnoir_search_v1.search import SimpleSearch, PhraseSearch
-from chatnoir_web.middleware import with_csrf_header
 
 
 def api_exception_handler(exc, _):
@@ -324,7 +323,6 @@ def apikey_request_passcode(request):
 
 
 @require_http_methods(['POST'])
-@with_csrf_header
 def _apikey_request(request, passcode):
     form = KeyRequestForm(request.POST, passcode=passcode)
 

@@ -16,9 +16,10 @@
 from django.conf import settings
 from django.http import HttpResponsePermanentRedirect, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_safe
 
-from .middleware import time_limited_csrf
+from chatnoir_api_v1.authentication import ApiKeyAuthentication
 from chatnoir_search_v1.search import SimpleSearch
 from chatnoir_api_v1.views import bool_param_set
 
@@ -43,8 +44,10 @@ def cache(request):
 
 
 @require_http_methods(['POST'])
-@time_limited_csrf()
+@csrf_exempt
 def search(request):
+    # TODO: remove and replace with proper API key using temporary session API key
+
     query_string = request.GET.get('q')
 
     if not query_string:

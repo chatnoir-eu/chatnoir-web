@@ -20,7 +20,7 @@
 <section id="app"></section>
 <script>
 window.DATA = {
-    token: {% search_request_token %},
+    token: {% search_session_apikey %},
     timestamp: {% now 'U' %},
     {% if indices %}indices: {{ indices | json | safe }}{% endif %}
 }

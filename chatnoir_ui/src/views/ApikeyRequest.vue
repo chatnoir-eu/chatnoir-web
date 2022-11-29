@@ -286,12 +286,13 @@ async function submitForm() {
         return
     }
 
+    // TODO: refactor to use API endpoint with temporary session API key
     const requestOptions = {
         method: 'POST',
         url: route.path,
         headers: {
             'Content-Type': 'multipart/form-data',
-            'X-Token': getReqToken().token
+            'Authorization': 'Bearer ' + getReqToken().token
         },
         data: new FormData(requestFormRef.value),
         timeout: 25000,
@@ -301,7 +302,7 @@ async function submitForm() {
     }
 
     const response = await axios(requestOptions)
-    updateReqToken(response.headers['x-token'])
+    // updateReqToken(response.headers['x-token'])
 
     if (!response.data.valid) {
         Object.keys(response.data.errors).forEach((k) => {
