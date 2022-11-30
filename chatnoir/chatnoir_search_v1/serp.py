@@ -299,11 +299,6 @@ class SerpContext:
         return self.results_from + len(self.response.hits)
 
     @serp_api_meta_extended
-    def hits_returned(self):
-        """Number of hits returned."""
-        return len(self.response.hits)
-
-    @serp_api_meta_extended
     def page_size(self):
         """
         Maximum number of results per page for paginated result display.
