@@ -26,7 +26,7 @@ def search_session_apikey(context):
     Get a temporary session API key.
     Using this template tag will invalidate any previous session API key.
     """
-    apikey = ApiKeyAuthentication.issue_temporary_session_apikey(context['request'])
+    apikey = ApiKeyAuthentication.issue_temporary_session_apikey(context['request'], issuer='web_frontend')
     return mark_safe(json.dumps(dict(
         token=apikey.api_key,
         timestamp=int(apikey.issue_date.timestamp()),

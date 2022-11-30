@@ -45,14 +45,16 @@ class ApiKeyAdminBaseMixin:
         ('_limits_day', '_limits_week', '_limits_month'),
         'roles',
         'allowed_remote_hosts',
-        'comments'
+        'comments',
+        'issuer',
     )
+    readonly_fields = ('issuer',)
 
 
 class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
     list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comments')
     list_filter = ('roles', )
-    readonly_fields = (
+    readonly_fields = ApiKeyAdminBaseMixin.readonly_fields + (
         '_valid_bool',
         'expires',
         '_has_expired_bool',

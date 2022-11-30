@@ -155,25 +155,29 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         return api_key.user, api_key
 
     @classmethod
-    def issue_temporary_session_apikey(cls, request, validity=300, request_limit=10, parent=None, user=None):
+    def issue_temporary_session_apikey(cls, request, validity=300, request_limit=10,
+                                       issuer=None, parent=None, user=None):
         """
         Issue a temporary session API key. The key will be stored in the session automatically.
 
         :param request: HTTP requests with initialized session object
         :param validity: API key validity in seconds
         :param request_limit: request quota for this API key
+        :param issuer: internal API key issuer identifier
         :param parent: parent API key (default: unparented)
         :param user: user which to attach the key to (default: anonymous)
         :return: temporary API key
         """
         api_key = ApiKey(
             parent=parent,
+            issuer=issuer,
             user=user,
             expires=timezone.now() + timedelta(seconds=validity),
             limits_day=request_limit,
             limits_week=request_limit,
             limits_month=request_limit
         )
+        api_key.save = lambda *_, **__: None
         cls._save_session_apikey(request, api_key)
         return api_key
 

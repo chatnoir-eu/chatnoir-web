@@ -103,6 +103,7 @@ class ApiKey(models.Model):
     user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key',
                              null=True, on_delete=models.CASCADE)
     issue_date = models.DateTimeField(verbose_name=_('Issue Date'), default=timezone.now, null=True, blank=True)
+    issuer = models.CharField(verbose_name=_('API Key Issuer'), max_length=64, blank=True, default='manual')
     parent = models.ForeignKey('self', verbose_name=_('Parent Key'), on_delete=models.CASCADE, null=True, blank=True)
     roles = models.ManyToManyField(ApiKeyRole, verbose_name=_('API Key Roles'), blank=True)
     allowed_remote_hosts = models.TextField(verbose_name=_('Allowed Remote Hosts'), null=True, blank=True)
@@ -515,7 +516,12 @@ class PendingApiUser(models.Model):
                 issue_key = self.issue_key
                 if self.passcode:
                     issue_key = self.passcode.issue_key
-                api_key = ApiKey(api_key=generate_apikey(), parent=issue_key, user=user, comments=self.comments)
+                api_key = ApiKey(
+                    api_key=generate_apikey(),
+                    parent=issue_key,
+                    user=user,
+                    comments=self.comments,
+                    issuer='passcode' if self.passcode else 'academic_request')
                 api_key.save()
                 if self.passcode and not self.issue_key:
                     redemption = PasscodeRedemption(api_key=api_key, passcode=self.passcode)
