@@ -115,6 +115,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
     def _get_session_apikey(cls, request):
         """Retrieve API key from session or return ``None`` if no API key ist set."""
         for serialized in serializers.deserialize('json', request.session.get(cls.SESSION_APIKEY_KEY, '[]')):
+            serialized.object.save = lambda *_, **__: None
             return serialized.object
 
     def authenticate(self, request):
