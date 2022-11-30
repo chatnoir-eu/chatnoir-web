@@ -11,9 +11,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALLOWED_HOSTS = ['*']
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
-CSRF_USE_SESSIONS = True
-CSRF_HEADER_NAME = 'HTTP_X_TOKEN'
-CSRF_HEADER_SET_NAME = 'X-Token'
 CORS_ALLOW_HEADERS = (
     "accept",
     "accept-encoding",
@@ -22,9 +19,12 @@ CORS_ALLOW_HEADERS = (
     "dnt",
     "origin",
     "user-agent",
-    CSRF_HEADER_SET_NAME
 )
-CSRF_MAX_TOKEN_AGE = 5 * 60
+CSRF_USE_SESSIONS = True
+
+# May need to be set to False in DEBUG environments
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # Application definition
 INSTALLED_APPS = [

@@ -174,7 +174,6 @@ import ModalDialog from '@/components/ModalDialog'
 import { SearchModel } from '@/search-model'
 import FormField from '@/components/FormField'
 import FormFieldCountry from '@/components/FormFieldCountry'
-import { getReqToken, updateReqToken } from '@/common'
 import LoadingIndicator from '@/components/LoadingIndicator'
 
 const router = useRouter()
@@ -286,13 +285,12 @@ async function submitForm() {
         return
     }
 
-    // TODO: refactor to use API endpoint with temporary session API key
     const requestOptions = {
         method: 'POST',
         url: route.path,
         headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': 'Bearer ' + getReqToken().token
+            'X-CSRFToken': window.DATA.csrfToken
         },
         data: new FormData(requestFormRef.value),
         timeout: 25000,
@@ -302,7 +300,6 @@ async function submitForm() {
     }
 
     const response = await axios(requestOptions)
-    // updateReqToken(response.headers['x-token'])
 
     if (!response.data.valid) {
         Object.keys(response.data.errors).forEach((k) => {
