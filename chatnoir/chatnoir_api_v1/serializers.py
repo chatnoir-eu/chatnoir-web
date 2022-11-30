@@ -98,6 +98,11 @@ class SimpleSearchRequestSerializer(AuthenticatedApiSerializer):
         default=False,
         help_text=_('Return additional scoring information')
     )
+    extended_meta = ImplicitBooleanField(
+        required=False,
+        default=False,
+        help_text=_('Return extended meta data')
+    )
 
 
 class PhraseSearchRequestSerializer(SimpleSearchRequestSerializer):

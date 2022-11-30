@@ -62,7 +62,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
-import { buildQueryString, getReqToken, updateReqToken } from '@/common'
+import { getApiToken } from '@/common'
 import { SearchModel } from '@/search-model'
 
 import SearchHeader from '@/components/SearchHeader'
@@ -83,9 +83,10 @@ const error = ref(null)
  * Request search result JSON from the server.
  */
 async function requestResults() {
-    // Refresh stale search token
-    const requestToken = getReqToken()
-    if (Date.now() / 1000 - requestToken.timestamp >= requestToken.maxAge) {
+
+    // Refresh stale search API token
+    const apiToken = getApiToken()
+    if (Date.now() / 1000 - apiToken.timestamp >= apiToken.maxAge) {
         location.reload()
         return
     }
@@ -93,17 +94,15 @@ async function requestResults() {
     if (!route.query.q) {
         return;
     }
-
-    const baseUrl = process.env.VUE_APP_BACKEND_ADDRESS + route.path.substr(1)
-    const backend = baseUrl +'search'
+    const baseUrl = process.env.VUE_APP_API_BACKEND_ADDRESS + route.path.substring(1)
     const requestOptions = {
         method: 'POST',
-        url: backend + '?' + buildQueryString(route.query),
+        url: baseUrl +'_search',
         headers: {
             'Content-Type': 'application/json',
-            'X-Token': requestToken.token
+            'Authorization': 'Bearer ' + apiToken.token
         },
-        data: {},
+        data: searchModel.toApiRequestBody(),
         timeout: 25000,
         onDownloadProgress(e) {
             requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
@@ -118,15 +117,18 @@ async function requestResults() {
         error.value = ''
 
         const response = await axios(requestOptions)
-        updateReqToken(response.headers['x-token'])
+        // Clear reload indicator on successful return
+        if (location.hash === '#reload') {
+            location.hash = ''
+        }
         return response.data
     } catch (ex) {
         if (ex.code === 'ECONNABORTED') {
             error.value = 'Search took too long (Timeout).'
-        } else if (ex.response.status === 403 && location.hash !== '#reload') {
-            // Probably a CSRF token error, try to refresh page
+        } else if (ex.response.status === 401 && location.hash !== '#reload') {
+            // Probably an API token error, try to refresh page once
             location.hash = 'reload'
-            location.reload()
+            setTimeout(() => location.reload(), 0)
         } else if (ex.response.status !== 200) {
             error.value = `${ex.response.status} ${ex.response.statusText}`
         }
@@ -143,7 +145,7 @@ async function requestResults() {
  * Initiate a search request.
  */
 async function search() {
-    await router.push({name: 'IndexSearch', query: searchModel.toQueryString()})
+    await router.push({name: 'IndexSearch', query: searchModel.toQueryStringObj()})
     if (searchModel.query) {
         const results = await requestResults()
         if (Object.keys(results).length === 0) {

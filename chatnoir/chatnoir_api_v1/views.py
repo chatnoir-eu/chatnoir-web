@@ -146,7 +146,7 @@ class SimpleSearchViewSet(ApiViewSet):
 
     def _process_search(self, search_obj, request, params):
         serp_ctx = search_obj.search(params.data['query'])
-        return Response(serp_ctx.to_dict(hits=True, meta=True, meta_extra=False))
+        return Response(serp_ctx.to_dict(hits=True, meta=True, extended_meta=params.data.get('extended_meta', False)))
 
     def post(self, request, **kwargs):
         params = SimpleSearchRequestSerializer(data=self._get_request_params(request))

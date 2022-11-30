@@ -15,7 +15,7 @@
  */
 
 
-import { objSnake2Camel } from '@/common'
+import { objSnake2Camel, objCamelToSnake } from '@/common'
 
 /**
  * Index meta descriptor.
@@ -50,15 +50,33 @@ export class SearchModel {
     }
 
     /**
-     * Generate a query string Map object representation of this search model's request data.
+     * Generate a query string object representation of the search model's request data.
      */
-    toQueryString() {
-        let indices = this.indices ? this.indices.filter((e) => e.selected).map((e) => e.id) : []
+    toQueryStringObj() {
+        let indices = this.selectedIndices().map((e) => e.id)
         return {
             q: this.query,
             index: indices.length === 1 ? indices[0] : indices,
-            p: this.page
+            p: this.page,
         }
+    }
+
+    /**
+     * Generate an API request body representation of the search model's request data.
+     * @param additionalFields additional fields to add to the request body
+     */
+    toApiRequestBody(additionalFields = null) {
+        if (!additionalFields) {
+            additionalFields = {}
+        }
+        return objCamelToSnake({
+            query: this.query,
+            index: this.selectedIndices().map((e) => e.id),
+            from: Math.max(0, this.page - 1) * this.pageSize,
+            size: this.pageSize,
+            extendedMeta: true,
+            ... additionalFields
+        })
     }
 
     /**
@@ -107,5 +125,12 @@ export class SearchModel {
             indices = window.DATA.indices ? window.DATA.indices.map((a) => new IndexDesc(a)) : []
         }
         this.indices = indices
+    }
+
+    /**
+     * Return the list of selected indices (i.e., `index.selected === true`).
+     */
+    selectedIndices() {
+        return this.indices ? this.indices.filter((e) => e.selected) : []
     }
 }

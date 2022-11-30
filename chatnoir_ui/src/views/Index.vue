@@ -26,19 +26,18 @@
 
 <script setup>
 import { onMounted, reactive, ref } from "vue"
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import CatLogo from '@/components/CatLogo'
 import SearchField from '@/components/SearchField'
 import { SearchModel } from '@/search-model'
 
 const router = useRouter()
-const route = useRoute()
 const searchFieldRef = ref(null)
 const searchModel = reactive(new SearchModel())
 
 function search() {
-    router.push({name: 'IndexSearch', query: searchModel.toQueryString()})
+    router.push({name: 'IndexSearch', query: searchModel.toQueryStringObj()})
 }
 
 onMounted(() => {

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-
 /**
- * Build a query string from a parameter map.
+ * Build a query string from a parameter object.
  *
- * @param params parameters as map
+ * @param params parameters as object
  * @returns {string} query string
  */
 export function buildQueryString(params) {
@@ -81,12 +80,12 @@ export function abbreviateUrl(url, maxSegments = 3, maxLength = 40,
     url.search = ''
     url.hash = ''
 
-    let segments = url.pathname.substr(1).split(/\//)
+    let segments = url.pathname.substring(1).split(/\//)
     if (segments.length <= maxSegments && url.pathname.length <= maxLength) {
         return url.href
     }
     segments = segments.slice(-maxSegments)
-    let path = segments.join('/').substr(-maxLength)
+    let path = segments.join('/').substring(-maxLength)
     return [url.origin, replacement, path].join('/')
 }
 
@@ -101,32 +100,23 @@ export function rem2Px(rem) {
 }
 
 /**
- * Convert a snake_case string to camelCase.
- *
- * @param snake snake string
- * @returns converted camelCaseString
- */
-export function snake2Camel(snake) {
-    return snake.replace(/(_[a-zA-Z])/g, (m) => m[1].toUpperCase())
-}
-
-/**
- * Recursively convert object keys from snake_case to camelCase.
+ * Recursively transform object keys using a map function.
  *
  * @param obj input object
- * @returns converted Object
+ * @param mapFunc mapping function taking a string and returning another string
+ * @returns converted Object with transformed keys
  */
-export function objSnake2Camel(obj) {
+export function mapObjKeys(obj, mapFunc) {
     if (Array.isArray(obj)) {
-        return obj.map((o) => objSnake2Camel(o))
+        return obj.map((o) => mapObjKeys(o, mapFunc))
     } else if (obj !== null && typeof obj === 'object') {
         const newObj = {}
         Object.keys(obj).forEach((k) => {
             let val = obj[k]
             if (typeof obj[k] === 'object' && !Array.isArray(obj[k])) {
-                val = objSnake2Camel(val)
+                val = mapObjKeys(val, mapFunc)
             }
-            newObj[snake2Camel(k)] = val
+            newObj[mapFunc(k)] = val
         })
         return newObj
     }
@@ -134,43 +124,60 @@ export function objSnake2Camel(obj) {
 }
 
 /**
+ * Recursively convert object keys from snake_case to camelCase.
+ *
+ * @param obj input object
+ * @returns converted Object with camelCaseKeys
+ */
+export function objSnake2Camel(obj) {
+    return mapObjKeys(obj, (s) => s.replace(/(_[a-zA-Z])/g, (m) => m[1].toUpperCase()))
+}
+
+/**
+ * Recursively convert object keys from camelCase to snake_case.
+ *
+ * @param obj input object
+ * @returns converted Object with snake_case_keys
+ */
+export function objCamelToSnake(obj) {
+    return mapObjKeys(obj, (c) => c.replace(/([a-z][A-Z])/g, (m) => m[0] + '_' + m[1].toLowerCase()))
+}
+
+/**
  * Request token data class.
  */
-export class ReqToken {
+export class ApiToken {
     constructor({token, timestamp, maxAge}) {
         this.token = token
         this.timestamp = timestamp
         this.maxAge = maxAge
     }
-
 }
 
 /**
  * Get the current request token for API and form requests.
  *
- * @returns {ReqToken} token
+ * @returns {ApiToken} token
  */
-export function getReqToken() {
+export function getApiToken() {
     if (!window.DATA || !window.DATA.token) {
         return null
     }
-    if (!(window.DATA.token instanceof ReqToken)) {
-        window.DATA.token = new ReqToken(objSnake2Camel(window.DATA.token))
+    if (!(window.DATA.token instanceof ApiToken)) {
+        window.DATA.token = new ApiToken(objSnake2Camel(window.DATA.token))
     }
     return window.DATA.token
 }
 
+
 /**
- * Update the current request token string. Required after issuing a server request.
+ * Get the current request CSRF token.
  *
- * The current token is returned by the server in the `X-Token` header.
- *
- * @param tokenStr new token string
+ * @returns {ApiToken} token
  */
-export function updateReqToken(tokenStr) {
-    if (!(window.DATA.token instanceof ReqToken)) {
-        window.DATA.token = new ReqToken(objSnake2Camel(window.DATA.token))
+export function getCsrfToken() {
+    if (!window.DATA || !window.DATA.csrfToken) {
+        return null
     }
-    window.DATA.token.token = tokenStr
-    window.DATA.token.timestamp = Date.now() / 1000
+    return window.DATA.csrfToken
 }

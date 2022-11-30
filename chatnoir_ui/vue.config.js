@@ -1,11 +1,10 @@
 const BundleTracker = require('webpack-bundle-tracker')
 const path = require('path');
 
-const DEPLOYMENT_PATH = '/static/'
 const DEBUG = process.env.NODE_ENV !== 'production'
 
 module.exports = {
-    publicPath: DEBUG ?  'http://localhost:8080/' : DEPLOYMENT_PATH,
+    publicPath: process.env.BASE_URL,
     outputDir: path.join(__dirname, 'dist'),
 
     pages: {

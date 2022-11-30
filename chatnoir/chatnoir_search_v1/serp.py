@@ -29,7 +29,7 @@ class serp_api_meta(property):
 
 
 # noinspection PyPep8Naming
-class serp_api_meta_extra(property):
+class serp_api_meta_extended(property):
     """
     Property indicating an extended response metadata property.
     """
@@ -94,20 +94,20 @@ class SerpContext:
         self.search = search
         self.response = response
 
-    def to_dict(self, hits=True, meta=True, meta_extra=False):
+    def to_dict(self, hits=True, meta=True, extended_meta=False):
         """
         Return a single dict representation of this SERP context.
 
         :param hits: include (filtered) hit list
-        :param meta: include basic meta data
-        :param meta_extra: include extended meta data (implies ``meta=True``)
+        :param meta: include basic metadata
+        :param extended_meta: include extended metadata (implies ``meta=True``)
         :return: dict representation
         """
         d = {}
-        if meta or meta_extra:
+        if meta or extended_meta:
             d['meta'] = self.meta
-        if meta_extra:
-            d['meta'].update(self.meta_extra)
+        if extended_meta:
+            d['meta'].update(self.meta_extended)
         if hits:
             d['hits'] = self.hits_filtered
 
@@ -200,16 +200,17 @@ class SerpContext:
     @property
     def meta(self):
         """
-        JSON-serializable object of basic search result meta data.
+        JSON-serializable object of basic search result metadata.
         """
         return {k: getattr(self, k) for k in dir(self) if isinstance(getattr(type(self), k, None), serp_api_meta)}
 
     @property
-    def meta_extra(self):
+    def meta_extended(self):
         """
-        JSON-serializable object of extended search result meta data.
+        JSON-serializable object of extended search result metadata.
         """
-        return {k: getattr(self, k) for k in dir(self) if isinstance(getattr(type(self), k, None), serp_api_meta_extra)}
+        return {k: getattr(self, k) for k in dir(self)
+                if isinstance(getattr(type(self), k, None), serp_api_meta_extended)}
 
     def _index_name_to_shorthand(self, index_name):
         """
@@ -263,58 +264,58 @@ class SerpContext:
     def indices(self):
         return list(self.search.selected_indices.keys())
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def indices_all(self):
         all_indices = self.search.allowed_indices
         selected_indices = self.search.selected_indices
         return [dict(id=k, name=v.get('display_name'), selected=k in selected_indices)
                 for k, v in all_indices.items()]
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def query_string(self):
         """
         Original search query string.
         """
         return self._query_string
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def page(self):
         """
         Current page number.
         """
         return min(self.search.page_num + 1, self.max_page)
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def page_size(self):
         """
         Number of hits per page.
         """
         return 10
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def results_from(self):
         """Index number of the first result."""
         return self.search.search_from
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def results_to(self):
         """Index number of the last result."""
         return self.results_from + len(self.response.hits)
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def max_page(self):
         """
         Maximum page number for pagination (respects general pagination limit).
         """
         return min(math.ceil(self.total_results / self.page_size), int(math.ceil(10000 / self.search.num_results)))
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def explain(self):
         """
         Whether to explain results.
         """
         return self.search.explain
 
-    @serp_api_meta_extra
+    @serp_api_meta_extended
     def terminated_early(self):
         return hasattr(self.response, 'terminated_early') and self.response.terminated_early

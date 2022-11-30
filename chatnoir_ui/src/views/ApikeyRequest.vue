@@ -175,6 +175,7 @@ import { SearchModel } from '@/search-model'
 import FormField from '@/components/FormField'
 import FormFieldCountry from '@/components/FormFieldCountry'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { getCsrfToken } from '@/common'
 
 const router = useRouter()
 const route = useRoute()
@@ -233,7 +234,7 @@ function isAcademic() {
 }
 
 function redirectSearch() {
-    router.push({name: 'IndexSearch', query: searchHeaderModel.toQueryString()})
+    router.push({name: 'IndexSearch', query: searchHeaderModel.toQueryStringObj()})
 }
 
 function cancelApplication() {
@@ -290,7 +291,7 @@ async function submitForm() {
         url: route.path,
         headers: {
             'Content-Type': 'multipart/form-data',
-            'X-CSRFToken': window.DATA.csrfToken
+            'X-CSRFToken': getCsrfToken()
         },
         data: new FormData(requestFormRef.value),
         timeout: 25000,

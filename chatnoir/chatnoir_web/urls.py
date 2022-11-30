@@ -20,6 +20,5 @@ app_name = 'chatnoir_web'
 
 urlpatterns = [
     path(r'', views.index, name='index'),
-    path(r'search', views.search, name='search'),
     path(r'cache', views.cache, name='cache')
 ]
