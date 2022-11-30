@@ -128,7 +128,7 @@ async function requestResults() {
         } else if (ex.response.status === 401 && location.hash !== '#reload') {
             // Probably an API token error, try to refresh page once
             location.hash = 'reload'
-            setTimeout(() => location.reload(), 0)
+            location.reload()
         } else if (ex.response.status !== 200) {
             error.value = `${ex.response.status} ${ex.response.statusText}`
         }
@@ -145,7 +145,7 @@ async function requestResults() {
  * Initiate a search request.
  */
 async function search() {
-    await router.push({name: 'IndexSearch', query: searchModel.toQueryStringObj()})
+    await router.push({name: 'IndexSearch', query: searchModel.toQueryStringObj(), hash: route.hash})
     if (searchModel.query) {
         const results = await requestResults()
         if (Object.keys(results).length === 0) {
