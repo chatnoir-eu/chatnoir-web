@@ -186,11 +186,6 @@ const requestProgress = ref(0)
 
 let routeGuardDestination = null
 
-const countryOptions = [
-    {value: 'A', text: 'Hello'},
-    {value: 'B', text: 'World'}
-]
-
 const requestFormRef = ref(null)
 const form = reactive({
     commonName: '',

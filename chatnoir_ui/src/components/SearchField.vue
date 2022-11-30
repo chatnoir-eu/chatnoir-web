@@ -60,8 +60,8 @@ import OptionsDropDown from './OptionsDropDown'
 const optionsButton = ref(null)
 const emit = defineEmits(['update:modelValue', 'submit', 'change', 'option-change', 'keyup'])
 const props = defineProps({
-    action: {type: String, default:''},
-    method: {type: String, default: "GET"},
+    action: {type: String, default: ''},
+    method: {type: String, default: 'GET'},
     modelValue: {
         type: SearchModel,
         default: () => new SearchModel()
