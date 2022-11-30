@@ -36,17 +36,12 @@ export class SearchResponse {
 }
 
 export class SearchModel {
-    constructor({query, indices, page, pageSize, maxPage} = {}) {
+    constructor({query, indices, page, pageSize} = {}) {
         this.query = query || ''
-        this.indices = indices || []
         this.pageSize =  parseInt(pageSize) || 10
-        this.maxPage =  parseInt(maxPage) || 1000
-        this.page = Math.min(this.maxPage, Math.max(1, parseInt(page)) || 1)
+        this.page = Math.max(1, parseInt(page)) || 1
         this.response = null
-
-        if (this.indices.length === 0) {
-            this.updateIndices()
-        }
+        this.setIndices(indices)
     }
 
     /**
@@ -85,12 +80,13 @@ export class SearchModel {
      * @param jsonData JSON response data
      */
     updateFromResponse(jsonData) {
-        this.response = new SearchResponse(objSnake2Camel(jsonData.meta), objSnake2Camel(jsonData.hits))
-        this.response.meta.indicesAll = this.response.meta.indicesAll.map((i) => new IndexDesc(i))
-        this.indices = this.response.meta.indicesAll
-        this.page = this.response.meta.page
-        this.maxPage = this.response.meta.maxPage
+        const response = new SearchResponse(objSnake2Camel(jsonData.meta), objSnake2Camel(jsonData.hits))
+        response.meta.indices = response.meta.indices.map((i) => new IndexDesc(i))
+        this.response = response
+        
+        this.page = Math.floor(this.response.meta.resultsFrom / this.response.meta.pageSize) + 1
         this.pageSize = this.response.meta.pageSize
+        this.setIndices(this.response.meta.indices)
     }
 
     /**
@@ -106,31 +102,47 @@ export class SearchModel {
 
         this.query = queryString.q || ''
         if (this.indices.length === 0) {
-            this.updateIndices()
+            this.setIndices()
         }
         this.indices = this.indices.map((i) => Object.assign(
             {}, i, {selected: !queryIndices.length ? i.selected : queryIndices.includes(i.id)}))
-        this.page = Math.min(this.maxPage, Math.max(1, parseInt(queryString.p) || 1))
+        this.page = Math.max(1, parseInt(queryString.p) || 1)
         this.response = null
     }
 
     /**
-     * Update list of available and selected indices from a given list of `IndexDesc` objects.
+     * Get maximum page from search result or 0 if unavailable.
+     */
+    maxPage() {
+        if (!this.response) {
+            return 0
+        }
+        return this.response.meta.maxPage
+    }
+
+    /**
+     * Update list of available and selected from a list of (JSON) objects with the following shape:
+     * `{id: "index_id", name: "Index name", selected: true | false}`.
+     *
      * If `indices` is unset, the list will be refreshed from `window.DATA.indices` if available.
      *
      * @param indices list of `IndexDesc` objects or undefined
      */
-    updateIndices(indices = undefined) {
-        if (indices === undefined) {
-            indices = window.DATA.indices ? window.DATA.indices.map((a) => new IndexDesc(a)) : []
+    setIndices(indices = null) {
+        if (!indices) {
+            this.setIndices(window.DATA.indices || [])
+            return
         }
-        this.indices = indices
+        this.indices = indices.map((i) => i instanceof IndexDesc ? i : new IndexDesc(i))
     }
 
     /**
      * Return the list of selected indices (i.e., `index.selected === true`).
      */
     selectedIndices() {
-        return this.indices ? this.indices.filter((e) => e.selected) : []
+        if (!this.response || !this.response.meta) {
+            return []
+        }
+        return this.response.meta.indices ? this.response.meta.indices.filter((e) => e.selected) : []
     }
 }

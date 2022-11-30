@@ -32,6 +32,9 @@ class serp_api_meta(property):
 class serp_api_meta_extended(property):
     """
     Property indicating an extended response metadata property.
+
+    Underscores at the end of property names will be stripped during the serialization of the SERP object,
+    so this can be used for replacing fields from the standard metadata in the serialized output.
     """
     pass
 
@@ -208,8 +211,11 @@ class SerpContext:
     def meta_extended(self):
         """
         JSON-serializable object of extended search result metadata.
+
+        Trailing underscores are stripped from all included property names, so this can be used for
+        overwriting fields with the same name (except the underscore) from the simple metadata set.
         """
-        return {k: getattr(self, k) for k in dir(self)
+        return {k.rstrip('_'): getattr(self, k) for k in dir(self)
                 if isinstance(getattr(type(self), k, None), serp_api_meta_extended)}
 
     def _index_name_to_shorthand(self, index_name):
@@ -254,18 +260,22 @@ class SerpContext:
 
     @serp_api_meta
     def query_time(self):
+        """Query time in milliseconds."""
         return self.response.took
 
     @serp_api_meta
     def total_results(self):
+        """Total hits found for the query."""
         return self.response.hits.total.value
 
     @serp_api_meta
     def indices(self):
+        """List of searched index IDs."""
         return list(self.search.selected_indices.keys())
 
     @serp_api_meta_extended
-    def indices_all(self):
+    def indices_(self):
+        """List of dicts with index IDs and names and whether they were active for this search."""
         all_indices = self.search.allowed_indices
         selected_indices = self.search.selected_indices
         return [dict(id=k, name=v.get('display_name'), selected=k in selected_indices)
@@ -279,28 +289,27 @@ class SerpContext:
         return self._query_string
 
     @serp_api_meta_extended
-    def page(self):
-        """
-        Current page number.
-        """
-        return min(self.search.page_num + 1, self.max_page)
-
-    @serp_api_meta_extended
-    def page_size(self):
-        """
-        Number of hits per page.
-        """
-        return 10
-
-    @serp_api_meta_extended
     def results_from(self):
         """Index number of the first result."""
         return self.search.search_from
 
     @serp_api_meta_extended
     def results_to(self):
-        """Index number of the last result."""
+        """Index number past the last returned result."""
         return self.results_from + len(self.response.hits)
+
+    @serp_api_meta_extended
+    def hits_returned(self):
+        """Number of hits returned."""
+        return len(self.response.hits)
+
+    @serp_api_meta_extended
+    def page_size(self):
+        """
+        Maximum number of results per page for paginated result display.
+        This can be larger than ``hits_returned``, which is the actual number of results on this page.
+        """
+        return self.search.num_results
 
     @serp_api_meta_extended
     def max_page(self):

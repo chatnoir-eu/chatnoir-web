@@ -166,7 +166,7 @@ function getLastName(author) {
 }
 
 function getFullIndexName() {
-    return props.meta.indicesAll.find((e) => e.id === props.data.index).name
+    return props.meta.indices.find((e) => e.id === props.data.index).name
 }
 </script>
 

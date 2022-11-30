@@ -41,6 +41,6 @@ function search() {
 }
 
 onMounted(() => {
-    searchModel.updateIndices()
+    searchModel.setIndices()
 })
 </script>

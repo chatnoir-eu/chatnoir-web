@@ -50,8 +50,8 @@
         </div>
     </div>
 
-    <footer v-if="searchModel.response && searchModel.maxPage > 0" class="my-16 mx-auto max-w-3xl text-center">
-        <pagination v-model:page="searchModel.page" :max-page="searchModel.maxPage" :page-size="searchModel.pageSize"
+    <footer v-if="searchModel.response && searchModel.maxPage() > 0" class="my-16 mx-auto max-w-3xl text-center">
+        <pagination v-model:page="searchModel.page" :max-page="searchModel.maxPage()" :page-size="searchModel.pageSize"
                     @update:page="search()" />
     </footer>
 </div>

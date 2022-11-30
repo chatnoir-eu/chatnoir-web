@@ -74,11 +74,6 @@ class SearchBase(ABC):
 
         return indices
 
-    @property
-    def page_num(self):
-        """Search result page number."""
-        return self.search_from // self.num_results
-
     @abstractmethod
     def search(self, query_string):
         """
