@@ -1,6 +1,6 @@
 Dear {{ common_name }},
 
-Thank you for signing up for {{ app_name }} API key!
+Thank you for signing up for a {{ app_name }} API key!
 
 To complete your application, please click the following link to
 verify your email address:
