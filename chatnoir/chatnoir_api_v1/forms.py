@@ -66,16 +66,31 @@ class KeyRequestForm(forms.ModelForm):
 
                 # check if API key for this email address / passcode combination has already been issued
                 redeemed = PasscodeRedemption.objects.filter(passcode=pc,
-                                                             api_key__user__email=cleaned_data.get('email')).exists()
+                                                             api_key__user__email=cleaned_data['email']).exists()
                 if not redeemed:
-                    redeemed = PendingApiUser.objects.filter(passcode=pc, email=cleaned_data.get('email')).exists()
+                    redeemed = PendingApiUser.objects.filter(passcode=pc, email=cleaned_data['email']).exists()
 
                 if redeemed:
                     self.add_error('passcode', ValidationError(_('Passcode already redeemed.'), 'already-redeemed'))
             except ApiKeyPasscode.DoesNotExist:
                 self.add_error('passcode', ValidationError(
                     _('The passcode "{}" is invalid.').format(cleaned_data.get('passcode', '')), 'invalid'))
+
+            try:
+                if cleaned_data.get('passcode'):
+                    PendingApiUser.objects.get(email=cleaned_data['email'], passcode=cleaned_data['passcode'])
+                    self.add_error(
+                        'email', ValidationError(_('API key request for user already submitted.'), 'duplicate'))
+            except PendingApiUser.DoesNotExist:
+                pass
+
         else:
+            try:
+                PendingApiUser.objects.get(email=cleaned_data['email'])
+                self.add_error('email', ValidationError(_('API key request for user already submitted.'), 'duplicate'))
+            except PendingApiUser.DoesNotExist:
+                pass
+
             if not cleaned_data.get('organization'):
                 self.add_error('organization', ValidationError(_('Your academic institute is required.'), 'required'))
             if not cleaned_data.get('comments'):

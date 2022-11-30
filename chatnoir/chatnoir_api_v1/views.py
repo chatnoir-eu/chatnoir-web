@@ -17,25 +17,26 @@ from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 from rest_framework import routers, viewsets, exceptions as rest_exceptions
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
 
-from .authentication import *
+from .authentication import ApiKeyAuthentication, HasKeyCreateRole
 from .forms import KeyRequestForm
-from .metadata import *
+from .metadata import ApiMetadata
 from .serializers import *
 
 from chatnoir_search_v1.search import SimpleSearch, PhraseSearch
 
 
 def api_exception_handler(exc, _):
-    if not isinstance(exc, exceptions.APIException):
+    if not isinstance(exc, rest_exceptions.APIException):
         raise exc
 
     status_code = exc.status_code
-    if isinstance(exc, (exceptions.NotAuthenticated, exceptions.AuthenticationFailed)):
+    if isinstance(exc, (rest_exceptions.NotAuthenticated, rest_exceptions.AuthenticationFailed)):
         # Django "corrects" these codes to 403, since API keys do not rely on the Django authentication middleware
         status_code = 401
 
@@ -72,16 +73,16 @@ class Error404(viewsets.ViewSet):
         return _('Not Found')
 
     def handle_exception(self, _):
-        return api_exception_handler(exceptions.NotFound(), None)
+        return api_exception_handler(rest_exceptions.NotFound(), None)
 
     def head(self, _):
         return Response(status=404)
 
     def list(self, _):
-        raise exceptions.NotFound()
+        raise rest_exceptions.NotFound()
 
     def options(self, _, *args, **kwargs):
-        raise exceptions.NotFound()
+        raise rest_exceptions.NotFound()
 
 
 class ApiViewSet(viewsets.ViewSet):
@@ -106,13 +107,13 @@ class ApiViewSet(viewsets.ViewSet):
         return context
 
     def list(self, request, **kwargs):
-        raise exceptions.MethodNotAllowed(request.method)
+        raise rest_exceptions.MethodNotAllowed(request.method)
 
     def post(self, request, **kwargs):
-        raise exceptions.MethodNotAllowed(request.method)
+        raise rest_exceptions.MethodNotAllowed(request.method)
 
     def put(self, request, **kwargs):
-        raise exceptions.MethodNotAllowed(request.method)
+        raise rest_exceptions.MethodNotAllowed(request.method)
 
 
 class SimpleSearchViewSet(ApiViewSet):
@@ -218,7 +219,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
             })
 
         except ApiKey.DoesNotExist:
-            raise exceptions.ValidationError({'apikey': _('Invalid API key.')}, 'invalid_key')
+            raise rest_exceptions.ValidationError({'apikey': _('Invalid API key.')}, 'invalid_key')
 
 
 class ManageKeysCreateViewSet(ManageKeysViewSet):
@@ -258,12 +259,12 @@ class ManageKeysUpdateViewSet(ManageKeysViewSet):
                 raise ApiKey.DoesNotExist
             return child_key
         except ApiKey.DoesNotExist:
-            raise exceptions.ValidationError(
+            raise rest_exceptions.ValidationError(
                 {'apikey': _('API key "{}" does not exist or is not a sub key.').format(child)}, 'invalid_key')
 
     def put(self, request, target_apikey=None, **kwargs):
         if not target_apikey:
-            raise exceptions.ValidationError(_('No target API key given.'))
+            raise rest_exceptions.ValidationError(_('No target API key given.'))
 
         self.check_is_sub_key(target_apikey, request.auth.api_key)
 
@@ -289,7 +290,7 @@ class ManageKeysRevokeViewSet(ManageKeysUpdateViewSet):
 
     def put(self, request, target_apikey=None, **kwargs):
         if not target_apikey:
-            raise exceptions.ValidationError(_('No target API given.'))
+            raise rest_exceptions.ValidationError(_('No target API given.'))
 
         api_key = self.check_is_sub_key(target_apikey, request.auth.api_key)
         api_key.revoked = True
@@ -301,11 +302,13 @@ class ManageKeysRevokeViewSet(ManageKeysUpdateViewSet):
         })
 
 
+@ensure_csrf_cookie
 def apikey_request_index(request):
     """API key request index view."""
     return render(request, 'index.html')
 
 
+@ensure_csrf_cookie
 def apikey_request_academic(request):
     """Request form view for academic API keys."""
     if request.method == 'GET':
@@ -314,6 +317,7 @@ def apikey_request_academic(request):
     return _apikey_request(request, False)
 
 
+@ensure_csrf_cookie
 def apikey_request_passcode(request):
     """Request form view for passcode-issued API keys."""
     if request.method == 'GET':
@@ -322,6 +326,7 @@ def apikey_request_passcode(request):
     return _apikey_request(request, True)
 
 
+@csrf_protect
 @require_http_methods(['POST'])
 def _apikey_request(request, passcode):
     form = KeyRequestForm(request.POST, passcode=passcode)
@@ -331,20 +336,6 @@ def _apikey_request(request, passcode):
             'valid': False,
             'errors': form.errors.get_json_data()
         })
-
-    try:
-        if passcode:
-            PendingApiUser.objects.get(email=form.cleaned_data['email'], passcode=form.cleaned_data['passcode'])
-        else:
-            PendingApiUser.objects.get(email=form.cleaned_data['email'])
-
-        form.add_error('email', ValidationError({'email': _('API key request for user already submitted.')}, 'duplicate'))
-        return JsonResponse({
-            'valid': False,
-            'errors': form.errors.get_json_data()
-        })
-    except PendingApiUser.DoesNotExist:
-        pass
 
     instance = form.save(commit=False)
     activation_code = instance.generate_activation_code(save=True)

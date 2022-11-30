@@ -20,7 +20,7 @@ from django.conf import settings
 from django.core import serializers
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from rest_framework import authentication, exceptions, permissions
+from rest_framework import authentication, exceptions as rest_exceptions, permissions
 
 from .models import ApiKey
 
@@ -31,12 +31,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
     @staticmethod
     def validate_expiration(api_key):
         if api_key.has_expired:
-            raise exceptions.AuthenticationFailed(_('API key has expired.'), 'expired')
+            raise rest_exceptions.AuthenticationFailed(_('API key has expired.'), 'expired')
 
     @staticmethod
     def validate_revocation(api_key):
         if api_key.revoked:
-            raise exceptions.AuthenticationFailed(_('API key has been revoked.'), 'revoked')
+            raise rest_exceptions.AuthenticationFailed(_('API key has been revoked.'), 'revoked')
 
     @staticmethod
     def validate_remote_hosts(api_key, request):
@@ -54,7 +54,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             if ipaddress.ip_network(host).overlaps(client_ip):
                 return
 
-        raise exceptions.PermissionDenied(_('Remote IP not allowed.'), 'not_allowed')
+        raise rest_exceptions.PermissionDenied(_('Remote IP not allowed.'), 'not_allowed')
 
     @classmethod
     def validate_api_limits(cls, api_key, increment=True):
@@ -104,7 +104,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
                 api_key.save()
 
         if quota_exceeded:
-            raise exceptions.Throttled(None, _('API request limit exceeded.'), 'quota_exceeded')
+            raise rest_exceptions.Throttled(None, _('API request limit exceeded.'), 'quota_exceeded')
 
     @classmethod
     def _save_session_apikey(cls, request, api_key):
@@ -128,7 +128,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             api_key_str = request.data.get('apikey') or request.GET.get('apikey')
 
         if not api_key_str:
-            raise exceptions.NotAuthenticated(_('No API key supplied.'))
+            raise rest_exceptions.NotAuthenticated(_('No API key supplied.'))
 
         # Test for temporary session API keys first
         api_key = self._get_session_apikey(request)
@@ -141,7 +141,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             try:
                 api_key = ApiKey.objects.get(api_key=api_key_str)
             except ApiKey.DoesNotExist:
-                raise exceptions.NotAuthenticated(_('Invalid API key.'))
+                raise rest_exceptions.NotAuthenticated(_('Invalid API key.'))
 
         self.validate_expiration(api_key)
         self.validate_revocation(api_key)
