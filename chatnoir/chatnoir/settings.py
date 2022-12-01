@@ -25,6 +25,13 @@ CSRF_USE_SESSIONS = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+# Email settings
+EMAIL_HOST = 'localhost'
+SERVER_EMAIL = 'no-reply@localhost'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_SUBJECT_PREFIX = ''
+MANAGERS = []
+
 # Application definition
 INSTALLED_APPS = [
     'chatnoir_web.apps.ChatnoirWebConfig',
@@ -176,13 +183,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 USE_THOUSAND_SEPARATOR = True
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_SUBJECT_PREFIX = ''
-SERVER_EMAIL = 'no-reply@localhost'
-
-# ChatNoir notification email sender address
-EMAIL_SENDER_ADDRESS = 'no-reply@localhost'
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
