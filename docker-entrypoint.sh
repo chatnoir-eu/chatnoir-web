@@ -7,9 +7,9 @@ if [ "$1" = "uwsgi" ]; then
 
     gosu chatnoir ./manage.py collectstatic
     gosu chatnoir ./manage.py migrate --no-input
-    gosu chatnoir ./manage.py createsuperuser --no-input \
-        --username 'webis' --email 'webis@listserv.uni-weimar.de' 2> /dev/null | true
-    gosu chatnoir ./manage.py createcachetable
+    if [ "$DJANGO_APP" = "chatnoir_admin" ] && [ -n "$DJANGO_SUPERUSER_USERNAME" ]; then
+        gosu chatnoir ./manage.py createsuperuser --no-input 2> /dev/null || true
+    fi
     set -- gosu chatnoir "$@" --module "${DJANGO_APP}.wsgi"
 fi
 
