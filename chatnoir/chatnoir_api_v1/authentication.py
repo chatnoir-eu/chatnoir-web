@@ -184,7 +184,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
 
 def validate_roles(request, roles):
-    if not request.user.is_authenticated or not request.auth.roles:
+    if not request.auth or not request.auth.roles:
         return False
 
     for r in request.auth.roles.all():
@@ -196,7 +196,7 @@ def validate_roles(request, roles):
 
 class HasKeyCreateRole(permissions.BasePermission):
     def has_permission(self, request, view):
-        return validate_roles(request, (settings.API_KEY_CREATE_ROLE, settings.API_ADMIN_ROLE))
+        return validate_roles(request, (settings.API_KEYCREATE_ROLE, settings.API_ADMIN_ROLE))
 
 
 class HasAdminRole(permissions.BasePermission):

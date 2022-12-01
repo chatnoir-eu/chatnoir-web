@@ -23,7 +23,7 @@ from .models import *
 from .forms import PendingApiUserAdminForm
 
 
-_keycreate_roles = (settings.API_ADMIN_ROLE, settings.API_KEY_CREATE_ROLE)
+_keycreate_roles = (settings.API_ADMIN_ROLE, settings.API_KEYCREATE_ROLE)
 
 # Textareas are way too large
 admin.ModelAdmin.formfield_overrides = {

@@ -10,7 +10,7 @@ def init_root_api_key(apps, schema_editor):
         ApiKeyRole = apps.get_model('chatnoir_api_v1', 'ApiKeyRole')
         admin_role = ApiKeyRole(role=settings.API_ADMIN_ROLE)
         admin_role.save()
-        ApiKeyRole(role=settings.API_KEY_CREATE_ROLE).save()
+        ApiKeyRole(role=settings.API_KEYCREATE_ROLE).save()
         for role in settings.API_NOLOG_ROLES:
             ApiKeyRole(role=role).save()
 
@@ -29,7 +29,7 @@ def init_root_api_key(apps, schema_editor):
 
         # Default issue key
         default_limit = 10000
-        keycreate_role = ApiKeyRole(role=settings.API_KEY_CREATE_ROLE)
+        keycreate_role = ApiKeyRole(role=settings.API_KEYCREATE_ROLE)
         keycreate_role.save()
         default_key = ApiKey(user=api_user,
                              allowed_remote_hosts='127.0.0.1\n::1',

@@ -14,6 +14,7 @@
 
 import re
 from abc import ABC, abstractmethod
+import logging
 
 from django.conf import settings
 from elasticsearch_dsl import Q, Search, connections
@@ -49,6 +50,9 @@ class SearchBase(ABC):
         self.explain = explain
         self.minimal_response = False
 
+        self.query_logger = logging.getLogger(f'query_log.{self.__class__.__name__}')
+        self.query_logger.setLevel(logging.INFO)
+
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
 
@@ -74,12 +78,24 @@ class SearchBase(ABC):
 
         return indices
 
+    def log_query(self, query, extra):
+        """
+        Log a search query using the configured query logging facility.
+        Calls to :meth:``search`` are not logged automatically, so it is the responsibility of
+        the user to call :meth:``log_query`` as needed.
+
+        :param query: the search query as a string
+        :param extra: extra arguments to pass to the logger as dict
+        """
+        self.query_logger.log(logging.INFO, "%s", query, extra=extra)
+
     @abstractmethod
-    def search(self, query_string):
+    def search(self, query):
         """
         Run a search based on given search fields.
 
-        :param query_string: search query
+        :param query: search query as string
+        :return: :class:``serp.SerpContext`` with result
         """
         pass
 
@@ -242,23 +258,22 @@ class SimpleSearch(SearchBase):
         super().__init__(indices, search_from, num_results, explain)
         self.user_lang_override = False
 
-    def search(self, query_string):
-        response = self._build_search_request(query_string).execute()
-        return SerpContext(query_string, self, response)
+    def search(self, query):
+        response = self._build_search_request(query).execute()
+        return SerpContext(query, self, response)
 
-    def _build_search_request(self, query_string):
+    def _build_search_request(self, query):
         """
         Build search request including pre-query, rescorer, node limit, highlighters etc.
 
-        :param query_string: user query string
-        :param explain: explain result ranking
+        :param query: user query as string
         :return: configured Search
         """
 
         # Parse query string and apply side effects
-        query_string, user_filters = self._parse_query_string_operators(query_string)
+        query, user_filters = self._parse_query_string_operators(query)
 
-        pre_query = self._build_pre_query(query_string)
+        pre_query = self._build_pre_query(query)
         pre_query.filter.extend(user_filters.filter)
         pre_query.must_not.extend(user_filters.must_not)
 
@@ -275,7 +290,7 @@ class SimpleSearch(SearchBase):
         for h in self.HIGHLIGHT_FIELDS:
             s = s.highlight(self.replace_lang_placeholder(h['name']), **{k: v for k, v in h.items() if k != 'name'})
 
-        rescore_query = self._build_rescore_query(query_string)
+        rescore_query = self._build_rescore_query(query)
         if rescore_query is not None:
             s = s.extra(rescore=dict(
                 window_size=self.RESCORE_WINDOW,
@@ -289,18 +304,18 @@ class SimpleSearch(SearchBase):
 
         return s
 
-    def _parse_query_string_operators(self, query_string):
+    def _parse_query_string_operators(self, query):
         """
         Parse (non-standard) operators and configured filters from the query string such as site:example.com and
         delete the filters from the given query StringBuffer.
 
-        :param query_string: user query string
+        :param query: user query as string
         :return: stripped query string, generated filter query
         """
 
-        query_string = re.sub(r'(?!\B"[^"]*) AND (?![^"]*"\B)', ' +', query_string)
-        query_string = re.sub(r'(?!\B"[^"]*) OR (?![^"]*"\B)', ' | ', query_string)
-        query_string_orig = query_string
+        query = re.sub(r'(?!\B"[^"]*) AND (?![^"]*"\B)', ' +', query)
+        query = re.sub(r'(?!\B"[^"]*) OR (?![^"]*"\B)', ' | ', query)
+        query_string_orig = query
 
         filter_query = Q('bool', filter=[])
 
@@ -321,7 +336,7 @@ class SimpleSearch(SearchBase):
                     continue
 
                 # Remove filter from query string
-                query_string = query_string.replace(query_string_orig[filter_match.start():filter_match.end()], '', 1)
+                query = query.replace(query_string_orig[filter_match.start():filter_match.end()], '', 1)
 
                 # Special case: index
                 if filter_field == '#index':
@@ -346,16 +361,16 @@ class SimpleSearch(SearchBase):
                     query_type = 'match_phrase' if ' ' in filter_value else 'match'
                     filter_query.filter.append(Q(query_type, **{filter_field: filter_value.strip('"')}))
 
-            query_string_orig = query_string.strip()
+            query_string_orig = query.strip()
 
-        query_string = query_string.strip()
-        return query_string, filter_query
+        query = query.strip()
+        return query, filter_query
 
-    def _build_pre_query(self, query_string):
+    def _build_pre_query(self, query):
         """
         Assemble the fast pre-query for use with a rescorer.
 
-        :param query_string: user query string
+        :param query: user query string
         :return: assembled pre-query
         """
 
@@ -365,9 +380,9 @@ class SimpleSearch(SearchBase):
             # Only add if not already added via user filter
             pre_query.filter.append(Q('term', lang=self.search_language))
 
-        if query_string:
+        if query:
             pre_query.must = Q('simple_query_string',
-                               query=query_string,
+                               query=query,
                                default_operator='and',
                                flags='AND|OR|NOT|WHITESPACE',
                                fields=[self.replace_lang_placeholder(f['name']) for f in self.MAIN_FIELDS])
@@ -482,7 +497,7 @@ class PhraseSearch(SimpleSearch):
         super().__init__(indices, search_from, num_results, explain)
         self.slop = slop or self.DEFAULT_SLOP
 
-    def _build_pre_query(self, query_string):
+    def _build_pre_query(self, query):
         pre_query = Q('bool', filter=[], must_not=[])
 
         if not self.user_lang_override:
@@ -495,7 +510,7 @@ class PhraseSearch(SimpleSearch):
             fname = self.replace_lang_placeholder(f['name'])
             main_fields.add(fname)
             pre_query.must.append(Q('match_phrase', **{fname: dict(
-                query=query_string,
+                query=query,
                 slop=min(self.slop, self.MAX_SLOP),
                 boost=f.get('boost', 1.0))}))
 
@@ -504,7 +519,7 @@ class PhraseSearch(SimpleSearch):
             fname = self.replace_lang_placeholder(f['name'])
             if fname in main_fields:
                 continue
-            pre_query.should.append(Q('match', **{fname: dict(query=query_string, boost=f.get('boost', 1.0))}))
+            pre_query.should.append(Q('match', **{fname: dict(query=query, boost=f.get('boost', 1.0))}))
 
         return pre_query
 

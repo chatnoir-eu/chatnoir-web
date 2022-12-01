@@ -3,7 +3,6 @@ Django settings for ChatNoir.
 """
 
 import os
-from django.utils.log import DEFAULT_LOGGING
 
 APPLICATION_NAME = 'ChatNoir'
 DEBUG = False
@@ -71,9 +70,6 @@ CACHES = {
     }
 }
 
-# Do not filter console logs in production mode
-DEFAULT_LOGGING['handlers']['console']['filters'] = []
-
 ROOT_URLCONF = 'chatnoir.urls'
 
 TEMPLATES = [
@@ -123,6 +119,54 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Logging configuration (should be adjusted in local_settings.py)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[{server_time}] {message}',
+            'style': '{',
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
+        },
+        'logstash': {
+            'class': 'chatnoir.logging.LogstashUDPHandler',
+            'host': 'localhost',
+            'port': 3333
+        }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['django.server'],
+            'level': os.getenv('DJANGO_SERVER_LOG_LEVEL', os.getenv('DJANGO_LOG_LEVEL', 'INFO')),
+            'propagate': False,
+        },
+        'query_log': {
+            'handlers': ['logstash'],
+            'propagate': False,
+        }
+    }
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
@@ -159,10 +203,10 @@ WEBPACK_LOADER = {
     }
 }
 
-# Api settings
+# API settings
 API_ADMIN_ROLE = 'admin'
-API_KEY_CREATE_ROLE = 'keycreate'
-API_NOLOG_ROLES = ('dev',)
+API_KEYCREATE_ROLE = 'keycreate'
+API_NOLOG_ROLES = ('dev', 'nolog')
 API_TRUST_X_FORWARDED_FOR = False
 
 # Elasticsearch backend settings (override me)

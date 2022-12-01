@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from hashlib import sha256
+
 from django.core.mail import mail_managers
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect
@@ -23,7 +25,7 @@ from rest_framework import routers, viewsets, exceptions as rest_exceptions
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
 
-from .authentication import ApiKeyAuthentication, HasKeyCreateRole
+from .authentication import ApiKeyAuthentication, HasKeyCreateRole, validate_roles
 from .forms import KeyRequestForm
 from .metadata import ApiMetadata
 from .serializers import *
@@ -144,7 +146,25 @@ class SimpleSearchViewSet(ApiViewSet):
 
         return data
 
+    def _log_query(self, search_obj, request, query):
+        """Log a search query using the configured query logging facility."""
+
+        fields = {}
+        if request.auth:
+            if validate_roles(request, settings.API_NOLOG_ROLES):
+                return
+
+            fields['user'] = {
+                'name': request.auth.user.common_name if request.auth.user else '<anonymous>',
+                'hash': sha256(request.auth.api_key.encode()).hexdigest(),
+                'issuer': request.auth.issuer,
+            }
+
+        search_obj.log_query(query, extra=fields)
+
     def _process_search(self, search_obj, request, params):
+        """Run the search using the selected search class."""
+        self._log_query(search_obj, request, params.data['query'])
         serp_ctx = search_obj.search(params.data['query'])
         return Response(serp_ctx.to_dict(hits=True, meta=True, extended_meta=params.data.get('extended_meta', False)))
 
