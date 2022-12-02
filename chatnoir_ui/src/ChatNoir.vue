@@ -7,7 +7,9 @@
     <webis-footer
         copyright-start-year="2012"
         contact-fragment="#bevendorff"
-        :additional-links="[{href: 'https://webis.de/publications.html?q=bevendorff_2018', anchor: 'Cite'}]"
+        :additional-links="[
+            {href: 'https://webis.de/publications.html?q=bevendorff_2018', anchor: 'Cite'},
+            {href: $router.resolve({name: 'ApikeyRequest'}).fullPath, anchor: 'Request API Key'}]"
     />
 </section>
 </template>
