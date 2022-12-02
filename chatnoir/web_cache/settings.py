@@ -32,9 +32,7 @@ TEMPLATES[0]['DIRS'] = [
 
 WSGI_APPLICATION = 'web_cache.wsgi.application'
 
-DATABASES = {
-    'default': {}
-}
+DATABASES = {}
 
 STATICFILES_DIRS = []
 
