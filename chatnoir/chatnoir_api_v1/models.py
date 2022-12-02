@@ -43,8 +43,8 @@ class ApiUser(models.Model):
     API users associated with an API key.
     """
     class Meta:
-        verbose_name = _('API User')
-        verbose_name_plural = _('API Users')
+        verbose_name = _('User')
+        verbose_name_plural = _('Users')
 
     common_name = models.CharField(verbose_name=_('Common Name'), max_length=100)
     email = models.EmailField(verbose_name=_('Email Address'), max_length=200, unique=True)
@@ -336,8 +336,8 @@ class ApiKeyPasscode(models.Model):
     API key issue pass codes.
     """
     class Meta:
-        verbose_name = _('API Passcode')
-        verbose_name_plural = _('API Passcodes')
+        verbose_name = _('Passcode')
+        verbose_name_plural = _('Passcodes')
 
     issue_key = models.ForeignKey(ApiKey, verbose_name=_('Issue Key'), on_delete=models.CASCADE)
     passcode = models.CharField(verbose_name=_('Passcode'), max_length=100, unique=True)
@@ -353,8 +353,8 @@ class PasscodeRedemption(models.Model):
     """
     class Meta:
         unique_together = ('api_key', 'passcode')
-        verbose_name = _('API Passcode Redemption Log')
-        verbose_name_plural = _('API Passcode Redemption Log')
+        verbose_name = _('Passcode Redemption Log')
+        verbose_name_plural = _('Passcode Redemption Log')
 
     api_key = models.ForeignKey(ApiKey, on_delete=models.CASCADE)
     redemption_date = models.DateTimeField(default=timezone.now)
@@ -370,8 +370,8 @@ class PendingApiUser(models.Model):
     """
     class Meta:
         unique_together = ('email', 'passcode')
-        verbose_name = _('API Pending User')
-        verbose_name_plural = _('API Pending Users')
+        verbose_name = _('Pending User')
+        verbose_name_plural = _('Pending Users')
 
     activation_code = models.CharField(verbose_name=_('Activation Code'), max_length=255,
                                        default=generate_apikey, primary_key=True)
@@ -558,7 +558,7 @@ class ChatNoirApiConfiguration(SingletonModel):
                                           null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return "ChatNoir API Configuration"
+        return "Global Configuration"
 
     class Meta:
-        verbose_name = "ChatNoir API Configuration"
+        verbose_name = "Global Configuration"
