@@ -11,10 +11,7 @@ environment variable. The proxy module will override `ROOT_URLCONF` with its own
 import importlib
 import os
 
-if not os.getenv('CHATNOIR_SETTINGS_MODULE'):
-    raise RuntimeError('CHATNOIR_SETTINGS_MODULE environment variable unset.')
-
-__settings = importlib.import_module(os.getenv('CHATNOIR_SETTINGS_MODULE'))
+__settings = importlib.import_module(os.getenv('CHATNOIR_SETTINGS_MODULE', 'chatnoir.settings'))
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INSTALLED_APPS = []
