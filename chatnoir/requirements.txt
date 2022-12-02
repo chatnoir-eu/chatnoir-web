@@ -4,6 +4,7 @@ django-cors-headers
 django-webpack-loader
 djangorestframework
 django-countries
+django-solo
 elasticsearch>=7.0.0,<8.0.0
 elasticsearch-dsl>=7.0.0,<8.0.0
 fastwarc>=0.10.4

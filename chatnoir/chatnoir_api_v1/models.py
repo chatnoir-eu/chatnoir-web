@@ -29,6 +29,7 @@ from django.utils.crypto import get_random_string
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
+from solo.models import SingletonModel
 
 logger = logging.getLogger(__name__)
 
@@ -550,3 +551,14 @@ class PendingApiUser(models.Model):
             logger.error('Error activating user %s (%s):', self.common_name, self.email)
             logger.exception(e)
             return None
+
+
+class ChatNoirConfiguration(SingletonModel):
+    default_issue_key = models.ForeignKey(ApiKey, verbose_name=_('Default Key Request Issue Key'),
+                                          null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return "ChatNoir Configuration"
+
+    class Meta:
+        verbose_name = "ChatNoir Configuration"

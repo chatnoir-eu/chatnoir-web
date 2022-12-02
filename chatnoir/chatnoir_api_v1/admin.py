@@ -18,6 +18,7 @@ from django.contrib import admin, messages
 from django.db.models import Q
 from django.forms import ModelForm, Textarea
 from django.utils.translation import gettext_lazy as _, ngettext
+from solo.admin import SingletonModelAdmin
 
 from .models import *
 from .forms import PendingApiUserAdminForm
@@ -263,6 +264,7 @@ class ApiKeyPasscodeRedemptionAdmin(admin.ModelAdmin):
         return False
 
 
+admin.site.register(ChatNoirConfiguration, SingletonModelAdmin)
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(ApiUser, ApiUserAdmin)
 admin.site.register(ApiKeyRole, ApiKeyRoleAdmin)
