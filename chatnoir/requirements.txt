@@ -1,5 +1,4 @@
 boto3
-bs4
 django>=4.0
 django-cors-headers
 django-webpack-loader
