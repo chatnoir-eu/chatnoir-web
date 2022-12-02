@@ -30,6 +30,6 @@ TEMPLATES[0]['DIRS'] = [
 WSGI_APPLICATION = 'ir_anthology.wsgi.application'
 
 try:
-   from .local_settings import *
+    from .local_settings import *
 except ImportError:
     pass

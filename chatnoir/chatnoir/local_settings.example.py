@@ -8,7 +8,7 @@ SERVER_EMAIL = 'no-reply@localhost'
 
 # Configure managers to receive notifications about pending API requests
 MANAGERS = [
-    ('John', 'john@localhost')
+    ('Jane Doe', 'jane.doe@example.com')
 ]
 
 

@@ -2,7 +2,7 @@
 Django settings for the ChatNoir Web Cache.
 """
 
-from chatnoir.settings import *
+from chatnoir.settings_common import *
 
 APPLICATION_NAME = 'ChatNoir Web Cache'
 
@@ -36,6 +36,6 @@ DATABASES = {}
 STATICFILES_DIRS = []
 
 try:
-   from .local_settings import *
+    from .local_settings import *
 except ImportError:
     pass
