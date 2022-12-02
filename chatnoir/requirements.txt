@@ -5,8 +5,8 @@ django-cors-headers
 django-webpack-loader
 djangorestframework
 django-countries
-elasticsearch
-elasticsearch-dsl
+elasticsearch>=7.0.0,<8.0.0
+elasticsearch-dsl>=7.0.0,<8.0.0
 fastwarc>=0.10.4
 mistune
 python-frontmatter
