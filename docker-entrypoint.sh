@@ -6,7 +6,9 @@ if [ "$1" = "uwsgi" ]; then
     export DJANGO_SETTINGS_MODULE="${DJANGO_APP}.settings"
 
     gosu chatnoir ./manage.py collectstatic
-    gosu chatnoir ./manage.py migrate --no-input
+    if [ "$DJANGO_APP" != "web_cache" ]; then
+        gosu chatnoir ./manage.py migrate --no-input
+    fi
     if [ "$DJANGO_APP" = "chatnoir_admin" ] && [ -n "$DJANGO_SUPERUSER_USERNAME" ]; then
         gosu chatnoir ./manage.py createsuperuser --no-input 2> /dev/null || true
         unset DJANGO_SUPERUSER_USERNAME
