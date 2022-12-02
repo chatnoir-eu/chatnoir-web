@@ -51,8 +51,7 @@ export default {
 </script>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router';
+import { onMounted, ref, reactive, watch } from 'vue'
 
 import { SearchModel } from '@/search-model'
 import OptionsDropDown from './OptionsDropDown'
@@ -69,10 +68,9 @@ const props = defineProps({
     focus: {type: Boolean, default: false}
 })
 
-const route = useRoute()
 const searchInput = ref(null)
 const showOptions = ref(false)
-const searchModel = reactive(props.modelValue)
+const searchModel = reactive(new SearchModel())
 
 function focus() {
     searchInput.value.focus()
@@ -85,18 +83,20 @@ function emitModelUpdate(submit = false) {
     }
 }
 
-watch(() => searchModel.query, (newValue, oldValue) => {
-    if (newValue !== oldValue) {
-        emit('change', newValue)
-        emitModelUpdate()
-    }
+watch(() => props.modelValue, (newValue) => {
+    Object.assign(searchModel, newValue)
+}, {deep: true})
+
+watch(searchModel, () => {
+    emitModelUpdate()
 })
 
-watch(() => searchModel.indices, (newValue, oldValue) => {
-    if (newValue !== oldValue) {
-        emit('option-change', newValue)
-        emitModelUpdate()
-    }
+watch(() => searchModel.query, (newValue) => {
+    emit('change', newValue)
+})
+
+watch(() => searchModel.indices, (newValue) => {
+    emit('option-change', newValue)
 })
 
 defineExpose({

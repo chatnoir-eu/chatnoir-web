@@ -55,18 +55,23 @@ const props = defineProps({
 })
 
 const searchFieldRef = ref(null)
-const searchFieldModel = reactive(props.modelValue)
+const searchFieldModel = ref(null)
 const requestProgress = ref(0)
 
 async function emitSubmit() {
-    emit('submit', searchFieldModel)
+    emit('submit', searchFieldModel.value)
 }
 
 onMounted(() => {
-    if (!searchFieldModel.query) {
-        searchFieldModel.updateFromQueryString(route.query)
+    searchFieldModel.value = props.modelValue
+    if (!searchFieldModel.value.query) {
+        searchFieldModel.value.updateFromQueryString(route.query)
     }
 })
+
+watch(() => props.modelValue, (newValue) => {
+    searchFieldModel.value = newValue
+}, {deep: true})
 
 watch(searchFieldModel, (newValue) => {
     emit('update:modelValue', newValue)

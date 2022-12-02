@@ -179,7 +179,7 @@ import { getCsrfToken } from '@/common'
 
 const router = useRouter()
 const route = useRoute()
-const searchHeaderModel = reactive(new SearchModel())
+const searchHeaderModel = ref(new SearchModel())
 
 const cancelModalState = ref(false)
 const requestProgress = ref(0)
@@ -229,7 +229,7 @@ function isAcademic() {
 }
 
 function redirectSearch() {
-    router.push({name: 'IndexSearch', query: searchHeaderModel.toQueryStringObj()})
+    router.push({name: 'IndexSearch', query: searchHeaderModel.value.toQueryStringObj()})
 }
 
 function cancelApplication() {

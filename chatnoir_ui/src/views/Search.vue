@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -75,7 +75,7 @@ const router = useRouter()
 const searchHeaderRef = ref(null)
 const resultsElement = ref(null)
 
-const searchModel = reactive(new SearchModel())
+const searchModel = ref(new SearchModel())
 const requestProgress = ref(0)
 const error = ref(null)
 
@@ -102,7 +102,7 @@ async function requestResults() {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + apiToken.token
         },
-        data: searchModel.toApiRequestBody(),
+        data: searchModel.value.toApiRequestBody(),
         timeout: 25000,
         onDownloadProgress(e) {
             requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
@@ -144,14 +144,16 @@ async function requestResults() {
 /**
  * Initiate a search request.
  */
-async function search() {
-    await router.push({name: 'IndexSearch', query: searchModel.toQueryStringObj(), hash: route.hash})
-    if (searchModel.query) {
+async function search(reroute = true) {
+    if (reroute) {
+        await router.push({name: 'IndexSearch', query: searchModel.value.toQueryStringObj(), hash: route.hash})
+    }
+    if (searchModel.value.query) {
         const results = await requestResults()
         if (Object.keys(results).length === 0) {
             return
         }
-        searchModel.updateFromResponse(results)
+        searchModel.value.updateFromResponse(results)
     }
 }
 
@@ -160,6 +162,6 @@ function numFormat(num, opts) {
 }
 
 onMounted(() => {
-    search()
+    search(false)
 })
 </script>

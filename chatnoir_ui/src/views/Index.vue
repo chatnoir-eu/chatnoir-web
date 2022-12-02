@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue"
+import { onMounted, ref } from "vue"
 import { useRouter } from 'vue-router'
 
 import CatLogo from '@/components/CatLogo'
@@ -34,13 +34,15 @@ import { SearchModel } from '@/search-model'
 
 const router = useRouter()
 const searchFieldRef = ref(null)
-const searchModel = reactive(new SearchModel())
+const searchModel = ref(new SearchModel())
 
 function search() {
-    router.push({name: 'IndexSearch', query: searchModel.toQueryStringObj()})
+    if (searchModel.value.query) {
+        router.push({name: 'IndexSearch', query: searchModel.value.toQueryStringObj()})
+    }
 }
 
 onMounted(() => {
-    searchModel.setIndices()
+    searchModel.value.setIndices()
 })
 </script>
