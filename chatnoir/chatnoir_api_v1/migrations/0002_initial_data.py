@@ -34,9 +34,9 @@ def init_root_api_key(apps, schema_editor):
         default_key = ApiKey(user=api_user,
                              allowed_remote_hosts='127.0.0.1\n::1',
                              parent=root_key,
-                             limits_day=default_limit,
-                             limits_week=default_limit * 7,
-                             limits_month=default_limit * 30,
+                             _limits_day=default_limit,
+                             _limits_week=default_limit * 7,
+                             _limits_month=default_limit * 30,
                              comments=_('DEFAULT ISSUE KEY'))
         default_key.save()
         default_key.roles.add(admin_role)
