@@ -9,6 +9,8 @@ if [ "$1" = "uwsgi" ]; then
     gosu chatnoir ./manage.py migrate --no-input
     if [ "$DJANGO_APP" = "chatnoir_admin" ] && [ -n "$DJANGO_SUPERUSER_USERNAME" ]; then
         gosu chatnoir ./manage.py createsuperuser --no-input 2> /dev/null || true
+        unset DJANGO_SUPERUSER_USERNAME
+        unset DJANGO_SUPERUSER_PASSWORD
     fi
     set -- gosu chatnoir "$@" --module "${DJANGO_APP}.wsgi"
 fi
