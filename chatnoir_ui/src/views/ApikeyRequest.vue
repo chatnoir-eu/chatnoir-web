@@ -118,7 +118,7 @@
         <div v-else-if="$route.name === 'ApikeyRequest_Received'">
             <h1 class="text-2xl font-bold my-3">Thank you!</h1>
             <p class="my-3">
-                {{ $route.params.message }}
+                {{ $route.meta.message }}
             </p>
         </div>
 
@@ -201,7 +201,6 @@ const form = reactive({
     privacyAccepted: false,
 })
 const $externalResults = ref({})
-const serverResponseMessage = ref('')
 
 const rules = computed(() => {
     const tosMsg = helpers.withMessage('You must accept the Terms of Service', sameAs(true))
@@ -251,7 +250,7 @@ onMounted(() => {
     }
     routeGuardDestination = null
 
-    if (route.name === 'ApikeyRequest_Received' && !route.params.message) {
+    if (route.name === 'ApikeyRequest_Received' && !route.meta.message) {
         router.push({name: 'ApikeyRequest'})
     }
 })
@@ -275,6 +274,13 @@ router.beforeEach((to, from) => {
     return true
 })
 
+let serverMessage = null
+router.beforeEach(async to => {
+    if (to.name === 'ApikeyRequest_Received' && serverMessage) {
+        to.meta.message = serverMessage
+    }
+})
+
 async function submitForm() {
     $externalResults.value = {}
     if (!await v$.value.$validate()) {
@@ -289,7 +295,6 @@ async function submitForm() {
             'X-CSRFToken': getCsrfToken()
         },
         data: new FormData(requestFormRef.value),
-        timeout: 25000,
         onDownloadProgress(e) {
             requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
         }
@@ -302,7 +307,8 @@ async function submitForm() {
             $externalResults.value[k] = response.data.errors[k].map((e) => e.message.replace(/\.$/, ''))
         })
     } else {
-        await router.push({name: 'ApikeyRequest_Received', params: {message: response.data.message}})
+        serverMessage = response.data.message
+        await router.push({name: 'ApikeyRequest_Received'})
     }
     setTimeout(() => requestProgress.value = 0, 150)
 }

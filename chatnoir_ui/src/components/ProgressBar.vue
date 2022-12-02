@@ -45,7 +45,9 @@ function updateProgress() {
 
     if (props.progress >= 100) {
         setTimeout(() => {
-            mainElement.value.classList.add('invisible')
+            if (mainElement.value) {
+                mainElement.value.classList.add('invisible')
+            }
             displayedProgress.value = 0
             emit('complete')
         }, 200)
