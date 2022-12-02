@@ -371,7 +371,7 @@ def _apikey_request(request, passcode):
 
     return JsonResponse({
         'valid': True,
-        'message': _('We have received your API key request and will review your application.'
+        'message': _('We have received your API key request and will review your application. '
                      'If approved, you will receive your API key within the next few days by email.')
     })
 
