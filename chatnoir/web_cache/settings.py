@@ -5,7 +5,6 @@ Django settings for the ChatNoir Web Cache.
 from chatnoir.settings import *
 
 APPLICATION_NAME = 'ChatNoir Web Cache'
-DEBUG = True
 
 # Application definition
 INSTALLED_APPS = [
