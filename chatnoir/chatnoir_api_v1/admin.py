@@ -264,7 +264,7 @@ class ApiKeyPasscodeRedemptionAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(ChatNoirConfiguration, SingletonModelAdmin)
+admin.site.register(ChatNoirApiConfiguration, SingletonModelAdmin)
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(ApiUser, ApiUserAdmin)
 admin.site.register(ApiKeyRole, ApiKeyRoleAdmin)

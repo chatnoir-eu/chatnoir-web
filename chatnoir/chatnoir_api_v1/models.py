@@ -370,8 +370,8 @@ class PendingApiUser(models.Model):
     """
     class Meta:
         unique_together = ('email', 'passcode')
-        verbose_name = _('Pending API User')
-        verbose_name_plural = _('Pending API Users')
+        verbose_name = _('API Pending User')
+        verbose_name_plural = _('API Pending Users')
 
     activation_code = models.CharField(verbose_name=_('Activation Code'), max_length=255,
                                        default=generate_apikey, primary_key=True)
@@ -553,12 +553,12 @@ class PendingApiUser(models.Model):
             return None
 
 
-class ChatNoirConfiguration(SingletonModel):
+class ChatNoirApiConfiguration(SingletonModel):
     default_issue_key = models.ForeignKey(ApiKey, verbose_name=_('Default Key Request Issue Key'),
                                           null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
-        return "ChatNoir Configuration"
+        return "ChatNoir API Configuration"
 
     class Meta:
-        verbose_name = "ChatNoir Configuration"
+        verbose_name = "ChatNoir API Configuration"
