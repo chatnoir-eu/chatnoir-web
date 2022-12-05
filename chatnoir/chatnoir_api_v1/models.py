@@ -516,7 +516,7 @@ class ApiPendingUser(models.Model):
                     )
                 )
                 issue_key = self.issue_key
-                if self.passcode:
+                if self.passcode and not self.issue_key:
                     issue_key = self.passcode.issue_key
                 api_key = ApiKey(
                     api_key=generate_apikey(),

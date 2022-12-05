@@ -201,14 +201,14 @@ class ApiPendingUserAdmin(admin.ModelAdmin):
     readonly_fields = ['email_verified', 'user_exists']
 
     @admin.action(description=_('Activate selected API Users and notify by email'))
-    def activate_pending_user(self, request, queryset, send_emails=False):
+    def activate_pending_user(self, request, queryset):
         successful = 0
         for user in queryset:
             if not user.issue_key and not user.passcode:
                 self.message_user(request, _('User "%s" failed to activate: No parent key or passcode set.')
                                   % user.common_name, messages.ERROR)
                 continue
-            user.activate(send_emails)
+            user.activate(send_email=True)
             successful += 1
 
         if successful > 0:

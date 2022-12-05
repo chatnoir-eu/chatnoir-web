@@ -18,7 +18,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
-from .models import ApiKeyPasscode, ApiPendingUser, PasscodeRedemption
+from .models import ApiConfiguration, ApiKeyPasscode, ApiPendingUser, PasscodeRedemption
 
 
 class KeyRequestForm(forms.ModelForm):
@@ -45,6 +45,11 @@ class KeyRequestForm(forms.ModelForm):
         if not self.data.get('passcode'):
             self.fields['organization'].required = True
             self.fields['comments'].required = True
+
+    def save(self, commit=True):
+        if not self.instance.passcode:
+            self.instance.issue_key = ApiConfiguration.objects.get().default_issue_key
+        return super().save(commit)
 
     def clean(self):
         cleaned_data = super().clean()
