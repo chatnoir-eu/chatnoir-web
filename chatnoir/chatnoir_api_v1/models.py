@@ -161,8 +161,7 @@ class ApiKey(models.Model):
             except ValueError as e:
                 errors['allowed_remote_hosts'] = ValidationError(e, 'invalid_ip')
 
-        # Normalize list of allowed remote hosts
-        if self.allowed_remote_hosts:
+            # Normalize list of allowed remote hosts
             self.allowed_remote_hosts = '\n'.join(set(self.allowed_remote_hosts_list))
 
         if self.parent and self.api_key == self.parent.api_key:
