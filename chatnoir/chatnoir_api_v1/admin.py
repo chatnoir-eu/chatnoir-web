@@ -263,7 +263,11 @@ class ApiKeyPasscodeRedemptionAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(ApiConfiguration, SingletonModelAdmin)
+class ApiConfigurationSettings(SingletonModelAdmin):
+    autocomplete_fields = ('default_issue_key',)
+
+
+admin.site.register(ApiConfiguration, ApiConfigurationSettings)
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(ApiUser, ApiUserAdmin)
 admin.site.register(ApiKeyRole, ApiKeyRoleAdmin)
