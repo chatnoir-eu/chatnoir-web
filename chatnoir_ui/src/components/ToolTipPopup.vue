@@ -35,7 +35,7 @@ const popup = ref(null)
 let state = false
 
 function closeOnClick(e) {
-    if (popup.value.contains(e.target)) {
+    if (!popup.value || popup.value.contains(e.target)) {
         return
     }
     if (props.refElement && props.refElement.contains(e.target)) {
@@ -56,8 +56,9 @@ function reposition() {
     }
 
     const tailOffset = rem2Px(1.3)
+    popup.value.style.maxWidth = `${document.documentElement.clientWidth - 2}px`
 
-    let left = props.refElement.offsetLeft - (popup.value.clientWidth - props.refElement.clientWidth) / 2
+    let left = props.refElement.offsetLeft - (popup.value.offsetWidth - props.refElement.offsetWidth) / 2
     let top = props.refElement.offsetTop + props.refElement.offsetHeight + tailOffset
 
     // flip popup if scroll / document height insufficient
@@ -74,9 +75,16 @@ function reposition() {
         popup.value.classList.remove('tail-bottom')
         popup.value.classList.add('tail-top')
     }
-
-    popup.value.style.left = `${left}px`
     popup.value.style.top = `${top}px`
+    popup.value.style.left = `${left}px`
+
+    setTimeout(() => {
+        // Shift popup left if it exceeds the right border
+        if (popup.value.getBoundingClientRect().right > document.documentElement.clientWidth) {
+            left -= popup.value.getBoundingClientRect().right - document.documentElement.clientWidth
+            popup.value.style.left = `${left}px`
+        }
+    }, 0)
 }
 
 function toggleVisibility(visible) {

@@ -16,7 +16,7 @@
 
 <template>
 <div class="text-left max-w-full inline-block relative" :class="$style['search-field']">
-    <form class="box-border py-3 px-5 relative"
+    <form class="box-border py-3 sm:px-5 relative"
           :action="action" :method="method" @submit.prevent="emitModelUpdate(true)">
         <input ref="searchInput" v-model="searchModel.query"
                class="text-field w-full input-xl pr-20 m-0 focus:border-gray-300"
@@ -26,7 +26,7 @@
                @keyup="emit('keyup', $event)">
 
         <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button"
-                class="mr-18 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
+                class="mr-12 sm:mr-18 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
             <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/settings.svg')" alt="Options" />
         </button>
         <options-drop-down
@@ -37,7 +37,7 @@
             @close="showOptions = false"
         />
 
-        <button type="submit" class="mr-11" :class="$style['btn-submit']">
+        <button type="submit" class="mr-6 sm:mr-11" :class="$style['btn-submit']">
             <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/search.svg')" alt="Search" />
         </button>
     </form>

@@ -17,7 +17,7 @@
 <template>
 <!-- eslint-disable vue/no-v-html -->
 <article :id="'result-' + data.uuid" class="my-8">
-    <header class="leading-tight">
+    <header class="leading-tight break-words">
         <a v-if="data.externalUri" :href="data.externalUri"
            class="text-gray-800 visited:text-gray-800 text-sm">
             {{ abbreviateUrl(data.externalUri, 2).replace(/^https?:\/\//i, '') }}

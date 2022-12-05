@@ -20,8 +20,8 @@
 
     <div ref="resultsElement">
         <div v-if="searchModel.response && searchModel.response.hits.length" key="search-results" class="max-w-3xl mx-auto">
-            <div class="flex -mb-3 text-sm">
-                <div class="flex-grow">
+            <div class="sm:flex -mb-3 text-sm pb-2">
+                <div class="sm:flex-grow">
                     Search results {{ numFormat(searchModel.response.meta.resultsFrom + 1) }}–{{ numFormat(searchModel.response.meta.resultsTo) }}
                     for <em class="font-bold">“{{ searchModel.response.meta.queryString }}”</em>
                 </div>
