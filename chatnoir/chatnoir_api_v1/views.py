@@ -25,7 +25,7 @@ from rest_framework import routers, viewsets, exceptions as rest_exceptions
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
 
-from .authentication import ApiKeyAuthentication, HasKeyCreateRole, validate_roles
+from .authentication import ApiKeyAuthentication, HasKeyCreateRole
 from .forms import KeyRequestForm
 from .metadata import ApiMetadata
 from .serializers import *
@@ -151,8 +151,9 @@ class SimpleSearchViewSet(ApiViewSet):
 
         fields = {}
         if request.auth:
-            if validate_roles(request, (settings.API_NOLOG_ROLE,)):
-                return
+            for r in request.auth.roles.values('role'):
+                if r['role'] == settings.API_NOLOG_ROLE:
+                    return
 
             fields['user'] = {
                 'name': request.auth.user.common_name if request.auth.user else '<anonymous>',

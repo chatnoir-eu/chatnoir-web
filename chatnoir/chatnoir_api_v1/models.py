@@ -301,9 +301,26 @@ class ApiKey(models.Model):
 
     @property
     def allowed_remote_hosts_list(self):
+        """List of remote hosts allowed to use the key."""
         if not self.allowed_remote_hosts:
             return []
         return re.split(r'[\s;,]+', self.allowed_remote_hosts.strip())
+
+    @property
+    def is_admin_key(self):
+        """Whether key has admin privileges."""
+        for r in self.roles.values('role'):
+            if r['role'] == settings.API_ADMIN_ROL:
+                return True
+        return False
+
+    @property
+    def can_issue_keys(self):
+        """Whether key is allowed to issue other API keys."""
+        for r in self.roles.values('role'):
+            if r['role'] in (settings.API_ADMIN_ROLE, settings.API_KEYCREATE_ROLE):
+                return True
+        return False
 
     def __str__(self):
         if self.comments:
@@ -346,6 +363,11 @@ class ApiKeyPasscode(models.Model):
 
     def __str__(self):
         return str(self.passcode)
+
+    def clean(self):
+        if not self.issue_key.can_issue_keys:
+            raise ValidationError({'issue_key': _('Issue key not allowed to issue new keys.')}, 'invalid_role')
+        super().clean()
 
 
 class PasscodeRedemption(models.Model):
@@ -518,6 +540,11 @@ class ApiPendingUser(models.Model):
                 issue_key = self.issue_key
                 if self.passcode and not self.issue_key:
                     issue_key = self.passcode.issue_key
+
+                # Validate API key permissions (failures should not happen here)
+                if not issue_key.can_issue_keys:
+                    raise PermissionError(_('Not allowed to issue new keys.'))
+
                 api_key = ApiKey(
                     api_key=generate_apikey(),
                     parent=issue_key,

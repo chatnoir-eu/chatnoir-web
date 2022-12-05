@@ -22,7 +22,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import authentication, exceptions as rest_exceptions, permissions
 
-from .models import ApiKey, ApiConfiguration
+from .models import ApiKey
 
 
 class ApiKeyAuthentication(authentication.BaseAuthentication):
@@ -183,23 +183,11 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         return api_key
 
 
-def validate_roles(request, roles):
-    if not request.auth or not request.auth.roles:
-        return False
-
-    for r in request.auth.roles.all():
-        if r.role in roles:
-            return True
-
-    return False
-
-
 class HasKeyCreateRole(permissions.BasePermission):
     def has_permission(self, request, view):
-        config = ApiConfiguration.objects.get()
-        return validate_roles(request, (settings.API_ADMIN_ROLE, settings.API_KEYCREATE_ROLE))
+        return request.auth and request.auth.can_issue_keys
 
 
 class HasAdminRole(permissions.BasePermission):
     def has_permission(self, request, view):
-        return validate_roles(request, (settings.API_KEYCREATE_ROLE,))
+        return request.auth and request.auth.is_admin_key

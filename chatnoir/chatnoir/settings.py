@@ -34,6 +34,14 @@ LOGGING['loggers'].update({
     }
 })
 
+# API roles
+API_ADMIN_ROLE = 'admin'
+API_KEYCREATE_ROLE = 'keycreate'
+API_NOLOG_ROLE = 'nolog'
+
+# Set to true if running behind a proxy
+API_TRUST_X_FORWARDED_FOR = False
+
 try:
     from .local_settings import *
 except ImportError:

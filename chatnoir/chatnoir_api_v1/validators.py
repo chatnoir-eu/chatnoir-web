@@ -90,8 +90,8 @@ def validate_api_key(data, no_parent_ok=False):
         if data['expires'] < timezone.now():
             raise ValidationError({'expires': _('Expiration date cannot be in the past.')}, 'invalid_date')
 
-    parent_roles = {r.role for r in parent.roles.all()}
-    if settings.API_ADMIN_ROLE not in parent_roles:
+    if not parent.is_admin_key:
+        parent_roles = {r.role for r in parent.roles.all()}
         for role in data.get('roles', []):
             if role not in parent_roles:
                 raise ValidationError({
