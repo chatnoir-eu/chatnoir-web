@@ -18,18 +18,22 @@
 
 <template>
 <header class="border-b mb-5 pt-5 -mx-5">
-    <div class="w-auto sm:hidden">
-        <inline-svg class="inline-block h-10 max-w-full" :src="require('@/assets/img/chatnoir-icon.svg')" alt="" />
-    </div>
-    <div class="flex flex-row items-center max-w-3xl mx-auto h-24 px-5">
-        <div class="w-32 mr-3 hidden sm:block">
+    <div class="mx-5">
+        <div class="w-auto sm:hidden">
             <router-link to="/">
-                <cat-logo ref="catLogoElement" />
+                <inline-svg class="inline-block h-10 max-w-full" :src="require('@/assets/img/chatnoir-icon.svg')" alt="" />
             </router-link>
         </div>
+        <div class="flex flex-row items-center max-w-3xl mx-auto h-24">
+            <div class="w-32 mr-6 hidden sm:block">
+                <router-link to="/">
+                    <cat-logo ref="catLogoElement" />
+                </router-link>
+            </div>
 
-        <search-field ref="searchFieldRef" v-model="searchFieldModel" :focus="focus"
-                      @submit="emitSubmit()" @change="$refs.catLogoElement.purr()" />
+            <search-field ref="searchFieldRef" v-model="searchFieldModel" :focus="focus"
+                          @submit="emitSubmit()" @change="$refs.catLogoElement.purr()" />
+        </div>
     </div>
 
     <progress-bar :progress="requestProgress" class="mt-3" @complete="requestProgress = 0" />
