@@ -20,7 +20,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 
-from .models import ApiKey, ApiKeyRole
+from .models import ApiKey, ApiKeyRole, ApiConfiguration
 
 
 def validate_index_names(index_names, search_version=1):

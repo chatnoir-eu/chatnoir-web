@@ -87,6 +87,7 @@ class ApiKeyRole(models.Model):
         verbose_name_plural = _('API Key Roles')
 
     role = models.CharField(verbose_name=_('API Key Role'), max_length=255, primary_key=True)
+    description = models.CharField(verbose_name=_('Description'), max_length=512, blank=True)
 
     def __str__(self):
         return self.role
@@ -364,7 +365,7 @@ class PasscodeRedemption(models.Model):
 SEND_MAIL_EXECUTOR = ThreadPoolExecutor(max_workers=20)
 
 
-class PendingApiUser(models.Model):
+class ApiPendingUser(models.Model):
     """
     Passcode API users pending activation.
     """
@@ -482,7 +483,7 @@ class PendingApiUser(models.Model):
         :return: the pending user model on success or `None` if code is invalid or `False` email already activated
         """
         try:
-            pending_user = PendingApiUser.objects.get(activation_code=activation_code)
+            pending_user = ApiPendingUser.objects.get(activation_code=activation_code)
             if pending_user.email_verified:
                 # Email already verified
                 return False
@@ -492,7 +493,7 @@ class PendingApiUser(models.Model):
                 pending_user.save(force_update=True)
             return pending_user
 
-        except PendingApiUser.DoesNotExist:
+        except ApiPendingUser.DoesNotExist:
             return None
 
     def activate(self, send_email=False):
@@ -553,9 +554,15 @@ class PendingApiUser(models.Model):
             return None
 
 
-class ChatNoirApiConfiguration(SingletonModel):
-    default_issue_key = models.ForeignKey(ApiKey, verbose_name=_('Default Key Request Issue Key'),
-                                          null=True, on_delete=models.SET_NULL)
+class ApiConfiguration(SingletonModel):
+    """
+    Global configuration options for the ChatNoir API.
+    """
+
+    default_issue_key = models.ForeignKey(ApiKey,
+                                          verbose_name=_('Default API Issue Key'),
+                                          help_text=_('Default parent key for new keys'),
+                                          on_delete=models.CASCADE)
 
     def __str__(self):
         return "Global Configuration"

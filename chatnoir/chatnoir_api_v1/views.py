@@ -151,7 +151,7 @@ class SimpleSearchViewSet(ApiViewSet):
 
         fields = {}
         if request.auth:
-            if validate_roles(request, settings.API_NOLOG_ROLES):
+            if validate_roles(request, (settings.API_NOLOG_ROLE,)):
                 return
 
             fields['user'] = {
@@ -387,7 +387,7 @@ def apikey_request_verify(request, activation_code):
     if not activation_code:
         raise Http404
 
-    user = PendingApiUser.verify_email_by_activation_code(activation_code)
+    user = ApiPendingUser.verify_email_by_activation_code(activation_code)
     if user is None:
         # Invalid code
         return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?error=invalid+code')

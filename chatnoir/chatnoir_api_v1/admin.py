@@ -24,8 +24,6 @@ from .models import *
 from .forms import PendingApiUserAdminForm
 
 
-_keycreate_roles = (settings.API_ADMIN_ROLE, settings.API_KEYCREATE_ROLE)
-
 # Textareas are way too large
 admin.ModelAdmin.formfield_overrides = {
     models.TextField: {'widget': Textarea(attrs={'rows': 4, 'cols': 60})},
@@ -110,7 +108,8 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
 
         # Exclude keys which are not allowed to issue other API keys
         if '/autocomplete/' in request.path:
-            queryset = queryset.filter(Q(roles__in=_keycreate_roles, _revoked=False),
+            keycreate_roles = (settings.API_ADMIN_ROLE, settings.API_KEYCREATE_ROLE)
+            queryset = queryset.filter(Q(roles__in=keycreate_roles, _revoked=False),
                                        Q(_expires__gte=timezone.now()) | Q(_expires__isnull=True))
 
             # Prevent cycles through self-parenting
@@ -168,7 +167,7 @@ class ApiUserAdmin(admin.ModelAdmin):
     inlines = (ApiKeyInlineAdmin,)
 
 
-class PendingApiUserAdmin(admin.ModelAdmin):
+class ApiPendingUserAdmin(admin.ModelAdmin):
     list_display = ('common_name', 'passcode', 'email', 'organization', 'address', 'zip_code', 'state',
                     'country', 'email_verified', 'user_exists')
     list_filter = ('organization', 'zip_code', 'state', 'country', 'email_verified')
@@ -244,7 +243,7 @@ class PendingApiUserAdmin(admin.ModelAdmin):
 
 
 class ApiKeyRoleAdmin(admin.ModelAdmin):
-    list_display = ('role',)
+    list_display = ('role', 'description')
     search_fields = list_display
 
 
@@ -264,10 +263,10 @@ class ApiKeyPasscodeRedemptionAdmin(admin.ModelAdmin):
         return False
 
 
-admin.site.register(ChatNoirApiConfiguration, SingletonModelAdmin)
+admin.site.register(ApiConfiguration, SingletonModelAdmin)
 admin.site.register(ApiKey, ApiKeyAdmin)
 admin.site.register(ApiUser, ApiUserAdmin)
 admin.site.register(ApiKeyRole, ApiKeyRoleAdmin)
 admin.site.register(ApiKeyPasscode, ApiKeyPasscodeAdmin)
 admin.site.register(PasscodeRedemption, ApiKeyPasscodeRedemptionAdmin)
-admin.site.register(PendingApiUser, PendingApiUserAdmin)
+admin.site.register(ApiPendingUser, ApiPendingUserAdmin)

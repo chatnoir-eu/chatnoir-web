@@ -8,11 +8,12 @@ from django.utils.translation import gettext as _
 def init_root_api_key(apps, schema_editor):
     with transaction.atomic():
         ApiKeyRole = apps.get_model('chatnoir_api_v1', 'ApiKeyRole')
-        admin_role = ApiKeyRole(role=settings.API_ADMIN_ROLE)
+        admin_role = ApiKeyRole(settings.API_ADMIN_ROLE, description=_('Admin key without restrictions'))
         admin_role.save()
-        ApiKeyRole(role=settings.API_KEYCREATE_ROLE).save()
-        for role in settings.API_NOLOG_ROLES:
-            ApiKeyRole(role=role).save()
+        keycreate_role = ApiKeyRole(role=settings.API_KEYCREATE_ROLE,
+                                    description=_('Key allowed to issue new keys'))
+        keycreate_role.save()
+        ApiKeyRole(role=settings.API_NOLOG_ROLE, description=_('Key without query logging')).save()
 
         # Root user
         ApiUser = apps.get_model('chatnoir_api_v1', 'ApiUser')
@@ -29,8 +30,6 @@ def init_root_api_key(apps, schema_editor):
 
         # Default issue key
         default_limit = 10000
-        keycreate_role = ApiKeyRole(role=settings.API_KEYCREATE_ROLE)
-        keycreate_role.save()
         default_key = ApiKey(user=api_user,
                              allowed_remote_hosts='127.0.0.1\n::1',
                              parent=root_key,
@@ -40,6 +39,16 @@ def init_root_api_key(apps, schema_editor):
                              comments=_('DEFAULT ISSUE KEY'))
         default_key.save()
         default_key.roles.add(admin_role)
+
+
+# noinspection PyPep8Naming
+def init_api_configuration(apps, schema_editor):
+    with transaction.atomic():
+        ApiConfiguration = apps.get_model('chatnoir_api_v1', 'ApiConfiguration')
+        ApiKey = apps.get_model('chatnoir_api_v1', 'ApiKey')
+        ApiConfiguration(
+            default_issue_key=ApiKey.objects.get(comments='DEFAULT ISSUE KEY')
+        ).save()
 
 
 def create_cache_table(apps, schema_editor):
@@ -52,6 +61,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(init_root_api_key),
+        migrations.RunPython(init_api_configuration),
         migrations.RunPython(create_cache_table),
-        migrations.RunPython(init_root_api_key)
     ]

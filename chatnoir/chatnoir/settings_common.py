@@ -173,7 +173,7 @@ WEBPACK_LOADER = {
 # API settings
 API_ADMIN_ROLE = 'admin'
 API_KEYCREATE_ROLE = 'keycreate'
-API_NOLOG_ROLES = ('dev', 'nolog')
+API_NOLOG_ROLE = 'nolog'
 API_TRUST_X_FORWARDED_FOR = False
 
 # Elasticsearch backend settings (override me)

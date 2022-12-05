@@ -18,12 +18,12 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
-from .models import ApiKeyPasscode, PendingApiUser, PasscodeRedemption
+from .models import ApiKeyPasscode, ApiPendingUser, PasscodeRedemption
 
 
 class KeyRequestForm(forms.ModelForm):
     class Meta:
-        model = PendingApiUser
+        model = ApiPendingUser
         fields = [
             'common_name',
             'email',
@@ -68,7 +68,7 @@ class KeyRequestForm(forms.ModelForm):
                 redeemed = PasscodeRedemption.objects.filter(passcode=pc,
                                                              api_key__user__email=cleaned_data['email']).exists()
                 if not redeemed:
-                    redeemed = PendingApiUser.objects.filter(passcode=pc, email=cleaned_data['email']).exists()
+                    redeemed = ApiPendingUser.objects.filter(passcode=pc, email=cleaned_data['email']).exists()
 
                 if redeemed:
                     self.add_error('passcode', ValidationError(_('Passcode already redeemed.'), 'already-redeemed'))
@@ -78,17 +78,17 @@ class KeyRequestForm(forms.ModelForm):
 
             try:
                 if cleaned_data.get('passcode'):
-                    PendingApiUser.objects.get(email=cleaned_data['email'], passcode=cleaned_data['passcode'])
+                    ApiPendingUser.objects.get(email=cleaned_data['email'], passcode=cleaned_data['passcode'])
                     self.add_error(
                         'email', ValidationError(_('API key request for user already submitted.'), 'duplicate'))
-            except PendingApiUser.DoesNotExist:
+            except ApiPendingUser.DoesNotExist:
                 pass
 
         else:
             try:
-                PendingApiUser.objects.get(email=cleaned_data['email'])
+                ApiPendingUser.objects.get(email=cleaned_data['email'])
                 self.add_error('email', ValidationError(_('API key request for user already submitted.'), 'duplicate'))
-            except PendingApiUser.DoesNotExist:
+            except ApiPendingUser.DoesNotExist:
                 pass
 
             if not cleaned_data.get('organization'):
@@ -101,7 +101,7 @@ class KeyRequestForm(forms.ModelForm):
 
 class PendingApiUserAdminForm(forms.ModelForm):
     class Meta:
-        model = PendingApiUser
+        model = ApiPendingUser
         exclude = []
 
     activate_user = forms.BooleanField(label=_('Activate user and notify by email'), required=False)
