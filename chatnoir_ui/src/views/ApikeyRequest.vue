@@ -50,19 +50,19 @@
                     We will verify your request and you will receive your API key within 1&ndash;2 working days if eligible.
                 </p>
                 <p class="my-3">
-                    If you do not qualify for a free API key or need a key for non-academic purposes, please contact us directly by email,
+                    If you do not qualify for a free API key or need a key for non-academic purposes, please contact us directly,
                     so we can assess your use case and potentially work out an agreement.
                 </p>
             </div>
             <div v-else>
                 <p class="my-3">
-                    If you have a ChatNoir passcode, you can use it to issue an API to yourself. Passcodes are handed out at special
-                    events such as shared tasks, so participants can obtain their personal API keys. API keys issued via
-                    passcodes are bound to the participant's email address and are usually time-limited.
+                    If you have a ChatNoir passcode, you can use it to issue an API key to yourself. Passcodes are handed out at special
+                    events such as shared tasks, so participants can obtain their own personal API keys. API keys issued via
+                    passcodes are bound to a specific event and are usually time-limited.
                 </p>
                 <p class="my-3">
-                    You are a shared task organizer yourself and want a passcode for your participants? Please contact us by email with details
-                    about your task and we'll be more than happy to help you out.
+                    If you are a shared task organizer yourself and want a passcode for your participants, please contact us by email with details
+                    about your task and we will be more than happy to help you out.
                 </p>
             </div>
 
