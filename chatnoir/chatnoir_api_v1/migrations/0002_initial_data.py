@@ -24,7 +24,8 @@ def init_root_api_key(apps, schema_editor):
         ApiKey = apps.get_model('chatnoir_api_v1', 'ApiKey')
         root_key = ApiKey(user=api_user,
                           allowed_remote_hosts='127.0.0.1\n::1',
-                          comments=_('ROOT KEY'))
+                          comments=_('ROOT KEY'),
+                          _is_root_key=True)
         root_key.save()
         root_key.roles.add(admin_role)
 

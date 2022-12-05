@@ -45,6 +45,7 @@ class ApiKeyAdminBaseMixin:
         'roles',
         'allowed_remote_hosts',
         'comments',
+        '_is_root_key',
         'issuer',
     )
     readonly_fields = ('issuer',)
@@ -61,6 +62,7 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
         'limits_day',
         'limits_week',
         'limits_month',
+        '_is_root_key'
     )
     actions = ('revoke_keys', 'unrevoke_keys')
 
@@ -102,6 +104,18 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
 
     def get_fields(self, request, obj=None):
         return None
+
+    def get_readonly_fields(self, request, obj=None):
+        ro_fields = super().get_readonly_fields(request, obj)
+        if obj and obj._is_root_key:
+            ro_fields += ('user', 'parent', 'roles')
+        return ro_fields
+
+    def has_delete_permission(self, request, obj=None):
+        # Prevent root key deletion
+        if obj and obj._is_root_key:
+            return False
+        return True
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
@@ -165,6 +179,12 @@ class ApiUserAdmin(admin.ModelAdmin):
     search_fields = ('common_name', 'api_key__api_key', 'email', 'organization', 'address',
                      'zip_code', 'state', 'country')
     inlines = (ApiKeyInlineAdmin,)
+
+    def has_delete_permission(self, request, obj=None):
+        # Prevent root user deletion
+        if obj and obj.pk == 1:
+            return False
+        return True
 
 
 class ApiPendingUserAdmin(admin.ModelAdmin):

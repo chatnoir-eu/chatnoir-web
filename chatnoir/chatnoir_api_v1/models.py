@@ -77,6 +77,11 @@ class ApiUser(models.Model):
     def is_authenticated(self):
         return not self.is_anonymous
 
+    def delete(self, using=None, keep_parents=False):
+        if self.pk == 1:
+            raise ValueError(_('Cannot delete root user.'))
+        return super().delete(using, keep_parents)
+
 
 class ApiKeyRole(models.Model):
     """
@@ -122,6 +127,8 @@ class ApiKey(models.Model):
     _limits_month = models.PositiveIntegerField(verbose_name=_('Request Limit Month'), null=True,
                                                 blank=True, db_column='limits_month')
 
+    _is_root_key = models.BooleanField(default=False, verbose_name=_('Root API Key'))
+
     class _Inherited:
         def __init__(self):
             self.expires = None
@@ -145,25 +152,40 @@ class ApiKey(models.Model):
         super().refresh_from_db(*args, **kwargs)
         self._resolve_inheritance()
 
-    def clean(self):
+    def clean(self, exclude=None):
+        errors = {}
         if self.allowed_remote_hosts:
             try:
                 for ip in self.allowed_remote_hosts_list:
-                    self.clean_fields()
                     ipaddress.ip_network(ip)
             except ValueError as e:
-                raise ValidationError({'allowed_remote_hosts': e}, 'invalid_ip')
-
-    def save(self, *args, **kwargs):
-        if self.parent and self.api_key == self.parent.api_key:
-            raise ValueError('Cannot parent an API key to itself')
+                errors['allowed_remote_hosts'] = ValidationError(e, 'invalid_ip')
 
         # Normalize list of allowed remote hosts
         if self.allowed_remote_hosts:
             self.allowed_remote_hosts = '\n'.join(set(self.allowed_remote_hosts_list))
 
+        if self.parent and self.api_key == self.parent.api_key:
+            errors['parent'] = ValidationError(_('Cannot parent an API key to itself.'), 'invalid_parent')
+        elif not self.parent and not self._is_root_key:
+            errors['parent'] = ValidationError(_('Cannot create a key without a parent.'), 'invalid_parent')
+        elif self.parent and self._is_root_key:
+            errors['parent'] = ValidationError(_('The root key must not have a parent.'), 'invalid_parent')
+        if self._is_root_key and ApiKey.objects.filter(_is_root_key=True).exists():
+            errors['_is_root_key'] = ValidationError(_('There can be only a single root key.'), 'duplicate_root')
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
         super().save(*args, **kwargs)
         self._resolve_inheritance()
+
+    def delete(self, using=None, keep_parents=False):
+        if self._is_root_key:
+            raise ValueError(_('Cannot delete root key.'))
+        return super().delete(using, keep_parents)
 
     def _resolve_inheritance(self):
         """Resolve inherited field values and cache them."""
