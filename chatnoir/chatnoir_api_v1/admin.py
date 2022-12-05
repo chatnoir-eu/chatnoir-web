@@ -172,6 +172,19 @@ class ApiKeyInlineAdmin(ApiKeyAdminBaseMixin, admin.StackedInline):
     extra = 0
     form = AlwaysChangedModelForm
 
+    # Unfortunately, Django passes the wrong object to inline admin forms, hence we cannot decide
+    # on the read-only status of fields properly. We therefore make everything read-only if this is the root
+    # user with the effect that API keys of the root user cannot be edited inline.
+    # See: https://code.djangoproject.com/ticket/15602
+    def has_change_permission(self, request, obj=None):
+        return not obj or obj.pk != 1
+
+    def has_add_permission(self, request, obj=None):
+        return not obj or obj.pk != 1
+
+    def has_delete_permission(self, request, obj=None):
+        return not obj or obj.pk != 1
+
 
 class ApiUserAdmin(admin.ModelAdmin):
     list_display = ('common_name', 'api_keys_html', 'email', 'organization', 'address', 'zip_code', 'state', 'country')
