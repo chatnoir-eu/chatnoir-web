@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import locale
+
 
 # noinspection PyPep8Naming
 class serp_api_meta(property):
@@ -139,5 +141,7 @@ class FieldValue(FieldName):
         :return: transformed field value
         """
         if self.i18n_aware:
+            if lang not in locale.locale_alias:
+                raise ValueError(f'Illegal language code: {lang}')
             return self.format(self, lang=lang)
         return self

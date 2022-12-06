@@ -14,6 +14,7 @@
 
 import re
 from abc import ABC, abstractmethod
+import locale
 import logging
 
 from django.conf import settings
@@ -340,7 +341,8 @@ class SimpleSearch(SearchBase):
 
                 # Special case: language
                 if filter_field == 'lang':
-                    self.search_language = filter_value
+                    if filter_value in locale.locale_alias:
+                        self.search_language = filter_value
                     continue
 
                 if is_range and filter_match.group(2) in ('<', '<=', '>', '>='):
