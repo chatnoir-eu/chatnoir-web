@@ -197,7 +197,8 @@ SEARCH_INDICES = {
         'warc_bucket': 's3_warc_bucket_name',
         'warc_uuid_prefix': 'webis-uuid-prefix',
         'display_name': 'Human-readable display name',
-        'compat_search_versions': [1]
+        'compat_search_versions': [1],
+        'default': True,    # Index is default-selected (optional)
     }
 }
 

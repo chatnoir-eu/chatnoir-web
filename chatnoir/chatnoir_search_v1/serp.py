@@ -16,70 +16,11 @@ import math
 from collections import defaultdict
 from urllib import parse
 
+from django.utils.translation import gettext as _
 from django.urls import reverse
 from elasticsearch_dsl.response import Response
 
-
-# noinspection PyPep8Naming
-class serp_api_meta(property):
-    """
-    Property indicating a basic response metadata property.
-    """
-    pass
-
-
-# noinspection PyPep8Naming
-class serp_api_meta_extended(property):
-    """
-    Property indicating an extended response metadata property.
-
-    Underscores at the end of property names will be stripped during the serialization of the SERP object,
-    so this can be used for replacing fields from the standard metadata in the serialized output.
-    """
-    pass
-
-
-# noinspection PyPep8Naming
-class api_value:
-    """
-    API response value wrapper.
-    """
-    def __init__(self, value):
-        self.value = value
-
-    @property
-    def type(self):
-        return type(self.value)
-
-    def __repr__(self):
-        return repr(self.value)
-
-    def __str__(self):
-        return str(self.value)
-
-
-# noinspection PyPep8Naming
-class minimal(api_value):
-    """
-    Minimal API response value wrapper.
-    """
-    pass
-
-
-# noinspection PyPep8Naming
-class extended(api_value):
-    """
-    Extended API response value wrapper.
-    """
-    pass
-
-
-# noinspection PyPep8Naming
-class explanation(extended):
-    """
-    Explanation field API response value wrapper.
-    """
-    pass
+from chatnoir_search_v1.types import *
 
 
 class SerpContext:
@@ -128,15 +69,16 @@ class SerpContext:
 
         results = []
         for hit in self.response.hits:
-            body_key = 'body_lang_' + self.search.search_language
-            meta_desc_key = 'meta_desc_lang_' + self.search.search_language
+            lang = getattr(hit, 'lang', self.search.search_language)
 
-            snippet = self.search.get_snippet(hit, [body_key, meta_desc_key], 200)
+            body_field = FieldName('body')
+            meta_desc_field = FieldName('meta_desc')
+            snippet = self.search.get_snippet(hit, [body_field.i18n(lang), meta_desc_field.i18n(lang)], 200)
 
-            title_key = 'title_lang_' + self.search.search_language
-            title = self.search.get_snippet(hit, [title_key], 60)
+            title_field = FieldName('title')
+            title = self.search.get_snippet(hit, [title_field.i18n(lang)], 60)
             if not title:
-                title = '[ no title available ]'
+                title = _('[ no title available ]')
 
             result_index = self._index_name_to_shorthand(hit.meta.index)
             target_uri = hit.warc_target_uri

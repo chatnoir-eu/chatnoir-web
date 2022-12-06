@@ -14,9 +14,12 @@
 
 from chatnoir_search_v1 import search as chatnoir_search
 from chatnoir_search_v1.ir_anthology_serp import SerpContext
+from chatnoir_search_v1.types import FieldName
 
 # Monkey-patch ChatNoir SerpContext
 chatnoir_search.SerpContext = SerpContext
+
+_field_pattern = '{field}_lang.{lang}'
 
 
 class SimpleSearch(chatnoir_search.SimpleSearch):
@@ -31,64 +34,64 @@ class SimpleSearch(chatnoir_search.SimpleSearch):
     #index is a special placeholder value for user-selected index names.
     """
     QUERY_FILTERS = {
-        'index': '#index',
-        'lang': 'lang',
-        'doi': 'doi',
-        'author': 'authors',
-        'year<>': 'year',
-        'venue': 'venue'
+        'index': FieldName('#index', False),
+        'lang': FieldName('lang', False),
+        'doi': FieldName('doi', False),
+        'author': FieldName('authors', False),
+        'year<>': FieldName('year', False),
+        'venue': FieldName('venue', False)
     }
 
     """Default search fields."""
     MAIN_FIELDS = [
         {
-            'name': 'title_lang.%lang%',
+            'name': FieldName('title', pattern=_field_pattern),
             'boost': 80,
             'proximity_matching': True,
             'proximity_slop': 2,
             'proximity_boost': 30
         },
         {
-            'name': 'abstract_lang.%lang%',
+            'name': FieldName('abstract', pattern=_field_pattern),
             'boost': 60,
             'proximity_matching': True,
             'proximity_slop': 2,
             'proximity_boost': 20
         },
         {
-            'name': 'full_text_lang.%lang%',
+            'name': FieldName('full_text', pattern=_field_pattern),
             'boost': 20,
             'proximity_matching': True,
             'proximity_slop': 2,
             'proximity_boost': 20
         },
         {
-            'name': 'authors',
+            'name': FieldName('authors', False),
             'boost': 50
         },
         {
-            'name': 'venue',
+            'name': FieldName('venue', False),
             'boost': 30
         },
         {
-            'name': 'doi',
+            'name': FieldName('doi', False),
             'boost': 100
         }
     ]
 
     HIGHLIGHT_FIELDS = [
         {
-            'name': 'title_lang.%lang%',
+            'name': FieldName('title', pattern=_field_pattern),
             'fragment_size': 70,
             'number_of_fragments': 1
         },
         {
-            'name': 'abstract_lang.%lang%',
+            'name': FieldName('abstract', pattern=_field_pattern),
             'fragment_size': 300,
             'number_of_fragments': 1
         },
         {
-            'name': 'full_text_lang.%lang%',
+            'name': FieldName('full_text', pattern=_field_pattern),
             'fragment_size': 300,
             'number_of_fragments': 1
         }
@@ -117,11 +120,11 @@ class PhraseSearch(chatnoir_search.PhraseSearch):
     """Fields to search."""
     MAIN_FIELDS = [
         {
-            'name': 'full_text_lang.%lang%',
+            'name': FieldName('full_text', pattern=_field_pattern),
             'boost': 1.0
         },
         {
-            'name': 'abstract_lang.%lang%',
+            'name': FieldName('abstract', pattern=_field_pattern),
             'boost': 2.0
         }
     ]

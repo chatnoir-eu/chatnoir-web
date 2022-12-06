@@ -15,8 +15,14 @@
 from urllib.parse import quote_plus
 import uuid
 
+from django.utils.translation import gettext as _
+
 import chatnoir_search_v1.serp as chatnoir_serp
-from chatnoir_search_v1.serp import minimal, extended, explanation
+from chatnoir_search_v1.types import FieldName, minimal, extended, explanation
+
+
+# Legacy field name pattern
+_pattern = '{field}_lang.{lang}'
 
 
 # noinspection DuplicatedCode
@@ -24,17 +30,18 @@ class SerpContext(chatnoir_serp.SerpContext):
 
     @property
     def hits(self):
+
         results = []
         for hit in self.response.hits:
-            full_text_key = 'full_text_lang.' + self.search.search_language
-            abstract_key = 'abstract_lang.' + self.search.search_language
+            full_text_field = FieldName('full_text', pattern=_pattern).i18n(self.search.search_language)
+            abstract_field = FieldName('abstract', pattern=_pattern).i18n(self.search.search_language)
 
-            snippet = self.search.get_snippet(hit, [full_text_key, abstract_key], 200)
+            snippet = self.search.get_snippet(hit, [full_text_field, abstract_field], 200)
 
-            title_key = 'title_lang.' + self.search.search_language
-            title = self.search.get_snippet(hit, [title_key], 60)
+            title_field = FieldName('title', pattern=_pattern).i18n(self.search.search_language)
+            title = self.search.get_snippet(hit, [title_field], 60)
             if not title:
-                title = '[ no title available ]'
+                title = _('[ no title available ]')
 
             result_index = self._index_name_to_shorthand(hit.meta.index)
 

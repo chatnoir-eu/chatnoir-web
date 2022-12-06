@@ -20,6 +20,7 @@ from django.conf import settings
 from elasticsearch_dsl import Q, Search, connections
 
 from chatnoir_search_v1.serp import SerpContext
+from chatnoir_search_v1.types import FieldName, FieldValue
 
 
 class SearchBase(ABC):
@@ -36,7 +37,7 @@ class SearchBase(ABC):
         :param num_results: number of results to return
         :param explain: explain result scores
         """
-        if indices is not None and type(indices) not in (tuple, list):
+        if indices is not None and type(indices) not in (list, tuple, set):
             raise TypeError('indices must be a list')
 
         if indices is None:
@@ -99,15 +100,6 @@ class SearchBase(ABC):
         """
         pass
 
-    def replace_lang_placeholder(self, field_name):
-        """
-        Helper function to localize field names according to the current search language.
-
-        :param field_name: field name with language placeholders
-        :return: localized field name
-        """
-        return field_name.replace('%lang%', self.search_language)
-
     def get_snippet(self, hit, fields, max_len):
         """
         Extract snippet from hit.
@@ -153,52 +145,52 @@ class SimpleSearch(SearchBase):
     #index is a special placeholder value for user-selected index names.
     """
     QUERY_FILTERS = {
-        'site': 'warc_target_hostname.raw',
-        'lang': 'lang',
-        'index': '#index'
+        'site': FieldName('warc_target_hostname.raw', False),
+        'lang': FieldName('lang', False),
+        'index': FieldName('#index', False)
     }
 
     """Default search fields."""
     MAIN_FIELDS = [
         {
-            'name': 'title_lang_%lang%',
+            'name': FieldName('title'),
             'boost': 70,
             'proximity_matching': True,
             'proximity_slop': 2,
             'proximity_boost': 30
         },
         {
-            'name': 'body_lang_%lang%',
+            'name': FieldName('body'),
             'boost': 10,
             'proximity_matching': True,
             'proximity_slop': 2,
             'proximity_boost': 20
         },
         {
-            'name': 'full_body_lang_%lang%'
+            'name': FieldName('full_body')
         },
         {
-            'name': 'headings_lang_%lang%',
+            'name': FieldName('headings'),
             'boost': 5
         },
         {
-            'name': 'meta_desc_lang_%lang%',
+            'name': FieldName('meta_desc'),
             'boost': 1
         },
         {
-            'name': 'meta_keywords_lang_%lang%',
+            'name': FieldName('meta_keywords'),
             'boost': 1
         },
         {
-            'name': 'warc_target_hostname',
+            'name': FieldName('warc_target_hostname', False),
             'boost': 1
         },
         {
-            'name': 'warc_target_path',
+            'name': FieldName('warc_target_path', False),
             'boost': 10
         },
         {
-            'name': 'warc_target_hostname.raw',
+            'name': FieldName('warc_target_hostname.raw', False),
             'fuzzy_matching': True,
             'boost': 10
         }
@@ -207,12 +199,12 @@ class SimpleSearch(SearchBase):
     """Highlight fields for snippets"""
     HIGHLIGHT_FIELDS = [
         {
-            'name': 'title_lang_%lang%',
+            'name': FieldName('title'),
             'fragment_size': 70,
             'number_of_fragments': 1
         },
         {
-            'name': 'body_lang_%lang%',
+            'name': FieldName('body'),
             'fragment_size': 300,
             'number_of_fragments': 1
         }
@@ -221,11 +213,11 @@ class SimpleSearch(SearchBase):
     """Numeric query filters."""
     RANGE_FILTERS = [
         {
-            'name': 'body_length',
+            'name': FieldName('body_length', False),
             'gte': 100
         },
         {
-            'name': 'spam_rank',
+            'name': FieldName('spam_rank', False),
             'gte': 66,
             'include_unset': True
         }
@@ -234,15 +226,15 @@ class SimpleSearch(SearchBase):
     """Additional fields for boosting queries."""
     BOOSTS = [
         {
-            'name': 'warc_target_hostname.raw',
-            'value': r'%lang%\.wikipedia\.org',
+            'name': FieldName('warc_target_hostname.raw', False),
+            'value': FieldValue(r'{lang}\.wikipedia\.org', True),
             'match': True,
             'boost': 30,
             'match_boost': 50
         },
         {
-            'name': 'warc_target_path.raw',
-            'value': r'/(wiki/|index\\.[a-z]+)?',
+            'name': FieldName('warc_target_path.raw', False),
+            'value': FieldValue(r'/(wiki/|index\\.[a-z]+)?'),
             'match': False,
             'boost': 70
         }
@@ -256,7 +248,6 @@ class SimpleSearch(SearchBase):
 
     def __init__(self, indices=None, search_from=0, num_results=10, explain=False):
         super().__init__(indices, search_from, num_results, explain)
-        self.user_lang_override = False
 
     def search(self, query):
         response = self._build_search_request(query).execute()
@@ -288,7 +279,7 @@ class SimpleSearch(SearchBase):
              .highlight_options(encoder='html'))
 
         for h in self.HIGHLIGHT_FIELDS:
-            s = s.highlight(self.replace_lang_placeholder(h['name']), **{k: v for k, v in h.items() if k != 'name'})
+            s = s.highlight(h['name'].i18n(self.search_language), **{k: v for k, v in h.items() if k != 'name'})
 
         rescore_query = self._build_rescore_query(query)
         if rescore_query is not None:
@@ -320,7 +311,7 @@ class SimpleSearch(SearchBase):
         filter_query = Q('bool', filter=[])
 
         for filter_keyword in self.QUERY_FILTERS:
-            filter_field = self.QUERY_FILTERS[filter_keyword]
+            filter_field = self.QUERY_FILTERS[filter_keyword].i18n(self.search_language)
 
             is_range = filter_keyword.endswith('<>')
             value_match = r'("[^"]+"|[^"]\S*)' if not is_range else r'(\d+)'
@@ -350,7 +341,7 @@ class SimpleSearch(SearchBase):
                 # Special case: language
                 if filter_field == 'lang':
                     self.search_language = filter_value
-                    self.user_lang_override = True
+                    continue
 
                 if is_range and filter_match.group(2) in ('<', '<=', '>', '>='):
                     filter_query.filter.append(
@@ -359,7 +350,8 @@ class SimpleSearch(SearchBase):
                         }))
                 else:
                     query_type = 'match_phrase' if ' ' in filter_value else 'match'
-                    filter_query.filter.append(Q(query_type, **{filter_field: filter_value.strip('"')}))
+                    filter_query.filter.append(Q(query_type, **{
+                        filter_field.i18n(self.search_language): filter_value.strip('"')}))
 
             query_string_orig = query.strip()
 
@@ -375,17 +367,14 @@ class SimpleSearch(SearchBase):
         """
 
         pre_query = Q('bool', filter=[], must_not=[])
-
-        if not self.user_lang_override:
-            # Only add if not already added via user filter
-            pre_query.filter.append(Q('term', lang=self.search_language))
+        pre_query.filter.append(Q('term', lang=self.search_language))
 
         if query:
             pre_query.must = Q('simple_query_string',
                                query=query,
                                default_operator='and',
                                flags='AND|OR|NOT|WHITESPACE',
-                               fields=[self.replace_lang_placeholder(f['name']) for f in self.MAIN_FIELDS])
+                               fields=[f['name'].i18n(self.search_language) for f in self.MAIN_FIELDS])
         else:
             pre_query.must = Q('match_all')
 
@@ -410,11 +399,11 @@ class SimpleSearch(SearchBase):
         rescore_query = Q('bool', must=simple_query, should=[])
 
         for f in self.MAIN_FIELDS:
-            simple_query.fields.append(f'{self.replace_lang_placeholder(f["name"])}^{f.get("boost", 1.0)}')
+            simple_query.fields.append(f'{f["name"].i18n(self.search_language)}^{f.get("boost", 1.0)}')
 
             if f.get('proximity_matching', False):
                 proximity_fields.append((
-                    self.replace_lang_placeholder(f['name']),
+                    f['name'].i18n(self.search_language),
                     f.get('proximity_slop', 1),
                     f.get('proximity_boost', 1.0) / 2.0
                 ))
@@ -441,7 +430,7 @@ class SimpleSearch(SearchBase):
         """
         bool_query = Q('bool', filter=[], must_not=[])
         for f in self.RANGE_FILTERS:
-            field_name = self.replace_lang_placeholder(f['name'])
+            field_name = f['name'].i18n(self.search_language)
             filter_query = Q('range', **{field_name: {k: v for k, v in f.items() if k in ['gt', 'gte', 'lt', 'lte']}})
             if f.get('include_unset', False):
                 must_not_exist_query = Q('bool', must_not=Q('exists', field=field_name))
@@ -466,8 +455,8 @@ class SimpleSearch(SearchBase):
                 continue
 
             regexp_query = Q('regexp', **{
-                self.replace_lang_placeholder(b['name']): {
-                    'value': self.replace_lang_placeholder(b['value']),
+                b['name'].i18n(self.search_language): {
+                    'value': b['value'].i18n(self.search_language),
                     'boost': b.get('match_boost', 1.0) if match else b.get('boost', 1.0)
                 }
             })
@@ -485,7 +474,7 @@ class PhraseSearch(SimpleSearch):
     """Fields to search."""
     MAIN_FIELDS = [
         {
-            'name': 'body_lang_%lang%',
+            'name': FieldName('body'),
             'boost': 1.0
         }
     ]
@@ -499,15 +488,12 @@ class PhraseSearch(SimpleSearch):
 
     def _build_pre_query(self, query):
         pre_query = Q('bool', filter=[], must_not=[])
-
-        if not self.user_lang_override:
-            # Only add if not already added via user filter
-            pre_query.filter.append(Q('term', lang=self.search_language))
+        pre_query.filter.append(Q('term', lang=self.search_language))
 
         pre_query.must = []
         main_fields = set()
         for f in self.MAIN_FIELDS:
-            fname = self.replace_lang_placeholder(f['name'])
+            fname = f['name'].i18n(self.search_language)
             main_fields.add(fname)
             pre_query.must.append(Q('match_phrase', **{fname: dict(
                 query=query,
@@ -516,7 +502,7 @@ class PhraseSearch(SimpleSearch):
 
         pre_query.should = []
         for f in super().MAIN_FIELDS:
-            fname = self.replace_lang_placeholder(f['name'])
+            fname = f['name'].i18n(self.search_language)
             if fname in main_fields:
                 continue
             pre_query.should.append(Q('match', **{fname: dict(query=query, boost=f.get('boost', 1.0))}))
