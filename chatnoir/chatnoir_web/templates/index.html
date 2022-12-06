@@ -23,7 +23,7 @@ window.DATA = {
     token: {% search_session_apikey %},
     timestamp: {% now 'U' %},
     csrfToken: '{{ csrf_token }}',
-    {% if indices %}indices: {{ indices | json | safe }}{% endif %}
+    indices: {{ indices | json | safe }}
 }
 </script>
 {% render_bundle "index" 'js' %}

@@ -1,4 +1,4 @@
-# Copyright 2021 Janek Bevendorff
+# Copyright 2022 Janek Bevendorff
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-from django.conf import settings
-from django.http import HttpResponsePermanentRedirect
-from django.shortcuts import render
-from django.views.decorators.http import require_safe
+from chatnoir_search_v1.search import SimpleSearch
 
 
-@require_safe
-def index(request):
-    return render(request, 'index.html')
+def _get_indices(request):
+    """List of configured indices."""
+
+    search = SimpleSearch(indices=request.GET.getlist('index'))
+    selected = search.selected_indices
+    return [{'id': k, 'name': v.get('display_name'), 'selected': k in selected}
+            for k, v in search.allowed_indices.items()]
 
 
-@require_safe
-def cache(request):
-    cache_url = settings.CACHE_FRONTEND_URL + '?' + request.GET.urlencode()
-    return HttpResponsePermanentRedirect(cache_url)
+def global_vars(request):
+    """Set global template variables."""
+    return {
+        'indices': _get_indices(request)
+    }
