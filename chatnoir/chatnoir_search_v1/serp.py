@@ -116,10 +116,6 @@ class SerpContext:
 
             results.append(result)
 
-        # TODO: Do this better.
-        # if self.search.group_results_by_hostname:
-        #     return self.group_results(results)
-
         return results
 
     @property
@@ -171,34 +167,6 @@ class SerpContext:
             if v['index'] == index_name:
                 return i
         return index_name
-
-    @staticmethod
-    def group_results(results):
-        """
-         Group (bucket) results by host name, but preserve ranking order of first
-         element in a group as well as the order within a group.
-
-        :param results: ungrouped ordered search results
-        """
-        buckets = defaultdict(list)
-        for result in results:
-            suggest_grouping = True
-
-            # First element in group
-            if result['target_hostname'] not in buckets:
-                suggest_grouping = False
-
-            result['is_grouping_suggested'] = suggest_grouping
-            buckets[result['target_hostname']].append(result)
-
-        grouped_results = []
-        for b in buckets:
-            if len(buckets[b]) > 1:
-                # Suggest "more from this host" for last result in a bucket
-                buckets[b][-1]['is_more_suggested'] = True
-            grouped_results.extend(buckets[b])
-
-        return grouped_results
 
     @serp_api_meta
     def query_time(self):

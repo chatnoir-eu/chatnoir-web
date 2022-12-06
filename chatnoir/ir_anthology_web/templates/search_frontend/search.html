@@ -19,7 +19,7 @@
         </div>
         <section id="SearchResults">
             {% for result in search_results %}
-                <article class="search-result{% if result.is_grouping_suggested %} grouped{% endif %}" id="result-{{ result.uuid }}"{% if result.explanation %} data-explanation="{{ result.explanation | json }}"{% endif %}>
+                <article class="search-result" id="result-{{ result.uuid }}"{% if result.explanation %} data-explanation="{{ result.explanation | json }}"{% endif %}>
                     <header>
                         <h2><a href="{{ result.anthology_uri }}">{{ result.title | safe }}</a></h2>
                         <div class="meta">
@@ -60,7 +60,7 @@
                             </div>
                         </div>
                     </header>
-                    {% if not result.is_grouping_suggested %}{{ result.snippet | safe }}{% endif %}
+                    {{ result.snippet | safe }}
                 </article>
                 {% if result.is_more_suggested %}
                     <div class="more-from-host">

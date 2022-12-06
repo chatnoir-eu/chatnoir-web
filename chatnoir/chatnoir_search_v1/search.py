@@ -46,7 +46,6 @@ class SearchBase(ABC):
         self._indices_unvalidated = set(indices)
 
         self.search_language = 'en'
-        self.group_results_by_hostname = True
         self.num_results = max(1, num_results)
         self.search_from = max(0, min(search_from, 10000 - self.num_results))
         self.explain = explain
@@ -334,10 +333,6 @@ class SimpleSearch(SearchBase):
                 if filter_field == '#index':
                     self._indices_unvalidated = [i.strip() for i in filter_value.split(',')]
                     continue
-
-                # Special case: hostname
-                if filter_field == 'warc_target_hostname.raw':
-                    self.group_results_by_hostname = False
 
                 # Special case: language
                 if filter_field == 'lang':
