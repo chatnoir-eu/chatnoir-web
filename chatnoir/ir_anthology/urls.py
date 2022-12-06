@@ -12,15 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf import settings
-from django.contrib import admin
 from django.urls import include, path
 
 app_name = 'ir_anthology'
 
 urlpatterns = [
-    path(r'', include('ir_anthology_web.urls', namespace='chatnoir_web')),
-    path(r'', include('chatnoir_api_v1.urls', namespace='chatnoir_api'))
+    path(r'', include('ir_anthology_web.urls', namespace='ir_anthology')),
+    path(r'', include('ir_anthology_api_v1.urls', namespace='chatnoir_api'))
 ]
 
 handler404 = 'chatnoir_web.error_views.not_found'

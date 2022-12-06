@@ -19,6 +19,5 @@ from . import views
 app_name = 'ir_anthology_web'
 
 urlpatterns = [
-    path(r'', views.index, name='index'),
-    path(r'search', views.search, name='search')
+    path(r'', views.index, name='index')
 ]
