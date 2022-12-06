@@ -75,6 +75,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'chatnoir_web.context_processors.global_vars'
             ],
+            'libraries': {
+                'chatnoir_tags': 'chatnoir_web.templatetags'
+            }
         },
     },
 ]
