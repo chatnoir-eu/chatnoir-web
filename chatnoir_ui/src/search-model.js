@@ -140,9 +140,6 @@ export class SearchModel {
      * Return the list of selected indices (i.e., `index.selected === true`).
      */
     selectedIndices() {
-        if (!this.response || !this.response.meta) {
-            return []
-        }
-        return this.response.meta.indices ? this.response.meta.indices.filter((e) => e.selected) : []
+        return this.indices.filter((e) => e.selected)
     }
 }
