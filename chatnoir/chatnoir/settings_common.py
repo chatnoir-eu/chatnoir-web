@@ -63,9 +63,7 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'chatnoir_web', 'templates')
-        ],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,11 +71,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'chatnoir_web.context_processors.global_vars'
             ],
-            'libraries': {
-                'chatnoir_tags': 'chatnoir_web.templatetags'
-            }
+            'libraries': {}
         },
     },
 ]

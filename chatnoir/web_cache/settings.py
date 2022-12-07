@@ -6,7 +6,6 @@ from chatnoir.settings_common import *
 
 APPLICATION_NAME = 'ChatNoir Web Cache'
 
-# Application definition
 INSTALLED_APPS = [
     'web_cache.apps.ChatnoirWebCacheConfig',
     'django.contrib.auth',
@@ -24,10 +23,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'web_cache.urls'
 
-TEMPLATES[0]['DIRS'] = [
-    os.path.join(BASE_DIR, 'web_cache', 'templates'),
-    os.path.join(BASE_DIR, 'chatnoir_web', 'templates')
-]
+TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'web_cache', 'templates'))
 
 WSGI_APPLICATION = 'web_cache.wsgi.application'
 

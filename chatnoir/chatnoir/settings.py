@@ -34,6 +34,13 @@ LOGGING['loggers'].update({
     }
 })
 
+# Template options
+TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'chatnoir_web', 'templates'))
+TEMPLATES[0]['OPTIONS']['context_processors'].append('chatnoir_web.context_processors.global_vars')
+TEMPLATES[0]['OPTIONS']['libraries'].update({
+    'chatnoir_tags': 'chatnoir_web.templatetags'
+})
+
 # API roles
 API_ADMIN_ROLE = 'admin'
 API_KEYCREATE_ROLE = 'keycreate'
