@@ -16,7 +16,7 @@
 
 <template>
 <div class="max-w-full px-5">
-    <search-header ref="searchHeaderRef" v-model="searchModel" focus :progress="requestProgress" @submit="search()" />
+    <search-header ref="searchHeaderRef" v-model="searchModel" :progress="requestProgress" @submit="search()" />
 
     <div ref="resultsElement">
         <div v-if="searchModel.response && searchModel.response.hits.length" key="search-results" class="max-w-3xl mx-auto">

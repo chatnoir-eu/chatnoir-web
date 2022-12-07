@@ -72,14 +72,19 @@ const searchInput = ref(null)
 const showOptions = ref(false)
 const searchModel = reactive(new SearchModel())
 
-function focus() {
-    searchInput.value.focus()
+function blur() {
+    searchInput.value.blur()
+}
+
+function focus(options = {}) {
+    searchInput.value.focus(options)
 }
 
 function emitModelUpdate(submit = false) {
     emit('update:modelValue', searchModel)
     if (submit) {
         emit('submit', searchModel)
+        searchInput.value.blur()
     }
 }
 
@@ -100,6 +105,7 @@ watch(() => searchModel.indices, (newValue) => {
 })
 
 defineExpose({
+    blur,
     focus
 })
 

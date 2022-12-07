@@ -89,6 +89,7 @@ watch(toRef(props, 'progress'), (newValue) => {
 })
 
 defineExpose({
-    focus: () => searchFieldRef.value.focus()
+    focus: (options = {}) => searchFieldRef.value.focus(options),
+    blur: () => searchFieldRef.value.blur()
 })
 </script>
