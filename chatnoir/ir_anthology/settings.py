@@ -10,17 +10,7 @@ APPLICATION_NAME = 'IR Anthology Search'
 INSTALLED_APPS = [
     'ir_anthology_web.apps.IRAnthologyWebConfig',
     'ir_anthology_api.apps.IRAnthologyApiConfig',
-    'chatnoir_api.apps.ChatnoirApiConfig',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'corsheaders',
-    'webpack_loader',
-    'rest_framework'
-]
+] + INSTALLED_APPS
 
 ROOT_URLCONF = 'ir_anthology.urls'
 
