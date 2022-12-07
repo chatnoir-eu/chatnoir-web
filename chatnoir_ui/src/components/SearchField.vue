@@ -81,10 +81,13 @@ function focus(options = {}) {
 }
 
 function emitModelUpdate(submit = false) {
+    if (submit) {
+        searchInput.value.blur()
+        searchModel.page = 1
+    }
     emit('update:modelValue', searchModel)
     if (submit) {
         emit('submit', searchModel)
-        searchInput.value.blur()
     }
 }
 
