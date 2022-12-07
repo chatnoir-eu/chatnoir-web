@@ -19,7 +19,7 @@ app_name = 'chatnoir'
 
 urlpatterns = [
     path(r'', include('chatnoir_web.urls', namespace='chatnoir_web')),
-    path(r'', include('chatnoir_api_v1.urls', namespace='chatnoir_api'))
+    path(r'', include('chatnoir_api.urls', namespace='chatnoir_api'))
 ]
 
 handler404 = 'chatnoir_web.error_views.not_found'

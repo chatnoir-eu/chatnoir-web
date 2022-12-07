@@ -18,7 +18,7 @@ from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
 
-from chatnoir_api_v1.authentication import ApiKeyAuthentication
+from chatnoir_api.authentication import ApiKeyAuthentication
 
 register = template.Library()
 

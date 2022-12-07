@@ -18,7 +18,7 @@ app_name = 'ir_anthology'
 
 urlpatterns = [
     path(r'', include('ir_anthology_web.urls', namespace='ir_anthology')),
-    path(r'', include('ir_anthology_api_v1.urls', namespace='chatnoir_api'))
+    path(r'', include('ir_anthology_api.urls', namespace='chatnoir_api'))
 ]
 
 handler404 = 'chatnoir_web.error_views.not_found'

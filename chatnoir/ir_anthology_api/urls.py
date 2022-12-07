@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from chatnoir_search_v1 import search, ir_anthology_search
+from chatnoir_search import search, ir_anthology_search
 
 # Monkey-patch search backends
 search.SimpleSearch = ir_anthology_search.SimpleSearch
 search.PhraseSearch = ir_anthology_search.PhraseSearch
 
 # noinspection PyUnresolvedReferences
-from chatnoir_api_v1.urls import *
+from chatnoir_api.urls import *

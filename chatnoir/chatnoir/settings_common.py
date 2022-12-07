@@ -24,7 +24,7 @@ MANAGERS = []
 # Application definition
 INSTALLED_APPS = [
     'chatnoir_web.apps.ChatnoirWebConfig',
-    'chatnoir_api_v1.apps.ChatnoirApiConfig',
+    'chatnoir_api.apps.ChatnoirApiConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -56,8 +56,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser'
     ],
-    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'chatnoir_api_v1.negotiation.FallbackContentNegotiation',
-    'EXCEPTION_HANDLER': 'chatnoir_api_v1.views.api_exception_handler'
+    'DEFAULT_CONTENT_NEGOTIATION_CLASS': 'chatnoir_api.negotiation.FallbackContentNegotiation',
+    'EXCEPTION_HANDLER': 'chatnoir_api.views.api_exception_handler'
 }
 
 TEMPLATES = [

@@ -21,7 +21,7 @@ from django.shortcuts import render
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.http import require_safe
 
-from chatnoir_search_v1.elastic_backend import get_index
+from chatnoir_search.elastic_backend import get_index
 from .cache import CacheDocument
 
 

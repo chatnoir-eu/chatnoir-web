@@ -9,8 +9,8 @@ APPLICATION_NAME = 'IR Anthology Search'
 
 INSTALLED_APPS = [
     'ir_anthology_web.apps.IRAnthologyWebConfig',
-    'ir_anthology_api_v1.apps.IRAnthologyApiConfig',
-    'chatnoir_api_v1.apps.ChatnoirApiConfig',
+    'ir_anthology_api.apps.IRAnthologyApiConfig',
+    'chatnoir_api.apps.ChatnoirApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

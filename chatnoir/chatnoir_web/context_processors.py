@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from chatnoir_search_v1.search import SimpleSearch
+from chatnoir_search.search import SimpleSearch
 
 
 def _get_indices(request):

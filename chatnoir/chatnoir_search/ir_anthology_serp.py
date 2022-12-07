@@ -17,8 +17,8 @@ import uuid
 
 from django.utils.translation import gettext as _
 
-import chatnoir_search_v1.serp as chatnoir_serp
-from chatnoir_search_v1.types import FieldName, minimal, extended, explanation
+import chatnoir_search.serp as chatnoir_serp
+from chatnoir_search.types import FieldName, minimal, extended, explanation
 
 
 # Legacy field name pattern

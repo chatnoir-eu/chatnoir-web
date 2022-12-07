@@ -20,8 +20,8 @@ import logging
 from django.conf import settings
 from elasticsearch_dsl import Q, Search, connections
 
-from chatnoir_search_v1.serp import SerpContext
-from chatnoir_search_v1.types import FieldName, FieldValue
+from chatnoir_search.serp import SerpContext
+from chatnoir_search.types import FieldName, FieldValue
 
 
 class SearchBase(ABC):

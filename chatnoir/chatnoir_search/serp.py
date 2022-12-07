@@ -20,7 +20,7 @@ from django.utils.translation import gettext as _
 from django.urls import reverse
 from elasticsearch_dsl.response import Response
 
-from chatnoir_search_v1.types import *
+from chatnoir_search.types import *
 
 
 class SerpContext:

@@ -30,7 +30,7 @@ from .forms import KeyRequestForm
 from .metadata import ApiMetadata
 from .serializers import *
 
-from chatnoir_search_v1.search import SimpleSearch, PhraseSearch
+from chatnoir_search.search import SimpleSearch, PhraseSearch
 
 
 def api_exception_handler(exc, _):

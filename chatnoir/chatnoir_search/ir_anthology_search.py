@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from chatnoir_search_v1 import search as chatnoir_search
-from chatnoir_search_v1.ir_anthology_serp import SerpContext
-from chatnoir_search_v1.types import FieldName
+from chatnoir_search import search as chatnoir_search
+from chatnoir_search.ir_anthology_serp import SerpContext
+from chatnoir_search.types import FieldName
 
 # Monkey-patch ChatNoir SerpContext
 chatnoir_search.SerpContext = SerpContext
