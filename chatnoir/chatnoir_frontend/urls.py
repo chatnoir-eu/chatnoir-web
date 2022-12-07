@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.apps import AppConfig
-from django.utils.translation import gettext_lazy as _
+from django.urls import path
 
+from . import views
 
-class ChatnoirWebConfig(AppConfig):
-    name = 'chatnoir_web'
-    verbose_name = _('ChatNoir Web Frontend')
+app_name = 'chatnoir_frontend'
+
+urlpatterns = [
+    path(r'', views.index, name='index'),
+    path(r'cache', views.cache, name='cache')
+]

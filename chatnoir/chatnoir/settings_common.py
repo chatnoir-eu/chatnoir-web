@@ -23,7 +23,7 @@ MANAGERS = []
 
 # Application definition
 INSTALLED_APPS = [
-    'chatnoir_web.apps.ChatnoirWebConfig',
+    'chatnoir_frontend.apps.ChatnoirWebConfig',
     'chatnoir_api.apps.ChatnoirApiConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -156,7 +156,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, '..', 'chatnoir_static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, '..', 'chatnoir_ui', 'dist'),
-    os.path.join(BASE_DIR, 'chatnoir_web', 'static')
+    os.path.join(BASE_DIR, 'chatnoir_frontend', 'static')
 ]
 
 # Webpack loader

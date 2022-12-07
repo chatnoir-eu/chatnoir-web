@@ -22,7 +22,7 @@ urlpatterns = [
     path(r'robots.txt', views.robots_txt, name='robots_txt')
 ]
 
-handler404 = 'chatnoir_web.error_views.not_found'
-handler500 = 'chatnoir_web.error_views.server_error'
-handler403 = 'chatnoir_web.error_views.permission_denied'
-handler400 = 'chatnoir_web.error_views.bad_request'
+handler404 = 'chatnoir_frontend.error_views.not_found'
+handler500 = 'chatnoir_frontend.error_views.server_error'
+handler403 = 'chatnoir_frontend.error_views.permission_denied'
+handler400 = 'chatnoir_frontend.error_views.bad_request'

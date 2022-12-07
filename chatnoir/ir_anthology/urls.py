@@ -21,7 +21,7 @@ urlpatterns = [
     path(r'', include('ir_anthology_api.urls', namespace='chatnoir_api'))
 ]
 
-handler404 = 'chatnoir_web.error_views.not_found'
-handler500 = 'chatnoir_web.error_views.server_error'
-handler403 = 'chatnoir_web.error_views.permission_denied'
-handler400 = 'chatnoir_web.error_views.bad_request'
+handler404 = 'chatnoir_frontend.error_views.not_found'
+handler500 = 'chatnoir_frontend.error_views.server_error'
+handler403 = 'chatnoir_frontend.error_views.permission_denied'
+handler400 = 'chatnoir_frontend.error_views.bad_request'

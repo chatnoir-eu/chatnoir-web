@@ -14,4 +14,4 @@
 
 
 # noinspection PyUnresolvedReferences
-from chatnoir_web.views import index
+from chatnoir_frontend.views import index

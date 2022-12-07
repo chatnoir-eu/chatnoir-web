@@ -101,7 +101,7 @@ class SerpContext:
                 'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
                 'score': minimal(hit.meta.score),
                 'external_uri': minimal(target_uri),
-                'internal_uri': minimal(reverse('chatnoir_web:cache') + '?index={}&uuid={}'.format(
+                'internal_uri': minimal(reverse('chatnoir_frontend:cache') + '?index={}&uuid={}'.format(
                     parse.quote(result_index), parse.quote(doc_id))),
                 'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
                 'page_rank': extended(getattr(hit, 'page_rank', None)),
