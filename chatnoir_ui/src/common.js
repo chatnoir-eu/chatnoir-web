@@ -147,10 +147,11 @@ export function objCamelToSnake(obj) {
  * Request token data class.
  */
 export class ApiToken {
-    constructor({token, timestamp, maxAge}) {
+    constructor({token, timestamp, maxAge, quota}) {
         this.token = token
         this.timestamp = timestamp
         this.maxAge = maxAge
+        this.quota = quota
     }
 }
 

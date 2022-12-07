@@ -78,15 +78,17 @@ const resultsElement = ref(null)
 const searchModel = ref(new SearchModel())
 const requestProgress = ref(0)
 const error = ref(null)
+let requestCounter = 0
 
 /**
  * Request search result JSON from the server.
  */
 async function requestResults() {
+    requestCounter += 1
 
-    // Refresh stale search API token
+    // Refresh search API token if expired or over quota
     const apiToken = getApiToken()
-    if (Date.now() / 1000 - apiToken.timestamp >= apiToken.maxAge) {
+    if (Date.now() / 1000 - apiToken.timestamp >= apiToken.maxAge || requestCounter > apiToken.quota) {
         location.reload()
         return
     }
@@ -125,7 +127,7 @@ async function requestResults() {
     } catch (ex) {
         if (ex.code === 'ECONNABORTED') {
             error.value = 'Search took too long (Timeout).'
-        } else if (ex.response.status === 401 && location.hash !== '#reload') {
+        } else if ((ex.response.status === 401 || ex.response.status === 429) && location.hash !== '#reload') {
             // Probably an API token error, try to refresh page once
             location.hash = 'reload'
             location.reload()
