@@ -16,7 +16,9 @@
 
 <template>
 <div ref="mainElement" class="h-0.5 w-full m-0 p-0 invisible overflow-hidden" aria-hidden="true">
-    <div class="h-full m-0 p-0 bg-red-400 rounded-r-full transition-width duration-150" :style="`width: ${displayedProgress}%`"></div>
+    <div :class="$style['progress-bar']"
+         class="h-full m-0 p-0 bg-red-400 rounded-r-full transition-width duration-150"
+         :style="`width: ${displayedProgress}%`"></div>
 </div>
 </template>
 
@@ -25,25 +27,37 @@ import { onMounted, ref, toRef, watch } from 'vue'
 
 const emit = defineEmits(['complete'])
 const props = defineProps({
-    progress: {type: Number, default: 0}
+    progress: {type: Number, default: 0},
+    fakeProgress: {type: Boolean, default: true}
 })
 const mainElement = ref(null)
 const displayedProgress = ref(0)
+let updateInterval = null
 
 function updateProgress() {
-    if (!mainElement.value) {
+    if (!mainElement.value || props.progress <= 0) {
+        clearInterval(updateInterval)
+        updateInterval = null
         return
     }
-    if (props.progress > 0) {
-        mainElement.value.classList.remove('invisible')
+
+    mainElement.value.classList.remove('invisible')
+    displayedProgress.value = Math.min(100, Math.max(displayedProgress.value, props.progress))
+    if (props.fakeProgress && !updateInterval) {
+        updateInterval = setInterval(() => {
+            if (displayedProgress.value >= 95) {
+                clearInterval(updateInterval)
+                updateInterval = null
+                return
+            }
+            displayedProgress.value = Math.min(
+                95, displayedProgress.value + (1.0 / (1.0 + Math.exp(displayedProgress.value  / 10.0 - 3.0))))
+        }, 50)
     }
 
-    displayedProgress.value = Math.max(0, displayedProgress.value + (props.progress - displayedProgress.value) / 2)
-    setTimeout(() => {
-        displayedProgress.value = props.progress
-    }, 100)
-
     if (props.progress >= 100) {
+        clearInterval(updateInterval)
+        updateInterval = null
         setTimeout(() => {
             if (mainElement.value) {
                 mainElement.value.classList.add('invisible')
@@ -62,3 +76,9 @@ onMounted(() => {
     updateProgress()
 })
 </script>
+
+<style module>
+.progress-bar {
+    transition: width 100ms;
+}
+</style>
