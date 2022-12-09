@@ -39,7 +39,7 @@ class CacheDocument:
         self._doc_index = None
         self._doc_bytes = None
         self._html_tree = None
-        self._is_clueweb09 = False   # ClueWEb09 quirks mode
+        self._is_clueweb09 = False   # ClueWeb09 quirks mode
 
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
@@ -73,7 +73,7 @@ class CacheDocument:
         Retrieve first document that matches the given filter expression in the WARC meta index.
 
         :param index: index object
-        :param filter_expr: term filter expression (e.g. warc_target_uri="http://example.com")
+        :param filter_expr: term filter expression (e.g. warc_target_uri="https://example.com")
         :return: True on success
         """
         result = (Search().doc_type(index.warc_meta_doc)
