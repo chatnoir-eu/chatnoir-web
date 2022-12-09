@@ -21,6 +21,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
+import elasticsearch
 from rest_framework import routers, viewsets, exceptions as rest_exceptions
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
@@ -166,7 +167,10 @@ class SimpleSearchViewSet(ApiViewSet):
     def _process_search(self, search_obj, request, params):
         """Run the search using the selected search class."""
         self._log_query(search_obj, request, params.data['query'])
-        serp_ctx = search_obj.search(params.data['query'])
+        try:
+            serp_ctx = search_obj.search(params.data['query'])
+        except elasticsearch.ConnectionTimeout:
+            raise rest_exceptions.APIException(_('The search backend took too long to respond.'), 'timeout')
         return Response(serp_ctx.to_dict(hits=True, meta=True, extended_meta=params.data.get('extended_meta', False)))
 
     def post(self, request, **kwargs):

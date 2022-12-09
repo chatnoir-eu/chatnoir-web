@@ -46,7 +46,7 @@
         <div v-if="error" class="max-w-3xl mx-auto mt-10 py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">
             Error processing your request. Got:<br>
             <strong>{{ error }}</strong><br>
-            Please try again later.
+            <span v-if="apiResponseCode === 500 || apiResponseCode === null">Please try again later.</span>
         </div>
     </div>
 
@@ -78,6 +78,7 @@ const resultsElement = ref(null)
 const searchModel = ref(new SearchModel())
 const requestProgress = ref(0)
 const error = ref(null)
+const apiResponseCode = ref(null)
 let requestCounter = 0
 
 /**
@@ -105,7 +106,7 @@ async function requestResults() {
             'Authorization': 'Bearer ' + apiToken.token
         },
         data: searchModel.value.toApiRequestBody(),
-        timeout: 25000,
+        timeout: 30000,
         onDownloadProgress(e) {
             requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
         }
@@ -117,6 +118,7 @@ async function requestResults() {
         }
         requestProgress.value = 25
         error.value = ''
+        apiResponseCode.value = 200
 
         const response = await axios(requestOptions)
         // Clear reload indicator on successful return
@@ -125,14 +127,19 @@ async function requestResults() {
         }
         return response.data
     } catch (ex) {
-        if (ex.code === 'ECONNABORTED') {
+        apiResponseCode.value = ex.response ? ex.response.status : null
+        if (ex.code === 'ECONNABORTED' || (ex.response && ex.response.data.error === 'timeout')) {
             error.value = 'Search took too long (Timeout).'
         } else if ((ex.response.status === 401 || ex.response.status === 429) && location.hash !== '#reload') {
             // Probably an API token error, try to refresh page once
             location.hash = 'reload'
             location.reload()
         } else if (ex.response.status !== 200) {
-            error.value = `${ex.response.status} ${ex.response.statusText}`
+            if (ex.response.data.message) {
+                error.value = `${ex.response.data.message} (Error ${ex.response.data.code})`
+            } else {
+                error.value = `${ex.response.status} ${ex.response.statusText}`
+            }
         }
         return new Promise(() => {})
     } finally {
