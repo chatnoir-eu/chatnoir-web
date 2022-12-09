@@ -219,7 +219,7 @@ class CacheDocument:
             head = html_tree.document.insert_before(head, html_tree.body)
 
         # Remove existing robots meta and base tags
-        [e.decompose() for e in list(head.query_selector_all('meta[name="robots" i], base'))]
+        [e.decompose() for e in list(head.query_selector_all('meta[name="robots"], base'))]
 
         # Insert robots no-index, nofollow
         no_index = html_tree.create_element('meta')
@@ -235,7 +235,7 @@ class CacheDocument:
         if meta_enc:
             meta_enc['charset'] = 'utf-8'
 
-        meta_enc = head.query_selector('meta[http-equiv="Content-Type" i]')
+        meta_enc = head.query_selector('meta[http-equiv="Content-Type"]')
         if meta_enc:
             meta_enc['content'] = re.sub(r'charset=[\w-]+', 'charset=utf-8', meta_enc['content'])
 
