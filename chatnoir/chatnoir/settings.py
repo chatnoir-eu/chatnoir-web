@@ -35,7 +35,6 @@ LOGGING['loggers'].update({
 })
 
 # Template options
-TEMPLATES[0]['DIRS'].append(os.path.join(BASE_DIR, 'chatnoir_frontend', 'templates'))
 TEMPLATES[0]['OPTIONS']['context_processors'].append('chatnoir_frontend.context_processors.global_vars')
 TEMPLATES[0]['OPTIONS']['libraries'].update({
     'chatnoir_tags': 'chatnoir_frontend.templatetags'
