@@ -29,8 +29,6 @@ WSGI_APPLICATION = 'web_cache.wsgi.application'
 
 DATABASES = {}
 
-STATICFILES_DIRS = []
-
 try:
     from .local_settings import *
 except ImportError:

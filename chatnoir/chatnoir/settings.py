@@ -34,6 +34,11 @@ LOGGING['loggers'].update({
     }
 })
 
+# Static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, '..', 'chatnoir_ui', 'dist')
+] + STATICFILES_DIRS
+
 # Template options
 TEMPLATES[0]['OPTIONS']['context_processors'].append('chatnoir_frontend.context_processors.global_vars')
 TEMPLATES[0]['OPTIONS']['libraries'].update({
