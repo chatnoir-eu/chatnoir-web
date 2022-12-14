@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import base64
+import re
 import uuid
 
 from django.conf import settings
@@ -35,16 +36,30 @@ def robots_txt(request):
                         content_type=f'text/plain; charset={settings.DEFAULT_CHARSET}', status=200)
 
 
-def normalize_uuid_str(uuid_str):
-    """Convert a legacy UUID hex string to truncated and URL-safe Base64 if necessary (or return it as is)."""
-    if uuid_str and len(uuid_str) == 36 and '-' in uuid_str:
-        try:
-            # Convert hex encoding to URL-safe base64 and truncate '==' padding
-            return base64.urlsafe_b64encode(uuid.UUID(uuid_str).bytes)[:-2].decode()
-        except ValueError:
-            pass
+_URLSAFE_B64_UUID_REGEX = re.compile(r'^[a-zA-Z0-9_-]{22}$')
+_CLUEWEB_TREC_ID_REGEX = re.compile(r'^clueweb[0-9]{2}-[a-z0-9-]{6}-[0-9]{2}-[0-9]{5}$')
+_LEGACY_UUID_REGEX = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
 
-    return uuid_str
+
+def normalize_doc_id_str(doc_id):
+    """
+    Validate and normalize a document UUID or ClueWeb ID string.
+
+    Valid Base64 UUIDs and ClueWeb IDs will be passed through as-is.
+    Legacy UUID hex strings will be converted to truncated and URL-safe Base64 if necessary.
+
+    :raises ValueError: if ID has an invalid format
+    """
+    if doc_id:
+        if len(doc_id) == 22 and _URLSAFE_B64_UUID_REGEX.match(doc_id):
+            return doc_id
+        if len(doc_id) == 25 and _CLUEWEB_TREC_ID_REGEX.match(doc_id):
+            return doc_id
+        if len(doc_id) == 36 and _LEGACY_UUID_REGEX.match(doc_id):
+            # Convert hex encoding to URL-safe base64 and truncate '==' padding.
+            # Underlying function will throw ValueError on error.
+            return base64.urlsafe_b64encode(uuid.UUID(doc_id).bytes)[:-2].decode()
+    raise ValueError('Not a truncated URL-safe Base64 string.')
 
 
 @require_safe
@@ -60,27 +75,29 @@ def cache(request):
 
     cache_doc = CacheDocument()
     found = False
-    if request.GET.get('uuid'):
-        found = cache_doc.retrieve_by_filter(search_index, uuid=normalize_uuid_str(request.GET['uuid']))
-    elif request.GET.get('idx-uuid'):
-        found = cache_doc.retrieve_by_idx_id(search_index, normalize_uuid_str(request.GET['idx-uuid']))
-    elif request.GET.get('trec-id'):
-        found = cache_doc.retrieve_by_filter(search_index, warc_trec_id=request.GET['trec-id'])
-    elif request.GET.get('url'):
-        if not request.GET['url'].startswith('https://') and not request.GET['url'].startswith('http://'):
-            # Do not redirect to unsafe URLs
-            raise Http404
+    try:
+        if request.GET.get('uuid'):
+            found = cache_doc.retrieve_by_filter(search_index, uuid=normalize_doc_id_str(request.GET['uuid']))
+        elif request.GET.get('trec-id'):
+            found = cache_doc.retrieve_by_filter(
+                search_index, warc_trec_id=normalize_doc_id_str(request.GET['trec-id']))
+        elif request.GET.get('url'):
+            if not request.GET['url'].startswith('https://') and not request.GET['url'].startswith('http://'):
+                # Do not redirect to unsafe URLs
+                raise Http404
 
-        found = cache_doc.retrieve_by_filter(search_index, warc_target_uri=request.GET['url'])
-        if not found:
-            if raw_mode and request.META.get('HTTP_REFERER', '').startswith(settings.CACHE_FRONTEND_URL):
-                # Don't show redirect page for directly embedded content
-                return HttpResponseRedirect(request.GET['url'])
+            found = cache_doc.retrieve_by_filter(search_index, warc_target_uri=request.GET['url'])
+            if not found:
+                if raw_mode and request.META.get('HTTP_REFERER', '').startswith(settings.CACHE_FRONTEND_URL):
+                    # Don't show redirect page for directly embedded content
+                    return HttpResponseRedirect(request.GET['url'])
 
-            return render(request, 'cache-redirect.html', {
-                'app_name': settings.APPLICATION_NAME,
-                'uri': request.GET['url']
-            })
+                return render(request, 'cache-redirect.html', {
+                    'app_name': settings.APPLICATION_NAME,
+                    'uri': request.GET['url']
+                })
+    except ValueError:
+        pass
 
     if not found:
         raise Http404
