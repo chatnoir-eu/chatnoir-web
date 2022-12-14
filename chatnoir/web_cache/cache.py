@@ -138,7 +138,6 @@ class CacheDocument:
             return None
 
         body = self._doc_bytes
-
         if self._html_tree:
             if main_content:
                 body = extract_plain_text(self._html_tree,
@@ -175,6 +174,12 @@ class CacheDocument:
         :return: body as HTML string or bytes (if document is not an HTML document)
         """
         return self._read_warc_content(raw_html=not post_process)
+
+    def bytes(self):
+        """
+        :return: document as raw bytes
+        """
+        return self._doc_bytes or b''
 
     def main_content(self):
         """

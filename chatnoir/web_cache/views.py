@@ -103,8 +103,11 @@ def cache(request):
 
     if plaintext_mode or cache_doc.is_text_plain():
         body = cache_doc.main_content()
-    else:
+    elif cache_doc.is_html():
         body = cache_doc.html(not raw_mode)
+    else:
+        raw_mode = True
+        body = cache_doc.bytes()
 
     content_type = iri_to_uri(doc_meta.http_content_type) if raw_mode else 'text/html'
     charset = doc_meta.content_encoding if raw_mode else settings.DEFAULT_CHARSET
