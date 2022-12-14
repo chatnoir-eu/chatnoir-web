@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_apikey():
-    return get_random_string(32)
+    return get_random_string(32, allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
 
 
 class ApiUser(models.Model):
