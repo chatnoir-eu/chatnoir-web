@@ -59,7 +59,7 @@ def normalize_doc_id_str(doc_id):
             # Convert hex encoding to URL-safe base64 and truncate '==' padding.
             # Underlying function will throw ValueError on error.
             return base64.urlsafe_b64encode(uuid.UUID(doc_id).bytes)[:-2].decode()
-    raise ValueError('Not a truncated URL-safe Base64 string.')
+    raise ValueError('Not a valid document ID.')
 
 
 @require_safe
