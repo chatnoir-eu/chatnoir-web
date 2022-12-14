@@ -31,7 +31,7 @@ def bool_param_set(param_name, param_dict):
 
 def robots_txt(request):
     """Disallow all crawlers."""
-    return HttpResponse('User-agent: *\nDisallow: /',
+    return HttpResponse('User-agent: *\nDisallow: /\n',
                         content_type=f'text/plain; charset={settings.DEFAULT_CHARSET}', status=200)
 
 
