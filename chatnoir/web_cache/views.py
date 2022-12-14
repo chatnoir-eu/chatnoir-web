@@ -39,8 +39,8 @@ def normalize_uuid_str(uuid_str):
     """Convert a legacy UUID hex string to truncated and URL-safe Base64 if necessary (or return it as is)."""
     if uuid_str and len(uuid_str) == 36 and '-' in uuid_str:
         try:
-            # Truncate == at the end and replace + and / with _ and -
-            return base64.b64encode(uuid.UUID(uuid_str).bytes)[:-2].decode().translate({47: 45, 43: 95})
+            # Convert hex encoding to URL-safe base64 and truncate '==' padding
+            return base64.urlsafe_b64encode(uuid.UUID(uuid_str).bytes)[:-2].decode()
         except ValueError:
             pass
 
