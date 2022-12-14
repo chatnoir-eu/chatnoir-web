@@ -15,5 +15,13 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import WebisFooter from '@/components/WebisFooter'
+
+onMounted(() => {
+    window.addEventListener('load',() => {
+        // Hide browser address bar
+        setTimeout(() => window.scrollTo(0, 1), 0)
+    })
+})
 </script>
