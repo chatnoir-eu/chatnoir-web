@@ -65,7 +65,7 @@ class CacheDocument:
 
         self._doc_index = index
         self._meta_doc = doc
-        self._read_warc_record(doc.source_file, doc.source_offset, doc.http_content_length)
+        self._read_warc_record(doc.source_file, doc.source_offset)
         return True
 
     def retrieve_by_filter(self, index, **filter_expr):
@@ -87,16 +87,15 @@ class CacheDocument:
         doc = result.hits[0]
         self._doc_index = index
         self._meta_doc = doc
-        self._read_warc_record(doc.source_file, doc.source_offset, doc.http_content_length)
+        self._read_warc_record(doc.source_file, doc.source_offset)
         return True
 
-    def _read_warc_record(self, warc_file_url, start_offset, record_size):
+    def _read_warc_record(self, warc_file_url, start_offset):
         """
         Read WARC record from S3 object store.
 
         :param warc_file_url: S3 object URL
         :param start_offset: byte offset of record in WARC file
-        :param record_size: length of record in bytes
         :return: WarcRecord
         """
         if not warc_file_url.startswith('s3://'):
@@ -109,8 +108,7 @@ class CacheDocument:
             bucket_name, obj_name = warc_file_url[5:].split('/', 1)
             obj = self._S3_RESOURCE.Object(bucket_name, obj_name)
             start = start_offset
-            end = start + record_size
-            stream = obj.get(Range='bytes={}-{}'.format(start, end))['Body']
+            stream = obj.get(Range=f'bytes={start}-')['Body']
             self._warc_record = next(ArchiveIterator(stream._raw_stream, strict_mode=not self._is_clueweb09))
             self._doc_bytes = self._warc_record.reader.read()
             stream.close()
