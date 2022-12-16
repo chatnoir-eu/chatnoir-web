@@ -109,13 +109,18 @@ class CacheDocument:
             obj = self._S3_RESOURCE.Object(bucket_name, obj_name)
             start = start_offset
             stream = obj.get(Range=f'bytes={start}-')['Body']
-            self._warc_record = next(ArchiveIterator(stream._raw_stream, strict_mode=not self._is_clueweb09))
+            # Override HTTP parsing flag from meta index to work around broken ClueWeb22 headers
+            parse_http = (self._meta_doc.warc_type in ('request', 'response')
+                          and self._meta_doc.content_type.startswith('application/http'))
+            self._warc_record = next(ArchiveIterator(stream._raw_stream,
+                                                     parse_http=parse_http,
+                                                     strict_mode=not self._is_clueweb09))
             self._doc_bytes = self._warc_record.reader.read()
             stream.close()
 
             self._html_tree = None
-            if self._meta_doc.http_content_type and self._meta_doc.http_content_type in (
-                    'text/html', 'application/xhtml+xml'):
+            content_type = getattr(self._meta_doc, 'http_content_type') or self._meta_doc.content_type
+            if content_type and content_type in ('text/html', 'application/xhtml+xml'):
                 self._html_tree = HTMLTree.parse_from_bytes(self._doc_bytes, self._meta_doc.content_encoding)
 
         except StopIteration:
