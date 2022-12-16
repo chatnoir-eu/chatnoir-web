@@ -119,8 +119,8 @@ class CacheDocument:
             stream.close()
 
             self._html_tree = None
-            content_type = getattr(self._meta_doc, 'http_content_type') or self._meta_doc.content_type
-            if content_type and content_type in ('text/html', 'application/xhtml+xml'):
+            if self._meta_doc.http_content_type and self._meta_doc.http_content_type in (
+                    'text/html', 'application/xhtml+xml'):
                 self._html_tree = HTMLTree.parse_from_bytes(self._doc_bytes, self._meta_doc.content_encoding)
 
         except StopIteration:
