@@ -112,9 +112,13 @@ class CacheDocument:
             # Override HTTP parsing flag from meta index to work around broken ClueWeb22 headers
             parse_http = (self._meta_doc.warc_type in ('request', 'response')
                           and self._meta_doc.content_type.startswith('application/http'))
-            self._warc_record = next(ArchiveIterator(stream._raw_stream,
-                                                     parse_http=parse_http,
-                                                     strict_mode=not self._is_clueweb09))
+            self._warc_record = next(
+                ArchiveIterator(
+                    stream._raw_stream,
+                    strict_mode=not self._is_clueweb09,
+                    parse_http=parse_http
+                )
+            )
             self._doc_bytes = self._warc_record.reader.read()
             stream.close()
 
