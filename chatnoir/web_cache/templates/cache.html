@@ -12,12 +12,14 @@
             margin: 0 !important;
             padding: 0 !important;
         }
-        #{{ css_prefix }}header {
+        #{{ css_prefix }}header, #{{ css_prefix }}header *, #{{ css_prefix }}header * * {
             color: black !important;
             font-family: ui-sans-serif, system-ui, sans-serif !important;
             font-size: 16px !important;
             font-weight: normal !important;
             line-height: 18px !important;
+        }
+        #{{ css_prefix }}header {
             background: #f5f5f5 url({% static 'img/chatnoir-icon.svg' %}) no-repeat 14px 24px !important;
             background-size: 60px 60px !important;
             padding: 28px 32px 28px 86px !important;
@@ -31,8 +33,10 @@
         #{{ css_prefix }}header a:visited {
             color: rgb(85, 26, 139) !important;
         }
-        #{{ css_prefix }}meta {
+        #{{ css_prefix }}meta, #{{ css_prefix }}meta * {
             font-size: 14px !important;
+        }
+        #{{ css_prefix }}meta {
             margin: 12px 0 0 0 !important;
             padding: 0 !important;
         }
