@@ -29,7 +29,7 @@ _pattern = '{field}_lang.{lang}'
 class SerpContext(chatnoir_serp.SerpContext):
 
     @property
-    def hits(self):
+    def results(self):
 
         results = []
         for hit in self.response.hits:

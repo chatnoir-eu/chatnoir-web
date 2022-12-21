@@ -19,7 +19,7 @@
     <search-header ref="searchHeaderRef" v-model="searchModel" :progress="requestProgress" @submit="search()" />
 
     <div ref="resultsElement">
-        <div v-if="!error && searchModel.response && searchModel.response.hits.length" key="search-results" class="max-w-3xl mx-auto">
+        <div v-if="!error && searchModel.response && searchModel.response.results.length" key="search-results" class="max-w-3xl mx-auto">
             <div class="sm:flex -mb-3 text-sm pb-2">
                 <div class="sm:flex-grow">
                     Search results {{ numFormat(searchModel.response.meta.resultsFrom + 1) }}–{{ numFormat(searchModel.response.meta.resultsTo) }}
@@ -36,11 +36,11 @@
                 </div>
             </div>
 
-            <div v-for="hit in searchModel.response.hits" :key="hit.uuid">
+            <div v-for="hit in searchModel.response.results" :key="hit.uuid">
                 <component :is="SearchResult" :data="hit" :meta="searchModel.response.meta" />
             </div>
         </div>
-        <div v-if="!error && searchModel.response && searchModel.response.hits.length === 0" class="max-w-3xl mt-12 mx-auto text-center text-lg">
+        <div v-if="!error && searchModel.response && searchModel.response.results.length === 0" class="max-w-3xl mt-12 mx-auto text-center text-lg">
             No results found… ;-(
         </div>
         <div v-if="error" class="max-w-3xl mx-auto mt-10 py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">

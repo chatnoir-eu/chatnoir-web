@@ -38,11 +38,11 @@ class SerpContext:
         self.search = search
         self.response = response
 
-    def to_dict(self, hits=True, meta=True, extended_meta=False):
+    def to_dict(self, results=True, meta=True, extended_meta=False):
         """
         Return a single dict representation of this SERP context.
 
-        :param hits: include (filtered) hit list
+        :param results: include (filtered) hit list
         :param meta: include basic metadata
         :param extended_meta: include extended metadata (implies ``meta=True``)
         :return: dict representation
@@ -52,19 +52,19 @@ class SerpContext:
             d['meta'] = self.meta
         if extended_meta:
             d['meta'].update(self.meta_extended)
-        if hits:
-            d['hits'] = self.hits_filtered
+        if results:
+            d['results'] = self.results_filtered
 
         return d
 
     # noinspection DuplicatedCode
     @property
-    def hits(self):
+    def results(self):
         """
-        List of search result hits.
+        List of search results.
 
         Entries in this list contain all available fields, independent of the current search mode,
-        hence it should not be used as an API response. Use :attr:`hits_filtered` instead.
+        hence it should not be used as an API response. Use :attr:`results_filtered` instead.
         """
 
         results = []
@@ -119,24 +119,24 @@ class SerpContext:
         return results
 
     @property
-    def hits_filtered(self):
+    def results_filtered(self):
         """
         Key-filtered search results hit.
 
         The list is stripped of internal fields or fields not compatible with the current search mode,
         so it is suitable to be used directly in API responses.
         """
-        hits = self.hits
+        results = self.results
         types = {minimal}
         if not self.search.minimal_response:
             types.add(extended)
         if self.search.explain:
             types.add(explanation)
 
-        for i in range(len(hits)):
-            hits[i] = {k: v.value for k, v in hits[i].items() if type(v) in types}
+        for i in range(len(results)):
+            results[i] = {k: v.value for k, v in results[i].items() if type(v) in types}
 
-        return hits
+        return results
 
     @property
     def meta(self):
@@ -212,7 +212,6 @@ class SerpContext:
     def page_size(self):
         """
         Maximum number of results per page for paginated result display.
-        This can be larger than ``hits_returned``, which is the actual number of results on this page.
         """
         return self.search.num_results
 
