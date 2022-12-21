@@ -81,10 +81,10 @@ class CacheDocument:
                   .filter('term', **filter_expr)
                   .extra(terminate_after=1).execute())
 
-        if not result.results:
+        if not result.hits:
             return False
 
-        doc = result.results[0]
+        doc = result.hits[0]
         self._doc_index = index
         self._meta_doc = doc
         self._read_warc_record(doc.source_file, doc.source_offset)
