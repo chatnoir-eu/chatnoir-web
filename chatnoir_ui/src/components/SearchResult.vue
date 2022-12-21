@@ -18,14 +18,12 @@
 <!-- eslint-disable vue/no-v-html -->
 <article :id="'result-' + data.uuid" class="my-8">
     <header class="leading-tight break-words">
-        <a v-if="data.targetUri" :href="data.targetUri"
+        <a v-if="data.targetUri" :href="data.targetUri" rel="nofollow"
            class="text-gray-800 visited:text-gray-800 text-sm">
             {{ abbreviateUrl(data.targetUri, 2).replace(/^https?:\/\//i, '') }}
         </a>
         <h2 :class="$style.title" class="leading-none">
-            <a :href="data.cacheUri" rel="nofollow"
-               class="text-xl text-red-700"
-               v-html="data.title"></a>
+            <a :href="data.cacheUri" rel="nofollow" class="text-xl text-red-700" v-html="data.title"></a>
         </h2>
         <div class="text-sm text-gray-800 mt-0.5">
             <span v-if="data.authors && data.authors.length > 0" :class="$style['meta-link']">
@@ -82,7 +80,7 @@
                     <dd v-if="data.spamRank">{{ data.spamRank }}</dd>
 
                     <dt v-if="data.doi">DOI:</dt>
-                    <dd v-if="data.doi"><a :href="data.targetUri">{{ data.doi }}</a></dd>
+                    <dd v-if="data.doi"><a :href="data.targetUri" rel="nofollow">{{ data.doi }}</a></dd>
 
                     <dt v-if="data.anthologyId">Anthology ID:</dt>
                     <dd v-if="data.anthologyId">{{ data.anthologyId }}</dd>
