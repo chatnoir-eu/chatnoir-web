@@ -92,7 +92,7 @@
                 <dt>Index:</dt><dd>{{ cache.index }}</dd>
                 <dt>Document ID:</dt><dd>{{ cache.meta.uuid }}</dd>
                 {% if cache.meta.warc_trec_id %}<dt>TREC ID:</dt><dd>{{ cache.meta.warc_trec_id }}</dd>{% endif %}
-                <dt>Crawl Date:</dt><dd>{{ cache.meta.warc_date | date:"M d, Y" }}</dd>
+                <dt>Crawl Date:</dt><dd>{{ cache.meta.crawl_date | date:"M d, Y" }}</dd>
             </dl>
             {% if cache.is_html_doc or cache.is_plaintext_doc %}
                 <div id="{{ css_prefix }}display">

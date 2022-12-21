@@ -13,11 +13,10 @@
 # limitations under the License.
 
 import math
-from collections import defaultdict
 from urllib import parse
 
+from django.conf import settings
 from django.utils.translation import gettext as _
-from django.urls import reverse
 from elasticsearch_dsl.response import Response
 
 from chatnoir_search.types import *
@@ -57,7 +56,7 @@ class SerpContext:
 
         return d
 
-    # noinspection DuplicatedCode
+    # noinspection DuplicatedCode,PyProtectedMember
     @property
     def results(self):
         """
@@ -94,23 +93,24 @@ class SerpContext:
                 expl = hit.meta.explanation.to_dict()
 
             doc_id = getattr(hit, 'uuid', hit.meta.id)
+            cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)
+            cache_url = cache_url._replace(query=f'index={parse.quote(result_index)}&uuid={parse.quote(doc_id)}')
             result = {
                 'index': minimal(result_index),
                 'uuid': minimal(doc_id),
                 'warc_id': extended(hit.warc_record_id),
                 'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
                 'score': minimal(hit.meta.score),
-                'external_uri': minimal(target_uri),
-                'internal_uri': minimal(reverse('chatnoir_frontend:cache') + '?index={}&uuid={}'.format(
-                    parse.quote(result_index), parse.quote(doc_id))),
+                'target_uri': minimal(target_uri),
+                'cache_uri': extended(parse.urlunparse(cache_url)),
                 'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
+                'crawl_date': extended(getattr(hit, 'http_date', None) or getattr(hit, 'warc_date', None)),
                 'page_rank': extended(getattr(hit, 'page_rank', None)),
                 'spam_rank': extended(getattr(hit, 'spam_rank', None)),
                 'title': minimal(title),
                 'snippet': minimal(snippet),
                 'content_type': extended(getattr(hit, 'content_type', None)),
                 'lang': extended(getattr(hit, 'lang', None)),
-                'date': extended(getattr(hit, 'date', None)),
                 'explanation': explanation(expl)
             }
 
