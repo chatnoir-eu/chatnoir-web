@@ -82,7 +82,7 @@ class SerpContext:
             result_index = self._index_name_to_shorthand(hit.meta.index)
             target_uri = hit.warc_target_uri
 
-            if result_index == 'cw09':
+            if getattr(hit, 'trec_id', '').startswith('clueweb09-'):
                 # ClueWeb09 has buggy encoding, only thing we can do is strip <?> replacement characters
                 title = title.replace('\ufffd', '')
                 snippet = snippet.replace('\ufffd', '')
