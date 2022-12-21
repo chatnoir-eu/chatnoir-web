@@ -93,8 +93,8 @@ class SerpContext:
                 expl = hit.meta.explanation.to_dict()
 
             doc_id = getattr(hit, 'uuid', hit.meta.id)
-            cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)
-            cache_url = cache_url._replace(query=f'index={parse.quote(result_index)}&uuid={parse.quote(doc_id)}')
+            cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)._replace(
+                query=f'index={parse.quote(result_index)}&uuid={parse.quote(doc_id)}')
             result = {
                 'index': minimal(result_index),
                 'uuid': minimal(doc_id),

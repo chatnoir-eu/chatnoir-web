@@ -97,14 +97,14 @@
             {% if cache.is_html_doc or cache.is_plaintext_doc %}
                 <div id="{{ css_prefix }}display">
                     {% if cache.is_html_doc %}
-                        <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}"
+                        <a href="{{ cache.cache_url }}"
                            {% if not cache.is_plaintext_mode %}aria-current="page"{% endif %} rel="nofollow">Full Website</a>
                     {% endif %}
 
-                    <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}&amp;plain"
+                    <a href="{{ cache.cache_url }}&amp;plain"
                         {% if cache.is_plaintext_mode %}aria-current="page"{% endif %} rel="nofollow">Plain Text</a>
 
-                     <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}&amp;raw"
+                     <a href="{{ cache.cache_url }}&amp;raw"
                         rel="nofollow" target="_blank">Original {% if cache.is_html_doc %}HTML{% else %}Text{% endif %}</a>
 
                     <a href="{{ cache.meta.warc_target_uri }}" rel="nofollow" target="_blank">Current Website (external)</a>
@@ -116,8 +116,7 @@
         <div id="{{ css_prefix }}no-text">
             <p>The requested document does not appear to be a text document.</p>
             <p>
-                <a href="{{ cache_frontend_url }}?uuid={{ cache.meta.uuid | urlencode }}&amp;index={{ cache.index_shorthand | urlencode }}&amp;raw"
-                   rel="nofollow">Click to view or download the raw document.</a>
+                <a href="{{ cache.cache_url }}&amp;raw" rel="nofollow">Click to view or download the raw document.</a>
             </p>
         </div>
     {% elif cache.is_plaintext_mode %}
