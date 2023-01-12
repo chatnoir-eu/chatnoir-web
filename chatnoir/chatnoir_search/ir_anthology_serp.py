@@ -53,9 +53,10 @@ class SerpContext(chatnoir_serp.SerpContext):
                 'score': minimal(hit.meta.score),
                 'index': minimal(result_index),
                 'uuid': minimal(uuid.uuid5(uuid.NAMESPACE_URL, 'ir-anthology:' + hit.meta.id)),
-                'internal_uri': minimal(f'https://ir.webis.de/anthology/{quote_plus(hit.meta.id)}/'),
-                'external_uri': minimal(f'https://doi.org/{getattr(hit, "doi")}'
-                                        if hasattr(hit, 'doi') else getattr(hit, 'url', None)),
+                'cache_uri': minimal(f'https://ir.webis.de/anthology/{quote_plus(hit.meta.id)}/'),
+                'target_uri': minimal(f'https://doi.org/{getattr(hit, "doi")}'
+                                      if hasattr(hit, 'doi') else getattr(hit, 'url', None)),
+                'crawl_date': extended(getattr(hit, 'timestamp', None)),
                 'authors': extended(list(getattr(hit, 'authors', []))),
                 'doi': minimal(getattr(hit, 'doi', None)),
                 'anthology_id': minimal(hit.meta.id),
