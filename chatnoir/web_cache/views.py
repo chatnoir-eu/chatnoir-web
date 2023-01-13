@@ -114,6 +114,7 @@ def cache(request):
         cache=dict(
             meta=doc_meta,
             title=cache_doc.html_title(),
+            crawl_date=getattr(doc_meta, 'http_date', None) or getattr(doc_meta, 'warc_date', None),
             index=search_index.display_name,
             cache_url=parse.urlunparse(cache_url),
             is_plaintext_mode=plaintext_mode or cache_doc.is_text_plain(),
