@@ -22,9 +22,9 @@ CACHES = {
 # Logging configuration (should be adjusted in local_settings.py)
 LOGGING['handlers'].update({
     'logstash': {
-        'class': 'chatnoir.logging.LogstashTCPHandler',
+        'class': 'chatnoir.logging.LogstashUDPHandler',
         'host': 'localhost',
-        'port': 3333
+        'port': 3334
     }
 })
 LOGGING['loggers'].update({
