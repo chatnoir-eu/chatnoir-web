@@ -198,9 +198,3 @@ SEARCH_INDICES = {
 
 # Cache frontend URL (should be different origin to avoid cookie leakage)
 CACHE_FRONTEND_URL = 'http://127.0.0.2:8000'
-
-if os.getenv('DJANGO_SETTINGS_MODULE') != 'chatnoir.settings':
-    try:
-        from .local_settings import *
-    except ImportError:
-        raise RuntimeError("Could not find local_settings.py.")

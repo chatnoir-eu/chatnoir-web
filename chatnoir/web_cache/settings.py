@@ -30,6 +30,11 @@ WSGI_APPLICATION = 'web_cache.wsgi.application'
 DATABASES = {}
 
 try:
+    from chatnoir.local_settings import *
+except ImportError:
+    pass
+
+try:
     from .local_settings import *
 except ImportError:
     pass
