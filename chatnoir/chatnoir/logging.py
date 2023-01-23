@@ -48,6 +48,9 @@ class LogstashFormatter(logging.Formatter):
                     'function': record.funcName,
                 },
             },
+            'chatnoir': {
+                'settings': os.getenv('DJANGO_SETTINGS_MODULE', 'chatnoir.settings')
+            }
         }
 
         if record.exc_info and record.exc_info[0]:
