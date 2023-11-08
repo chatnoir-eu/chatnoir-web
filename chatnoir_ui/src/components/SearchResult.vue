@@ -18,14 +18,12 @@
 <!-- eslint-disable vue/no-v-html -->
 <article :id="'result-' + data.uuid" class="my-8">
     <header class="leading-tight break-words">
-        <a v-if="data.externalUri" :href="data.externalUri"
+        <a v-if="data.targetUri" :href="data.targetUri" rel="nofollow"
            class="text-gray-800 visited:text-gray-800 text-sm">
-            {{ abbreviateUrl(data.externalUri, 2).replace(/^https?:\/\//i, '') }}
+            {{ abbreviateUrl(data.targetUri, 2).replace(/^https?:\/\//i, '') }}
         </a>
         <h2 :class="$style.title" class="leading-none">
-            <a :href="data.internalUri" rel="nofollow"
-               class="text-xl text-red-700"
-               v-html="data.title"></a>
+            <a :href="data.cacheUri" rel="nofollow" class="text-xl text-red-700" v-html="data.title"></a>
         </h2>
         <div class="text-sm text-gray-800 mt-0.5">
             <span v-if="data.authors && data.authors.length > 0" :class="$style['meta-link']">
@@ -49,8 +47,8 @@
                 <a :href="getQueryUrl(route, `year:${data.year}`)">{{ data.year }}</a>
             </span>
 
-            <span v-if="!data.year && data.date" :class="$style['meta-link']">
-                Crawled {{ new Intl.DateTimeFormat('en-US', {month: 'short', year: 'numeric'}).format(Date.parse(data.date)) }}
+            <span v-if="!data.year && data.crawlDate" :class="$style['meta-link']">
+                Crawled {{ new Intl.DateTimeFormat('en-US', {month: 'short', year: 'numeric'}).format(Date.parse(data.crawlDate)) }}
             </span>
 
             <button ref="detailsButton" type="button" class="w-3 h-3 ml-3 -mt-0.5 text-center align-middle inline-block" @click="detailsShown = !detailsShown">
@@ -82,7 +80,7 @@
                     <dd v-if="data.spamRank">{{ data.spamRank }}</dd>
 
                     <dt v-if="data.doi">DOI:</dt>
-                    <dd v-if="data.doi"><a :href="data.externalUri">{{ data.doi }}</a></dd>
+                    <dd v-if="data.doi"><a :href="data.targetUri" rel="nofollow">{{ data.doi }}</a></dd>
 
                     <dt v-if="data.anthologyId">Anthology ID:</dt>
                     <dd v-if="data.anthologyId">{{ data.anthologyId }}</dd>
@@ -113,9 +111,9 @@
                     <dt v-if="data.contentType">Content-Type:</dt>
                     <dd v-if="data.contentType">{{ data.contentType }}</dd>
 
-                    <dt v-if="data.date">Crawl Date:</dt>
-                    <dd v-if="data.date">
-                        {{ new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'long'}).format(Date.parse(data.date)) }}
+                    <dt v-if="data.crawlDate">Crawl Date:</dt>
+                    <dd v-if="data.crawlDate">
+                        {{ new Intl.DateTimeFormat('en-US', {dateStyle: 'medium', timeStyle: 'long'}).format(Date.parse(data.crawlDate)) }}
                     </dd>
                 </dl>
 

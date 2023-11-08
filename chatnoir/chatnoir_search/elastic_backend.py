@@ -31,11 +31,13 @@ def get_index(shorthand):
 
 class SearchIndex:
     class WarcMetaDocBase(edsl.Document):
+        uuid = edsl.Keyword()
         source_file = edsl.Keyword()
         source_offset = edsl.Long()
         content_length = edsl.Long()
         content_type = edsl.Keyword()
         content_encoding = edsl.Keyword()
+        http_date = edsl.Date(format='date_time_no_millis')
         http_content_length = edsl.Long()
         http_content_type = edsl.Keyword()
         warc_type = edsl.Keyword()
@@ -47,20 +49,10 @@ class SearchIndex:
         warc_truncated = edsl.Keyword()
         warc_ip_address = edsl.Ip()
         warc_target_uri = edsl.Keyword()
+        warc_target_uri_hash = edsl.Keyword()
         warc_identified_payload_type = edsl.Keyword()
         warc_payload_digest = edsl.Keyword()
         warc_block_digest = edsl.Keyword()
-
-        class Meta:
-            dynamic_templates = edsl.MetaField([{
-                'additional_warc_headers': {
-                    'match_mapping_type': 'string',
-                    'match': 'warc_*',
-                    'mapping': {
-                        'type': 'keyword'
-                    }
-                }
-            }])
 
     def __init__(self, shorthand):
         if shorthand not in settings.SEARCH_INDICES:

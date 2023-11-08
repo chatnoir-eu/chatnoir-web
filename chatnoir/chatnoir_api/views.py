@@ -25,6 +25,7 @@ import elasticsearch
 from rest_framework import routers, viewsets, exceptions as rest_exceptions
 from rest_framework.request import QueryDict
 from rest_framework.response import Response
+from rest_framework.status import HTTP_504_GATEWAY_TIMEOUT
 
 from .authentication import ApiKeyAuthentication, HasKeyCreateRole
 from .forms import KeyRequestForm
@@ -170,8 +171,9 @@ class SimpleSearchViewSet(ApiViewSet):
         try:
             serp_ctx = search_obj.search(params.data['query'])
         except elasticsearch.ConnectionTimeout:
-            raise rest_exceptions.APIException(_('The search backend took too long to respond.'), 'timeout')
-        return Response(serp_ctx.to_dict(hits=True, meta=True, extended_meta=params.data.get('extended_meta', False)))
+            raise rest_exceptions.APIException(_('The search backend took too long to respond.',
+                                                 code=HTTP_504_GATEWAY_TIMEOUT), 'timeout')
+        return Response(serp_ctx.to_dict(results=True, meta=True, extended_meta=params.data.get('extended_meta', False)))
 
     def post(self, request, **kwargs):
         params = SimpleSearchRequestSerializer(data=self._get_request_params(request))

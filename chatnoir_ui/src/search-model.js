@@ -29,9 +29,9 @@ export class IndexDesc {
 }
 
 export class SearchResponse {
-    constructor(meta, hits) {
+    constructor(meta, results) {
         this.meta = meta || {}
-        this.hits = hits || []
+        this.results = results || []
     }
 }
 
@@ -80,7 +80,7 @@ export class SearchModel {
      * @param jsonData JSON response data
      */
     updateFromResponse(jsonData) {
-        const response = new SearchResponse(objSnake2Camel(jsonData.meta), objSnake2Camel(jsonData.hits))
+        const response = new SearchResponse(objSnake2Camel(jsonData.meta), objSnake2Camel(jsonData.results))
         response.meta.indices = response.meta.indices.map((i) => new IndexDesc(i))
         this.response = response
         

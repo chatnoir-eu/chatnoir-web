@@ -102,7 +102,7 @@ class CacheDocument:
             raise ValueError('WARC URL is not an S3 URL.')
 
         # ClueWeb09 WARCs are broken and need further processing
-        self._is_clueweb09 = self._meta_doc.warc_trec_id and self._meta_doc.warc_trec_id.startswith('clueweb09')
+        self._is_clueweb09 = getattr(self._meta_doc, 'warc_trec_id', '').startswith('clueweb09')
 
         try:
             bucket_name, obj_name = warc_file_url[5:].split('/', 1)

@@ -43,4 +43,23 @@ Before you can run the backend, you need to create a local configuration file (s
 ./manage.py runserver
 ```
 
-The web UI served by the Django server runs at `localhost:8080`. The Node development server runs at `localhost:8080`. You can use either one, but communication between front- end backend will only work properly with the former due to CORS- and CSRF protections. As long as the Node server is running also in the background, the frontend when served via Django on port `8000` will behave just as if served via Node. If you start only the Django server and not the Node development server, you will have to recompile the frontend manually with `npm run build` and reload the page in order so see changes.
+The web UI served by the Django server runs at `localhost:8000`. The Node development server runs at `localhost:8080`. You can use either one, but communication between frontend backend will only work properly with the former due to CORS- and CSRF protections. As long as the Node server is running also in the background, the frontend when served via Django on port `8000` will behave just as if served via Node. If you start only the Django server and not the Node development server, you will have to recompile the frontend manually with `npm run build` and reload the page in order so see changes.
+
+*Note:* The order in which you start the servers is important. Always start the Node server before the Django server. If you switch between running the Node development server or building a production version of the frontend, you need to restart the Django server afterwards.
+
+## Start the Admin backend
+
+Before you can start the admin backend, you have to apply the pending migrations and create a superuser:
+
+```bash
+DJANGO_SETTINGS_MODULE=chatnoir_admin.settings ./manage.py migrate
+DJANGO_SETTINGS_MODULE=chatnoir_admin.settings ./manage.py createsuperuser
+```
+
+Afterwards, the server can be started like so:
+
+```bash
+DJANGO_SETTINGS_MODULE=chatnoir_admin.settings ./manage.py runserver localhost:8001
+```
+
+This should spawn the Admin backend on `localhost:8001`.

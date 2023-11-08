@@ -13,11 +13,10 @@
 # limitations under the License.
 
 import math
-from collections import defaultdict
 from urllib import parse
 
+from django.conf import settings
 from django.utils.translation import gettext as _
-from django.urls import reverse
 from elasticsearch_dsl.response import Response
 
 from chatnoir_search.types import *
@@ -38,11 +37,11 @@ class SerpContext:
         self.search = search
         self.response = response
 
-    def to_dict(self, hits=True, meta=True, extended_meta=False):
+    def to_dict(self, results=True, meta=True, extended_meta=False):
         """
         Return a single dict representation of this SERP context.
 
-        :param hits: include (filtered) hit list
+        :param results: include (filtered) hit list
         :param meta: include basic metadata
         :param extended_meta: include extended metadata (implies ``meta=True``)
         :return: dict representation
@@ -52,19 +51,19 @@ class SerpContext:
             d['meta'] = self.meta
         if extended_meta:
             d['meta'].update(self.meta_extended)
-        if hits:
-            d['hits'] = self.hits_filtered
+        if results:
+            d['results'] = self.results_filtered
 
         return d
 
-    # noinspection DuplicatedCode
+    # noinspection DuplicatedCode,PyProtectedMember
     @property
-    def hits(self):
+    def results(self):
         """
-        List of search result hits.
+        List of search results.
 
         Entries in this list contain all available fields, independent of the current search mode,
-        hence it should not be used as an API response. Use :attr:`hits_filtered` instead.
+        hence it should not be used as an API response. Use :attr:`results_filtered` instead.
         """
 
         results = []
@@ -83,7 +82,7 @@ class SerpContext:
             result_index = self._index_name_to_shorthand(hit.meta.index)
             target_uri = hit.warc_target_uri
 
-            if result_index == 'cw09':
+            if getattr(hit, 'trec_id', '').startswith('clueweb09-'):
                 # ClueWeb09 has buggy encoding, only thing we can do is strip <?> replacement characters
                 title = title.replace('\ufffd', '')
                 snippet = snippet.replace('\ufffd', '')
@@ -94,23 +93,24 @@ class SerpContext:
                 expl = hit.meta.explanation.to_dict()
 
             doc_id = getattr(hit, 'uuid', hit.meta.id)
+            cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)._replace(
+                query=f'index={parse.quote(result_index)}&uuid={parse.quote(doc_id)}')
             result = {
                 'index': minimal(result_index),
                 'uuid': minimal(doc_id),
                 'warc_id': extended(hit.warc_record_id),
                 'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
                 'score': minimal(hit.meta.score),
-                'external_uri': minimal(target_uri),
-                'internal_uri': minimal(reverse('chatnoir_frontend:cache') + '?index={}&uuid={}'.format(
-                    parse.quote(result_index), parse.quote(doc_id))),
+                'target_uri': minimal(target_uri),
+                'cache_uri': extended(parse.urlunparse(cache_url)),
                 'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
+                'crawl_date': extended(getattr(hit, 'http_date', None) or getattr(hit, 'warc_date', None)),
                 'page_rank': extended(getattr(hit, 'page_rank', None)),
                 'spam_rank': extended(getattr(hit, 'spam_rank', None)),
                 'title': minimal(title),
                 'snippet': minimal(snippet),
                 'content_type': extended(getattr(hit, 'content_type', None)),
                 'lang': extended(getattr(hit, 'lang', None)),
-                'date': extended(getattr(hit, 'date', None)),
                 'explanation': explanation(expl)
             }
 
@@ -119,24 +119,24 @@ class SerpContext:
         return results
 
     @property
-    def hits_filtered(self):
+    def results_filtered(self):
         """
         Key-filtered search results hit.
 
         The list is stripped of internal fields or fields not compatible with the current search mode,
         so it is suitable to be used directly in API responses.
         """
-        hits = self.hits
+        results = self.results
         types = {minimal}
         if not self.search.minimal_response:
             types.add(extended)
         if self.search.explain:
             types.add(explanation)
 
-        for i in range(len(hits)):
-            hits[i] = {k: v.value for k, v in hits[i].items() if type(v) in types}
+        for i in range(len(results)):
+            results[i] = {k: v.value for k, v in results[i].items() if type(v) in types}
 
-        return hits
+        return results
 
     @property
     def meta(self):
@@ -212,7 +212,6 @@ class SerpContext:
     def page_size(self):
         """
         Maximum number of results per page for paginated result display.
-        This can be larger than ``hits_returned``, which is the actual number of results on this page.
         """
         return self.search.num_results
 

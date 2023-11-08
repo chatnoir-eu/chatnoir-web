@@ -14,6 +14,7 @@
 
 import base64
 import re
+from urllib import parse
 import uuid
 
 from django.conf import settings
@@ -62,11 +63,13 @@ def normalize_doc_id_str(doc_id):
     raise ValueError('Not a valid document ID.')
 
 
+# noinspection PyProtectedMember
 @require_safe
 def cache(request):
     """Cache view."""
 
-    search_index = get_index(request.GET.get('index'))
+    index_shorthand = request.GET.get('index')
+    search_index = get_index(index_shorthand)
     if not search_index:
         raise Http404
 
@@ -103,15 +106,17 @@ def cache(request):
         raise Http404
 
     doc_meta = cache_doc.doc_meta()
+    doc_uuid = doc_meta['uuid']
+    cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)._replace(
+        query=f'index={parse.quote(index_shorthand)}&uuid={parse.quote(doc_uuid)}')
     context = dict(
         app_name=settings.APPLICATION_NAME,
-        cache_frontend_url=settings.CACHE_FRONTEND_URL,
         cache=dict(
-            uuid=doc_meta.meta.id,
             meta=doc_meta,
             title=cache_doc.html_title(),
+            crawl_date=getattr(doc_meta, 'http_date', None) or getattr(doc_meta, 'warc_date', None),
             index=search_index.display_name,
-            index_shorthand=request.GET.get('index'),
+            cache_url=parse.urlunparse(cache_url),
             is_plaintext_mode=plaintext_mode or cache_doc.is_text_plain(),
             is_plaintext_doc=cache_doc.is_text_plain(),
             is_html_doc=cache_doc.is_html()
@@ -126,9 +131,12 @@ def cache(request):
         raw_mode = True
         body = cache_doc.bytes()
 
-    content_type = iri_to_uri(doc_meta.http_content_type) if raw_mode else 'text/html'
-    charset = doc_meta.content_encoding if raw_mode else settings.DEFAULT_CHARSET
-    content_type = f'{content_type}; charset={charset}'
+    if plaintext_mode and raw_mode:
+        content_type = f'text/plain; charset={settings.DEFAULT_CHARSET}'
+    else:
+        content_type = iri_to_uri(doc_meta.http_content_type) if raw_mode else 'text/html'
+        charset = doc_meta.content_encoding if raw_mode and not plaintext_mode else settings.DEFAULT_CHARSET
+        content_type = f'{content_type}; charset={charset}'
 
     if raw_mode:
         response = HttpResponse(body, content_type=content_type, status=200)

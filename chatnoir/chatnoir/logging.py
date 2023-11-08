@@ -15,6 +15,7 @@
 
 import json
 import logging.handlers
+import os
 import socket
 import traceback
 
@@ -40,13 +41,16 @@ class LogstashFormatter(logging.Formatter):
                 'level': record.levelname,
                 'origin': {
                     'file': {
-                        'name': record.pathname,
+                        'name': os.path.normpath(record.pathname),
                         'line': record.lineno,
                     },
                     'module': record.module,
                     'function': record.funcName,
                 },
             },
+            'chatnoir': {
+                'settings': os.getenv('DJANGO_SETTINGS_MODULE', 'chatnoir.settings')
+            }
         }
 
         if record.exc_info and record.exc_info[0]:
