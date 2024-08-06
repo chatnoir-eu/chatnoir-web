@@ -39,14 +39,15 @@ def robots_txt(request):
 
 _URLSAFE_B64_UUID_REGEX = re.compile(r'^[a-zA-Z0-9_-]{22}$')
 _CLUEWEB_TREC_ID_REGEX = re.compile(r'^clueweb[0-9]{2}-[a-z0-9-]{6}-[0-9]{2}-[0-9]{5}$')
+_MS_MARCO_TREC_ID_REGEX = re.compile(r'^msmarco_.*$')
 _LEGACY_UUID_REGEX = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
 
 
 def normalize_doc_id_str(doc_id):
     """
-    Validate and normalize a document UUID or ClueWeb ID string.
+    Validate and normalize a document UUID or ClueWeb ID string or MS MARCO ID string.
 
-    Valid Base64 UUIDs and ClueWeb IDs will be passed through as-is.
+    Valid Base64 UUIDs, ClueWeb IDs, and MS MARCO Ids will be passed through as-is.
     Legacy UUID hex strings will be converted to truncated and URL-safe Base64 if necessary.
 
     :raises ValueError: if ID has an invalid format
@@ -55,6 +56,8 @@ def normalize_doc_id_str(doc_id):
         if len(doc_id) == 22 and _URLSAFE_B64_UUID_REGEX.match(doc_id):
             return doc_id
         if len(doc_id) == 25 and _CLUEWEB_TREC_ID_REGEX.match(doc_id):
+            return doc_id
+        if _MS_MARCO_TREC_ID_REGEX.match(doc_id):
             return doc_id
         if len(doc_id) == 36 and _LEGACY_UUID_REGEX.match(doc_id):
             # Convert hex encoding to URL-safe base64 and truncate '==' padding.

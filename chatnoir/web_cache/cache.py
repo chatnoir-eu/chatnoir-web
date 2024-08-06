@@ -26,6 +26,7 @@ from fastwarc import ArchiveIterator
 from resiliparse.extract.html2text import extract_plain_text
 from resiliparse.parse.encoding import bytes_to_str
 from resiliparse.parse.html import HTMLTree
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class CacheDocument:
         self._doc_bytes = None
         self._html_tree = None
         self._is_clueweb09 = False   # ClueWeb09 quirks mode
+        self._doc_found = False
 
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
@@ -65,7 +67,21 @@ class CacheDocument:
 
         self._doc_index = index
         self._meta_doc = doc
-        self._read_warc_record(doc.source_file, doc.source_offset)
+
+        return self._read_record(doc)
+
+    def _read_record(self, doc):
+        """
+        read the record encoded by the document doc. If the source_file of doc points to a json(lines) file, the record is parsed as jsonl, otherwise as warc.
+
+        :param doc: The document with source_file and source_offset
+        :return: True on success, else an exception is thrown
+        """
+        if doc.source_file.endswith('.json') or doc.source_file.endswith('.jsonl'):
+            self._read_jsonl_record(doc.source_file, doc.source_offset)
+        else:
+            self._read_warc_record(doc.source_file, doc.source_offset)
+
         return True
 
     def retrieve_by_filter(self, index, **filter_expr):
@@ -87,8 +103,38 @@ class CacheDocument:
         doc = result.hits[0]
         self._doc_index = index
         self._meta_doc = doc
-        self._read_warc_record(doc.source_file, doc.source_offset)
-        return True
+        return self._read_record(doc)
+
+    def _read_jsonl_record(self, jsonl_file_url, start_offset):
+        """
+        Read a jsonl line from S3 object store.
+
+        :param jsonl_file_url: S3 object URL
+        :param start_offset: byte offset of record in WARC file
+        """
+        if not jsonl_file_url.startswith('s3://'):
+            raise ValueError('JSONL URL is not an S3 URL.')
+
+        if not jsonl_file_url.endswith('.json') and not jsonl_file_url.endswith('.jsonl'):
+            raise ValueError('JSONL URL does not point to json file.')
+
+        try:
+            bucket_name, obj_name = jsonl_file_url[5:].split('/', 1)
+            obj = self._S3_RESOURCE.Object(bucket_name, obj_name)
+            start = start_offset
+            end = start_offset + 102400;
+            stream = obj.get(Range=f'bytes={start}-{end}')['Body']
+            response = stream._raw_stream.read().decode()
+            response = response.split('\n')[0].strip()
+            response = json.loads(response)
+            self._meta_doc.http_content_type = 'text/plain'
+            self._doc_bytes = json.dumps(response, indent=4).encode()
+            self._doc_found = True
+
+            self._html_tree = HTMLTree.parse(f'<html><head><title>{response["title"]}</title></head><body><h1>{response["title"]}</h1><p>Headings (automatically generated):<br>{response["headings"]}</p><p>Segment (actual text excerpt):<br>{response["segment"]}</p></body>')
+        except Exception as e:
+            logger.error('Could not parse json record.', e)
+            raise ValueError('Could not parse json record', e)
 
     def _read_warc_record(self, warc_file_url, start_offset):
         """
@@ -121,6 +167,7 @@ class CacheDocument:
             )
             self._doc_bytes = self._warc_record.reader.read()
             stream.close()
+            self._doc_found = True
 
             self._html_tree = None
             if self._meta_doc.http_content_type and self._meta_doc.http_content_type in (
@@ -140,7 +187,7 @@ class CacheDocument:
         :param main_content: return extracted main content as plaintext, not HTML
         :return: body as string or bytes
         """
-        if not self._warc_record:
+        if not self._doc_found:
             logger.warning('Document %s not found in %s.', self._meta_doc.meta.id, self._meta_doc.source_file)
             return None
 
