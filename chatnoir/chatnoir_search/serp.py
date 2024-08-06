@@ -98,7 +98,7 @@ class SerpContext:
             result = {
                 'index': minimal(result_index),
                 'uuid': minimal(doc_id),
-                'warc_id': extended(hit.warc_record_id),
+                'warc_id': extended(getattr(hit, 'warc_record_id', 'no warc_id available')),
                 'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
                 'score': minimal(hit.meta.score),
                 'target_uri': minimal(target_uri),
