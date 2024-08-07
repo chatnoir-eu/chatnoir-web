@@ -67,5 +67,5 @@ This should spawn the Admin backend on `localhost:8001`.
 ## Build the docker image
 
 ```
-docker build -t webis/chatnoir:testing-ir-datasets .
+docker build -t registry.webis.de/code-lib/public-images/chatnoir:testing-ir-datasets .
 ```
