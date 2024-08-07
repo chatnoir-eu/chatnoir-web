@@ -63,3 +63,9 @@ DJANGO_SETTINGS_MODULE=chatnoir_admin.settings ./manage.py runserver localhost:8
 ```
 
 This should spawn the Admin backend on `localhost:8001`.
+
+## Build the docker image
+
+```
+docker build -t webis/chatnoir:testing-ir-datasets .
+```

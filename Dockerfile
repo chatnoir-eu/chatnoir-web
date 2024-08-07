@@ -17,10 +17,15 @@ RUN set -x \
         python3-psycopg2 \
         python3-setuptools \
         python3-wheel \
+        liblz4-dev \
+        libre2-dev \
+        libuchardet-dev \
     && curl -sfL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
     && echo "deb https://deb.nodesource.com/node_19.x/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/node.list \
+    && curl -sfL https://lexbor.com/keys/lexbor_signing.key | apt-key add - \
+    && echo "deb https://packages.lexbor.com/ubuntu/ $(lsb_release -sc) liblexbor" > /etc/apt/sources.list.d/lexbor.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends nodejs \
+    && apt-get install -y --no-install-recommends nodejs liblexbor-dev liblexbor \
     && rm -rf /var/lib/apt/lists/*
 
 # Force UTF-8 locale
