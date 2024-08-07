@@ -131,7 +131,15 @@ class CacheDocument:
             self._doc_bytes = json.dumps(response, indent=4).encode()
             self._doc_found = True
 
-            self._html_tree = HTMLTree.parse(f'<html><head><title>{response["title"]}</title></head><body><h1>{response["title"]}</h1><p>Headings (automatically generated):<br>{response["headings"]}</p><p>Segment (actual text excerpt):<br>{response["segment"]}</p></body>')
+            r = f'<html><head><title>{response["title"]}</title></head><body><h1>{response["title"]}</h1><h3>Headings (automatically generated)</h3>:<p>{response["headings"]}</p>'
+
+            if 'segment' in response:
+                r += '<h3>Segment (from the page):</h3><p>' + response['segment'] + '</p>'
+
+            if 'body' in response:
+                r += '<h3>Body (from the page):</h3><p>' + response['body'] + '</p>'
+
+            self._html_tree = HTMLTree.parse(r.replace('\n', '<br>') + '</body>')
         except Exception as e:
             logger.error('Could not parse json record.', e)
             raise ValueError('Could not parse json record', e)
