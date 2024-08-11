@@ -79,6 +79,24 @@ class SearchBase(ABC):
 
         return indices
 
+    @property
+    def pre_query_flags(self, default='AND|OR|NOT|WHITESPACE'):
+        """Query flags for retrieval in the pre-query stage."""
+        conf = list(self.selected_indices.values())
+        if len(conf) <= 0:
+            return default
+
+        return conf[0].get('pre_query_flags', default)
+
+    @property
+    def rescore_query_flags(self, default='AND|OR|NOT|PHRASE|PREFIX|PRECEDENCE|WHITESPACE'):
+        """Query flags for retrieval in the rescore-query stage."""
+        conf = list(self.selected_indices.values())
+        if len(conf) <= 0:
+            return default
+
+        return conf[0].get('rescore_query_flags', default)
+
     def log_query(self, query, extra):
         """
         Log a search query using the configured query logging facility.
@@ -365,12 +383,11 @@ class SimpleSearch(SearchBase):
 
         pre_query = Q('bool', filter=[], must_not=[])
         pre_query.filter.append(Q('term', lang=self.search_language))
-
         if query:
             pre_query.must = Q('simple_query_string',
                                query=query,
                                default_operator='and',
-                               flags='AND|OR|NOT|WHITESPACE',
+                               flags=self.pre_query_flags,
                                fields=[f['name'].i18n(self.search_language) for f in self.MAIN_FIELDS])
         else:
             pre_query.must = Q('match_all')
@@ -386,11 +403,10 @@ class SimpleSearch(SearchBase):
     def _build_rescore_query(self, query_string):
         proximity_fields = []
         fuzzy_fields = []
-
         simple_query = Q('simple_query_string',
                          query=query_string,
                          minimum_should_match='30%',
-                         flags='AND|OR|NOT|PHRASE|PREFIX|WHITESPACE',
+                         flags=self.rescore_query_flags,
                          fields=[])
 
         rescore_query = Q('bool', must=simple_query, should=[])
