@@ -122,7 +122,7 @@ class CacheDocument:
             bucket_name, obj_name = jsonl_file_url[5:].split('/', 1)
             obj = self._S3_RESOURCE.Object(bucket_name, obj_name)
             start = start_offset
-            end = start_offset + 102400;
+            end = start_offset + (5*102400);
             stream = obj.get(Range=f'bytes={start}-{end}')['Body']
             response = stream._raw_stream.read().decode()
             response = response.split('\n')[0].strip()
