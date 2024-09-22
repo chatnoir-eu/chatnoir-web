@@ -78,7 +78,7 @@ class CacheDocument:
         :return: True on success, else an exception is thrown
         """
         if doc.source_file.endswith('.json') or doc.source_file.endswith('.jsonl'):
-            self._read_jsonl_record(doc.source_file, doc.source_offset)
+            self._read_jsonl_record(doc.source_file, doc.source_offset, doc.content_length)
         else:
             self._read_warc_record(doc.source_file, doc.source_offset)
 
@@ -105,7 +105,7 @@ class CacheDocument:
         self._meta_doc = doc
         return self._read_record(doc)
 
-    def _read_jsonl_record(self, jsonl_file_url, start_offset):
+    def _read_jsonl_record(self, jsonl_file_url, start_offset, content_length=None):
         """
         Read a jsonl line from S3 object store.
 
@@ -118,11 +118,14 @@ class CacheDocument:
         if not jsonl_file_url.endswith('.json') and not jsonl_file_url.endswith('.jsonl'):
             raise ValueError('JSONL URL does not point to json file.')
 
+        if not content_length or content_length < 10:
+            content_length = 10*102400
+
         try:
             bucket_name, obj_name = jsonl_file_url[5:].split('/', 1)
             obj = self._S3_RESOURCE.Object(bucket_name, obj_name)
             start = start_offset
-            end = start_offset + (10*102400);
+            end = start_offset + content_length
             stream = obj.get(Range=f'bytes={start}-{end}')['Body']
             response = stream._raw_stream.read().decode()
             response = response.split('\n')[0].strip()
@@ -131,13 +134,19 @@ class CacheDocument:
             self._doc_bytes = json.dumps(response, indent=4).encode()
             self._doc_found = True
 
-            r = f'<html><head><title>{response["title"]}</title></head><body><h1>{response["title"]}</h1><h3>Headings (automatically generated)</h3>:<p>{response["headings"]}</p>'
+            r = f'<html><head><title>{response["title"]}</title></head><body><h1>{response["title"]}</h1>'
+
+            if 'headings' in response:
+                r += '<h3>Headings (automatically generated)</h3>:<p>{response["headings"]}</p>'
 
             if 'segment' in response:
                 r += '<h3>Segment (from the page):</h3><p>' + response['segment'] + '</p>'
 
             if 'body' in response:
                 r += '<h3>Body (from the page):</h3><p>' + response['body'] + '</p>'
+
+            if 'text' in response:
+                r += '<h3>Text:</h3><p>' + response['text'] + '</p>'
 
             self._html_tree = HTMLTree.parse(r.replace('\n', '<br>') + '</body>')
         except Exception as e:
