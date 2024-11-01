@@ -134,7 +134,13 @@ class CacheDocument:
             self._doc_bytes = json.dumps(response, indent=4).encode()
             self._doc_found = True
 
-            r = f'<html><head><title>{response["title"]}</title></head><body><h1>{response["title"]}</h1>'
+            title = f'Document {response["docno"]}'
+            if 'title' in response:
+                title = response['title']
+            elif 'original_document' in response and 'title' in response['original_document']:
+                title = response['original_document']['title']
+            
+            r = f'<html><head><title>{title}</title></head><body><h1>{title}</h1>'
 
             if 'headings' in response:
                 r += '<h3>Headings (automatically generated)</h3>:<p>{response["headings"]}</p>'

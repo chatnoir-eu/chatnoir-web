@@ -80,13 +80,17 @@ class SerpContext:
                 title = _('[ no title available ]')
 
             result_index = self._index_name_to_shorthand(hit.meta.index)
-            target_uri = hit.warc_target_uri
+            if hasattr(hit, 'warc_target_uri'):
+                target_uri = hit.warc_target_uri
+            else:
+                 target_uri = None
 
             if getattr(hit, 'trec_id', '').startswith('clueweb09-'):
                 # ClueWeb09 has buggy encoding, only thing we can do is strip <?> replacement characters
                 title = title.replace('\ufffd', '')
                 snippet = snippet.replace('\ufffd', '')
-                target_uri = target_uri.replace('\ufffd', '')
+                if target_uri:
+                    target_uri = target_uri.replace('\ufffd', '')
 
             expl = None
             if hasattr(hit.meta, 'explanation'):
@@ -101,7 +105,7 @@ class SerpContext:
                 'warc_id': extended(getattr(hit, 'warc_record_id', 'no warc_id available')),
                 'trec_id': extended(getattr(hit, 'warc_trec_id', None)),
                 'score': minimal(hit.meta.score),
-                'target_uri': minimal(target_uri),
+                'target_uri': minimal(target_uri) if target_uri else target_uri,
                 'cache_uri': extended(parse.urlunparse(cache_url)),
                 'target_hostname': extended(getattr(hit, 'warc_target_hostname', None)),
                 'crawl_date': extended(getattr(hit, 'http_date', None) or getattr(hit, 'warc_date', None)),
