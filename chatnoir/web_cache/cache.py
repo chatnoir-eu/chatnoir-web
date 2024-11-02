@@ -134,7 +134,11 @@ class CacheDocument:
             self._doc_bytes = json.dumps(response, indent=4).encode()
             self._doc_found = True
 
-            title = f'Document {response["docno"]}'
+            if 'docid' in response:
+                title = f'Document {response["docid"]}'
+            elif 'docno' in response:
+                title = f'Document {response["docno"]}'
+
             if 'title' in response:
                 title = response['title']
             elif 'original_document' in response and 'title' in response['original_document']:
