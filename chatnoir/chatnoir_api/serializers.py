@@ -88,6 +88,9 @@ class SimpleSearchRequestSerializer(AuthenticatedApiSerializer):
         default=10,
         help_text=_('Number of results per page')
     )
+    search_method = serializers.CharField(
+        required=False, default=None
+    )
     minimal = ImplicitBooleanField(
         required=False,
         default=False,

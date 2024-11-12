@@ -80,6 +80,15 @@ class SearchBase(ABC):
         return indices
 
     @property
+    def default_search_method(self, default='default'):
+        """The search method used by default for an index."""
+        conf = list(self.selected_indices.values())
+        if len(conf) <= 0:
+            return default
+
+        return conf[0].get('default_search_method', default)
+
+    @property
     def pre_query_flags(self, default='AND|OR|NOT|WHITESPACE'):
         """Query flags for retrieval in the pre-query stage."""
         conf = list(self.selected_indices.values())
@@ -264,14 +273,18 @@ class SimpleSearch(SearchBase):
     """Number of top documents to rescore."""
     RESCORE_WINDOW = 400
 
-    def __init__(self, indices=None, search_from=0, num_results=10, explain=False):
+    def __init__(self, indices=None, search_from=0, num_results=10, explain=False, search_method='default'):
         super().__init__(indices, search_from, num_results, explain)
+        self.search_method = search_method
+        if not self.search_method:
+            self.search_method = self.default_search_method
 
     def search(self, query):
-        response = self._build_search_request(query).execute()
+        search_implementation = getattr(self, f'_build_{self.search_method}_search_request')
+        response = search_implementation(query).execute()
         return SerpContext(query, self, response)
 
-    def _build_search_request(self, query):
+    def _build_default_search_request(self, query):
         """
         Build search request including pre-query, rescorer, node limit, highlighters etc.
 
@@ -310,6 +323,28 @@ class SimpleSearch(SearchBase):
                     rescore_query=rescore_query.to_dict()
                 )
             ))
+
+        return s
+
+    def _build_bm25_search_request(self, query):
+        """
+        Build search request that uses an Anserini-inspired retrieval approach of doing BM25 on the default text.
+
+        :param query: user query as string
+        :return: configured Search
+        """
+        s = (Search()
+             .index([i['index'] for i in self.selected_indices.values()])
+             .query("multi_match", query=query, fields=["body_lang_*"])
+             .extra(from_=self.search_from,
+                    size=self.num_results,
+                    terminate_after=self.NODE_LIMIT,
+                    track_total_hits=True,
+                    explain=self.explain)
+             .highlight_options(encoder='html'))
+
+        for h in self.HIGHLIGHT_FIELDS:
+            s = s.highlight(h['name'].i18n(self.search_language), **{k: v for k, v in h.items() if k != 'name'})
 
         return s
 
