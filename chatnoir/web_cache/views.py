@@ -18,12 +18,13 @@ from urllib import parse
 import uuid
 
 from django.conf import settings
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.http import require_safe
 
 from chatnoir_search.elastic_backend import get_index
+from elasticsearch_dsl import connections, Search
 from .cache import CacheDocument
 
 
@@ -150,3 +151,34 @@ def cache(request):
     response['X-Robots-Tag'] = 'noindex,nofollow'
     response['Link'] = f'<{iri_to_uri(doc_meta.warc_target_uri)}>; rel="canonical"'
     return response
+
+@require_safe
+def term_vectors(request):
+    """Get term vector for a document, useful for query expansion, relevance feedback, etc."""
+
+    if 'default' not in connections.connections._conns:
+        connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
+
+    index_shorthand = request.GET.get('index')
+    search_index = get_index(index_shorthand)
+    if not search_index:
+        raise Http404
+
+    if 'trec-id' not in request.GET:
+        raise Http404
+
+    results = Search().index(search_index).filter('term', warc_trec_id=request.GET.get('trec-id')).execute()
+    if not results.hits or len(results.hits) < 1:
+        raise Http404
+
+    results = list(set([i.meta['id'] for i in results.hits]))
+
+    if len(results) != 1:
+        raise Http404
+
+    es_id = results[0]
+
+    ret = connections.get_connection().termvectors(index=search_index.index._name, id=es_id, term_statistics=True, field_statistics=False, fields=['body_lang_en'])
+    assert ret['_id'] == es_id
+    
+    return JsonResponse(ret, status=200)

@@ -19,6 +19,7 @@ app_name = 'web_cache'
 
 urlpatterns = [
     path(r'', views.cache, name='cache'),
+    path(r'_termvectors', views.term_vectors, name='term_vectors'),
     path(r'robots.txt', views.robots_txt, name='robots_txt')
 ]
 
