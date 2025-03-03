@@ -335,7 +335,7 @@ class SimpleSearch(SearchBase):
         """
         s = (Search()
              .index([i['index'] for i in self.selected_indices.values()])
-             .query("multi_match", query=query, fields=["body_lang_*"])
+             .query("multi_match", query=query, fields=[f"body_lang_{self.search_language}"])
              .extra(from_=self.search_from,
                     size=self.num_results,
                     terminate_after=self.NODE_LIMIT,
