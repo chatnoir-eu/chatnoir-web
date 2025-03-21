@@ -46,7 +46,7 @@ _LEGACY_UUID_REGEX = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 
 def normalize_doc_id_str(doc_id):
     """
-    Validate and normalize a document UUID or ClueWeb ID string or MS MARCO ID string.
+    Validate and normalize a document UUID or ClueWeb ID string or MS MARCO ID or LongEval ID string.
 
     Valid Base64 UUIDs, ClueWeb IDs, and MS MARCO Ids will be passed through as-is.
     Legacy UUID hex strings will be converted to truncated and URL-safe Base64 if necessary.
@@ -64,6 +64,11 @@ def normalize_doc_id_str(doc_id):
             # Convert hex encoding to URL-safe base64 and truncate '==' padding.
             # Underlying function will throw ValueError on error.
             return base64.urlsafe_b64encode(uuid.UUID(doc_id).bytes)[:-2].decode()
+        try:
+            # valid LongEval ID
+            return str(int(doc_id))
+        except:
+            pass
     raise ValueError('Not a valid document ID.')
 
 
