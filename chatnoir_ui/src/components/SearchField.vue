@@ -76,7 +76,7 @@ function blur() {
     searchInput.value.blur()
 }
 
-function focus(options = {}) {
+function setFocus(options = {}) {
     searchInput.value.focus(options)
 }
 
@@ -114,7 +114,7 @@ defineExpose({
 
 onMounted(() => {
     if (props.focus) {
-        focus()
+        setFocus()
     }
 })
 </script>

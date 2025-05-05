@@ -23,7 +23,8 @@ module.exports = {
     configureWebpack: {
         plugins: [
             new BundleTracker({
-                filename: path.join(__dirname, 'webpack-stats.json')
+                path: __dirname,
+                filename: 'webpack-stats.json'
             })
         ],
         cache: DEBUG ? { type: 'filesystem' } : undefined
