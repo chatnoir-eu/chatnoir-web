@@ -24,21 +24,27 @@ npm run serve
 Hint: If the website is missing assets (images or CSS) when running the dev server, delete `node_modules/.cache` and restart the Node dev server.
 
 ## Build Search Backend
-Install Python dependencies:
+The backend uses [Poetry](https://python-poetry.org/) as a package manager. If you haven't installed it yet, do that first:
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip3 install -r chatnoir/requirements.txt
+python3 -m pip install poetry
 ```
 
-Set up models:
+Next, install all Python dependencies and start a Poetry shell:
 ```bash
 cd chatnoir
+poetry install
+poetry shell
+```
+
+At first run or after an upgrade, you have to set up the models:
+```bash
 ./manage.py createcachetable
 ./manage.py migrate
 ```
 
-Before you can run the backend, you need to create a local configuration file (see `chatnoir/chatnoir/local_settings.example.py` for examples) and build the frontend production distribution first (see above). Then, to start the backend server, run:
+Before you can actually run the backend, you need to create a local configuration file (see `chatnoir/chatnoir/local_settings.example.py` for examples) and build the frontend production distribution first (see above).
+
+Finally, start the backend server:
 ```bash
 ./manage.py runserver
 ```
