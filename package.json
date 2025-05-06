@@ -1,11 +1,15 @@
 {
   "name": "chatnoir_ui",
-  "version": "0.0.1",
-  "private": true,
+  "version": "2.1.0",
+  "license": "Apache-2.0",
+  "author": "Janek Bevendorff <janek.bevendorff@uni-weimar.de> (https://webis.de)",
+  "files": [
+    "chatnoir_ui/**"
+  ],
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "serve": "cd chatnoir_ui && vue-cli-service serve",
+    "build": "cd chatnoir_ui && vue-cli-service build",
+    "lint": "cd chatnoir_ui && vue-cli-service lint"
   },
   "dependencies": {
     "@vuelidate/core": "^2.0.2",
@@ -18,10 +22,10 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.27.1",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^5.0.8",
     "@vue/cli-service": "^5.0.8",
+    "@babel/eslint-parser": "^7.27.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^10.1.0",

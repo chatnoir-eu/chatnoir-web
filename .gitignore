@@ -40,6 +40,6 @@ desktop.ini
 Thumbs.db
 .DS_Store
 
-### local env files
+### Local env files
 .env.local
 .env.*.local

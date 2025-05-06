@@ -1,77 +1,73 @@
-# ChatNoir Web UI
+# ChatNoir Web
 
-ChatNoir web UI and search backend.
+ChatNoir web UI frontend and search backend.
 
-The search backend ist written in Python3 with Django, the frontend in Javascript with VueJS.
+The search backend is written in Python3 with Django, the frontend in JavaScript with VueJS.
 
-## Build and Run Web Frontend
+## Build or Run Web Frontend
 Install dependencies:
 ```bash
-cd chatnoir_ui
 npm install
 ```
 
-Build production distribution:
-```bash
-npm run build
-```
-
-Run dev server (for development only):
+For development purposes, it is most convenient to run a Node dev server with auto-reload:
 ```bash
 npm run serve
 ```
 
-Hint: If the website is missing assets (images or CSS) when running the dev server, delete `node_modules/.cache` and restart the Node dev server.
+For production deployments, you want to run only the Django backend server (ideally via uWSGI), in which case you will have to compile a static version of the frontend with:
+```bash
+npm run build
+```
 
-## Build Search Backend
+## Run Search Backend
 The backend uses [Poetry](https://python-poetry.org/) as a package manager. If you haven't installed it yet, do that first:
 ```bash
+# Option 1: pip
 python3 -m pip install poetry
+
+# Option 2: system package manager
+sudo apt install python3-poetry
 ```
 
-Next, install all Python dependencies and start a Poetry shell:
+Then create a Poetry env and install all necessary Python dependencies:
 ```bash
-cd chatnoir
 poetry install
-poetry shell
 ```
 
-At first run or after an upgrade, you have to set up the models:
+After a fresh installation, you need to create a local configuration file at `chatnoir/chatnoir/local_settings.py`. You can copy the provided `local_settings.example.py` and adjust the required settings.
+
+Once the config has been created, initialize the database and the backend superuser (this has to be done only once): 
 ```bash
-./manage.py createcachetable
-./manage.py migrate
+poetry run chatnoir-manage migrate
+poetry run chatnoir-manage createsuperuser
 ```
-
-Before you can actually run the backend, you need to create a local configuration file (see `chatnoir/chatnoir/local_settings.example.py` for examples) and build the frontend production distribution first (see above).
+The `chatnoir-manage` command behaves the same way as Django's default `manage.py` script and should be used in its stead.
 
 Finally, start the backend server:
 ```bash
-./manage.py runserver
+poetry run chatnoir-serve
 ```
 
-The web UI served by the Django server runs at `localhost:8000`. The Node development server runs at `localhost:8080`. You can use either one, but communication between frontend backend will only work properly with the former due to CORS- and CSRF protections. As long as the Node server is running also in the background, the frontend when served via Django on port `8000` will behave just as if served via Node. If you start only the Django server and not the Node development server, you will have to recompile the frontend manually with `npm run build` and reload the page in order so see changes.
+The `chatnoir-serve` command will run any pending migrations and load the default `chatnoir` Django app. The Django server runs by default at `localhost:8000`. If deployed, the Node development server runs at `localhost:8080`. Both serve the same frontend web UI. Although you can access either one, only the Django server will provide the temporary API tokens required for communication between frontend and backend.
 
-*Note:* The order in which you start the servers is important. Always start the Node server before the Django server. If you switch between running the Node development server or building a production version of the frontend, you need to restart the Django server afterwards.
+### Hints and Troubleshooting
 
-## Start the Admin backend
+- Make sure you run both servers either on `localhost` or on `127.0.0.1`, but not on a mixture of the two, which would create CORS issues.
+- If you use the Node dev server and the served website is missing assets (images or CSS), delete `node_modules/.cache` and restart the Node server.
+- The Django server should be used for development only. Production deployments should use uWSGI instead. A `Dockerfile` for a production-ready ChatNoir image is provided in this repository.
+- Instead of using `poetry run`, you can also start an interactive Poetry shell in which you can invoke `chatnoir-serve` or `chatnoir-manage` directly:
+  ```bash
+  poetry shell
+  chatnoir-serve
+  ```
 
-Before you can start the admin backend, you have to apply the pending migrations and create a superuser:
+### Run Admin Backend and Other Django Apps
 
+To run any other installed Django app or to pass additional parameters to the server, specify the app name after the `chatnoir-serve` command (note: you have to pass explicit port names to run multiple apps concurrently):
 ```bash
-DJANGO_SETTINGS_MODULE=chatnoir_admin.settings ./manage.py migrate
-DJANGO_SETTINGS_MODULE=chatnoir_admin.settings ./manage.py createsuperuser
+poetry run chatnoir-serve chatnoir
+poetry run chatnoir-serve chatnoir_admin 8001
+poetry run chatnoir-serve ir_anthology 8002
 ```
-
-Afterwards, the server can be started like so:
-
-```bash
-DJANGO_SETTINGS_MODULE=chatnoir_admin.settings ./manage.py runserver localhost:8001
-```
-
-This should spawn the Admin backend on `localhost:8001`.
-
-## Build the docker image
-
-```
-docker build -t registry.webis.de/code-lib/public-images/chatnoir:testing-ir-datasets .
-```
+The parameters are the same as for Django's `runserver` command (run `chatnoir-serve APPNAME --help` for more information).
