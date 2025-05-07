@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import './fonts.css';
+@import "./theme.css";
+
+@import "tailwindcss";
+/*@import "tailwindcss/utilities";*/
 
 @layer base {
-    @import url('fonts.css');
-
     ::selection {
         @apply bg-red-100;
     }
 
     :focus {
-        outline-color: theme('colors.red.200')
+        outline-color: var(--color-red-200);
     }
 
     html {
@@ -91,7 +91,7 @@
         @apply text-gray-600;
 
         &:hover {
-            @appy border-gray-500;
+            @apply border-gray-500;
             @apply text-gray-700;
         }
 

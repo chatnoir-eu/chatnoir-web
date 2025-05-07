@@ -21,50 +21,54 @@
         <span v-if="!isValid()"> ({{ errors() }})</span>
         <span v-if="isRequired()"> *</span><span v-else> (optional)</span>
     </label>
-    <select v-if="$props.type === 'select'"
-            :id="'form-' + $props.name"
-            ref="formFieldRef"
-            v-model="model"
-            :name="$props.name"
-            :required="isRequired()"
-            class="select md:w-1/2 w-full" :class="inputCls()"
-            v-bind="$attrs"
-            @blur="touch()">
+    <select
+        v-if="$props.type === 'select'"
+        :id="'form-' + $props.name"
+        ref="formFieldRef"
+        v-model="model"
+        :name="$props.name"
+        :required="isRequired()"
+        class="select md:w-1/2 w-full" :class="inputCls()"
+        v-bind="$attrs"
+        @blur="touch()">
         <option v-for="[value, text] of $props.options" :key="value" :value="value">{{ text }}</option>
     </select>
-    <textarea v-else-if="$props.type === 'textarea'"
-              :id="'form-' + $props.name"
-              ref="formFieldRef"
-              v-model="model"
-              :name="$props.name"
-              :required="isRequired()"
-              :placeholder="$props.placeholder"
-              class="text-field md:w-1/2 w-full" :class="inputCls()"
-              v-bind="$attrs"
-              @blur="touch()"></textarea>
-    <input v-else
-           :id="'form-' + $props.name"
-           ref="formFieldRef"
-           v-model="model"
-           :type="$props.type"
-           :name="$props.name"
-           :required="isRequired()"
-           :placeholder="$props.placeholder"
-           class="text-field md:w-1/2 w-full" :class="inputCls()"
-           v-bind="$attrs"
-           @blur="touch()">
+    <textarea
+        v-else-if="$props.type === 'textarea'"
+        :id="'form-' + $props.name"
+        ref="formFieldRef"
+        v-model="model"
+        :name="$props.name"
+        :required="isRequired()"
+        :placeholder="$props.placeholder"
+        class="text-field md:w-1/2 w-full" :class="inputCls()"
+        v-bind="$attrs"
+        @blur="touch()"></textarea>
+    <input
+        v-else
+        :id="'form-' + $props.name"
+        ref="formFieldRef"
+        v-model="model"
+        :type="$props.type"
+        :name="$props.name"
+        :required="isRequired()"
+        :placeholder="$props.placeholder"
+        class="text-field md:w-1/2 w-full" :class="inputCls()"
+        v-bind="$attrs"
+        @blur="touch()">
 </div>
 <div v-else :class="$props.class">
     <div v-if="!isValid()" class="form-error text-sm">{{ errors() }}</div>
-    <input v-if="$props.type !== 'textarea'"
-           :id="'form-' + $props.name"
-           ref="formFieldRef"
-           v-model="model"
-           :type="$props.type"
-           :name="$props.name"
-           :required="isRequired()"
-           :class="inputCls()"
-           v-bind="$attrs">
+    <input
+        v-if="$props.type !== 'textarea'"
+        :id="'form-' + $props.name"
+        ref="formFieldRef"
+        v-model="model"
+        :type="$props.type"
+        :name="$props.name"
+        :required="isRequired()"
+        :class="inputCls()"
+        v-bind="$attrs">
     <label v-if="$slots.default" :for="'form-' + $props.name">
         <slot />
         <span v-if="isRequired()"> *</span>
@@ -82,11 +86,13 @@ export default {
 import { computed, ref } from 'vue'
 
 const props = defineProps({
-    modelValue: {},
-    options: {},
+    // eslint-disable-next-line vue/require-prop-types
+    modelValue: {default: null},
+    // eslint-disable-next-line vue/require-prop-types
+    options: {default: null},
     type: {type: String, default: 'text'},
     name: {type: String, required: true},
-    placeholder: {type: String},
+    placeholder: {type: String, default: null},
     class: {type: String, default: 'my-3'},
     validator: {type: Object, default: null},
 })

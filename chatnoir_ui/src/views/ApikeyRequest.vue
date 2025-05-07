@@ -106,8 +106,7 @@
                 </form-field>
 
                 <div class="my-10">
-                    <input v-if="isAcademic()"
-                           type="submit" value="Request Academic API Key" class="btn input-lg primary mr-4">
+                    <input v-if="isAcademic()" type="submit" value="Request Academic API Key" class="btn input-lg primary mr-4">
                     <input v-else type="submit" value="Request API Key" class="btn input-lg primary mr-4">
                     <button class="btn input-lg" @click.prevent="cancelModalState = true">Cancel and Go Back</button>
                     <loading-indicator v-if="requestProgress > 0" class="ml-3" />
@@ -169,12 +168,12 @@ import useVuelidate from '@vuelidate/core'
 import axios from 'axios'
 import { email, helpers, required, requiredIf, sameAs } from '@vuelidate/validators'
 
-import SearchHeader from '@/components/SearchHeader'
-import ModalDialog from '@/components/ModalDialog'
+import SearchHeader from '@/components/SearchHeader.vue'
+import ModalDialog from '@/components/ModalDialog.vue'
 import { SearchModel } from '@/search-model'
-import FormField from '@/components/FormField'
-import FormFieldCountry from '@/components/FormFieldCountry'
-import LoadingIndicator from '@/components/LoadingIndicator'
+import FormField from '@/components/FormField.vue'
+import FormFieldCountry from '@/components/FormFieldCountry.vue'
+import LoadingIndicator from '@/components/LoadingIndicator.vue'
 import { getCsrfToken } from '@/common'
 
 const router = useRouter()
@@ -292,7 +291,7 @@ async function submitForm() {
         url: route.path,
         headers: {
             'Content-Type': 'multipart/form-data',
-            'X-CSRFToken': getCsrfToken()
+            'X-CSRFToken': await getCsrfToken()
         },
         data: new FormData(requestFormRef.value),
         onDownloadProgress(e) {

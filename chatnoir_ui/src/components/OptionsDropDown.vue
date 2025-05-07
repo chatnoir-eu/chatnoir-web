@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import ToolTipPopup from '@/components/ToolTipPopup'
+import ToolTipPopup from '@/components/ToolTipPopup.vue'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({

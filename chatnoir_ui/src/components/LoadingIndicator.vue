@@ -3,8 +3,8 @@
 </template>
 
 <script setup>
-const props = defineProps({
-    colorCls: {default: 'bg-red-300'}
+defineProps({
+    colorCls: {default: 'bg-red-300', type: String},
 })
 </script>
 

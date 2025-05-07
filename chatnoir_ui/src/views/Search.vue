@@ -65,9 +65,9 @@ import axios from 'axios'
 import { getApiToken } from '@/common'
 import { SearchModel } from '@/search-model'
 
-import SearchHeader from '@/components/SearchHeader'
-import SearchResult from '@/components/SearchResult'
-import Pagination from '@/components/Pagination'
+import SearchHeader from '@/components/SearchHeader.vue'
+import SearchResult from '@/components/SearchResult.vue'
+import Pagination from '@/components/Pagination.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -88,7 +88,7 @@ async function requestResults() {
     requestCounter += 1
 
     // Refresh search API token if expired or over quota
-    const apiToken = getApiToken()
+    const apiToken = await getApiToken()
     if (Date.now() / 1000 - apiToken.timestamp >= apiToken.maxAge || requestCounter > apiToken.quota) {
         location.reload()
         return
@@ -97,7 +97,7 @@ async function requestResults() {
     if (!route.query.q) {
         return;
     }
-    const baseUrl = process.env.VUE_APP_API_BACKEND_ADDRESS + route.path.substring(1)
+    const baseUrl = import.meta.env.VITE_API_BACKEND_ADDRESS + route.path.substring(1)
     const requestOptions = {
         method: 'POST',
         url: baseUrl +'_search',

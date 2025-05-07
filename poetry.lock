@@ -297,17 +297,6 @@ django = ">=4.2"
 typing-extensions = {version = ">=4.0.1", markers = "python_version < \"3.11\""}
 
 [[package]]
-name = "django-webpack-loader"
-version = "3.1.1"
-description = "Transparently use webpack with django"
-optional = false
-python-versions = "*"
-files = [
-    {file = "django-webpack-loader-3.1.1.tar.gz", hash = "sha256:f11b79700d1bfc1299131bdf4ba479c1ec200f83a1400e1a2feb5c2ba7b6f8c4"},
-    {file = "django_webpack_loader-3.1.1-py2.py3-none-any.whl", hash = "sha256:15c05cb685b113c5e6f947efa8ee3888a03c2969a2dd0da4c7610b3e695f67ba"},
-]
-
-[[package]]
 name = "djangorestframework"
 version = "3.16.0"
 description = "Web APIs for Django, made easy."
@@ -689,4 +678,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "017d2df6d2b3eab7abe9736eda91f99fb3437cc388f4dd9d928616244389e6ed"
+content-hash = "e004929a3c35a50c7d986e27ea7a066b920b07a1b19af027515409e73f81720e"

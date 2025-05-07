@@ -15,18 +15,8 @@
  */
 
 
-import { objSnake2Camel, objCamelToSnake } from '@/common'
+import { objSnake2Camel, objCamelToSnake, IndexDesc, getAvailableIndices } from '@/common'
 
-/**
- * Index meta descriptor.
- */
-export class IndexDesc {
-    constructor({id, name, selected}) {
-        this.id = id
-        this.name = name
-        this.selected = selected || false
-    }
-}
 
 export class SearchResponse {
     constructor(meta, results) {
@@ -124,16 +114,17 @@ export class SearchModel {
      * Update list of available and selected from a list of (JSON) objects with the following shape:
      * `{id: "index_id", name: "Index name", selected: true | false}`.
      *
-     * If `indices` is unset, the list will be refreshed from `window.DATA.indices` if available.
+     * If `indices` is unset, the list will be requested from the backend.
      *
-     * @param indices list of `IndexDesc` objects or undefined
+     * @param indices JSON list, list of `IndexDesc` objects, or undefined
      */
     setIndices(indices = null) {
         if (!indices) {
-            this.setIndices(window.DATA.indices || [])
+            this.indices = []
+            getAvailableIndices().then((i) => this.setIndices(i))
             return
         }
-        this.indices = indices.map((i) => i instanceof IndexDesc ? i : new IndexDesc(i))
+        this.indices = IndexDesc.fromJSON(indices)
     }
 
     /**

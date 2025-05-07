@@ -36,6 +36,9 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
 import { buildQueryString } from '@/common'
+import iconAngleLeft from '@/assets/icons/angle-left.svg'
+import iconAngleDoubleLeft from '@/assets/icons/angle-double-left.svg'
+import iconAngleRight from '@/assets/icons/angle-right.svg'
 
 const router = useRouter()
 const route = useRoute()
@@ -74,14 +77,14 @@ function pagesBefore() {
 
     if (min > 1) {
         pages.push({
-            icon: require('@/assets/icons/angle-double-left.svg'),
+            icon: iconAngleDoubleLeft,
             num: 1
         })
     }
 
     if (props.page > 1) {
         pages.push({
-            icon: require('@/assets/icons/angle-left.svg'),
+            icon: iconAngleLeft,
             num: props.page - 1
         })
     }
@@ -113,7 +116,7 @@ function pagesAfter() {
 
     if (props.page < props.maxPage) {
         pages.push({
-            icon: require('@/assets/icons/angle-right.svg'),
+            icon: iconAngleRight,
             num: props.page + 1
         })
     }
@@ -128,7 +131,7 @@ function pagesAfter() {
     @apply px-2 inline-block align-middle leading-relaxed;
 
     svg {
-        @apply h-5 inline-block -mt-0.5 fill-red;
+        @apply h-5 inline-block -mt-0.5 fill-red-500;
     }
 }
 </style>

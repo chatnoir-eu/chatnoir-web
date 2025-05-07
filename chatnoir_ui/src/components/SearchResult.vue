@@ -52,7 +52,7 @@
             </span>
 
             <button ref="detailsButton" type="button" class="w-3 h-3 ml-3 -mt-0.5 text-center align-middle inline-block" @click="detailsShown = !detailsShown">
-                <inline-svg :src="require('@/assets/icons/settings.svg')" class="h-full mx-auto align-middle" aria-label="Details" />
+                <inline-svg :src="iconSettings" class="h-full mx-auto align-middle" aria-label="Details" />
             </button>
 
             <ToolTipPopup :visible="detailsShown" :aria-hidden="(!detailsShown).toString()" :ref-element="$refs.detailsButton"
@@ -140,9 +140,11 @@ import { useRoute } from 'vue-router';
 
 import { abbreviateUrl, getQueryUrl } from '@/common'
 
-import ToolTipPopup from '@/components/ToolTipPopup'
-import ModalDialog from '@/components/ModalDialog'
-import CopyableStringField from '@/components/CopyableStringField'
+import ToolTipPopup from '@/components/ToolTipPopup.vue'
+import ModalDialog from '@/components/ModalDialog.vue'
+import CopyableStringField from '@/components/CopyableStringField.vue'
+
+import iconSettings from '@/assets/icons/settings.svg'
 
 const maxAuthors = 6
 const detailsShown = ref(false)

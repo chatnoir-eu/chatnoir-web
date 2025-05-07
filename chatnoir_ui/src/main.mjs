@@ -21,11 +21,7 @@ import router from '@/routes'
 
 import '@/assets/css/index.css'
 
-const app = createApp(ChatNoirApp).use(router)
-
-// Fix global components not being recognized by JetBrains IDEs.
-// See: https://youtrack.jetbrains.com/issue/WEB-48239
-const Vue = app
-Vue.component('InlineSvg', InlineSvg).mount('#app')
-
-export default Vue
+createApp(ChatNoirApp)
+    .use(router)
+    .component('InlineSvg', InlineSvg)
+    .mount('#app')

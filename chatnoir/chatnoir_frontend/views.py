@@ -12,16 +12,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
 
 from django.conf import settings
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponsePermanentRedirect, JsonResponse
+from django.middleware.csrf import get_token
 from django.shortcuts import render
-from django.views.decorators.http import require_safe
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_safe, require_POST
+
+from chatnoir_api.authentication import ApiKeyAuthentication
+from chatnoir_search.search import SimpleSearch
 
 
 @require_safe
 def index(request):
     return render(request, 'index.html')
+
+
+def _get_indices(request):
+    """List of configured indices."""
+    search = SimpleSearch(indices=request.GET.getlist('index'))
+    selected = search.selected_indices
+    return [{'id': k, 'name': v.get('display_name'), 'selected': k in selected}
+            for k, v in search.allowed_indices.items()]
+
+
+@require_POST
+@csrf_exempt
+def init_state(request):
+    apikey = ApiKeyAuthentication.issue_temporary_session_apikey(request, issuer='web_frontend')
+    return JsonResponse({
+        'token': {
+            'token': apikey.api_key,
+            'timestamp': int(apikey.issue_date.timestamp()),
+            'max_age': int((apikey.expires - apikey.issue_date).total_seconds()) + 1,
+            'quota': apikey.limits_day
+        },
+        'timestamp': int(time.time()),
+        'csrfToken': get_token(request),
+        'indices': _get_indices(request)
+    })
 
 
 @require_safe

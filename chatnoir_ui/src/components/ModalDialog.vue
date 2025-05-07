@@ -27,7 +27,7 @@
                             class="text-gray-700 -mr-1 h-6 w-6 ml-6 align-middle text-center border-2 border-transparent rounded-full
                             outline-none hover:text-red-600 focus:text-red-600 hover:border-red-600 focus:border-red-600"
                             @click.prevent="cancel()">
-                        <inline-svg :src="require('@/assets/icons/close.svg')" class="h-full p-0.5 mx-auto" aria-label="Close" />
+                        <inline-svg :src="iconClose" class="h-full p-0.5 mx-auto" aria-label="Close" />
                     </button>
                 </header>
                 <div class="px-5 pb-4">
@@ -40,7 +40,8 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, toRef, watch } from 'vue';
+import { onMounted, onUnmounted, ref, toRef, watch } from 'vue'
+import iconClose from '@/assets/icons/close.svg'
 
 const modalMain = ref(null)
 const closeButton = ref(null)

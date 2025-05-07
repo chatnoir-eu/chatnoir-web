@@ -16,7 +16,7 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import WebisFooter from '@/components/WebisFooter'
+import WebisFooter from '@/components/WebisFooter.vue'
 
 onMounted(() => {
     // Hide browser address bar

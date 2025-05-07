@@ -27,7 +27,7 @@
 
         <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button"
                 class="mr-12 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
-            <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/settings.svg')" alt="Options" />
+            <inline-svg class="h-full mx-auto align-middle" :src="iconSettings" alt="Options" />
         </button>
         <options-drop-down
             v-if="searchModel.indices.length > 0"
@@ -38,7 +38,7 @@
         />
 
         <button type="submit" class="mr-6" :class="$style['btn-submit']">
-            <inline-svg class="h-full mx-auto align-middle" :src="require('@/assets/icons/search.svg')" alt="Search" />
+            <inline-svg class="h-full mx-auto align-middle" :src="iconSearch" alt="Search" />
         </button>
     </form>
 </div>
@@ -54,7 +54,10 @@ export default {
 import { onMounted, ref, reactive, watch } from 'vue'
 
 import { SearchModel } from '@/search-model'
-import OptionsDropDown from './OptionsDropDown'
+import OptionsDropDown from '@/components/OptionsDropDown.vue'
+
+import iconSettings from '@/assets/icons/settings.svg'
+import iconSearch from '@/assets/icons/search.svg'
 
 const optionsButton = ref(null)
 const emit = defineEmits(['update:modelValue', 'submit', 'change', 'option-change', 'keyup'])
@@ -139,7 +142,7 @@ onMounted(() => {
 
     &:hover, &:focus-within .btn-submit,
     button:hover, button:focus {
-        @apply text-red;
+        @apply text-red-500;
     }
 
     &:focus-within input[type="search"] {

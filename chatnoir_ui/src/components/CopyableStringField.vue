@@ -22,14 +22,15 @@
         <button class="absolute group-hover:inline-block group-focus:inline-block h-3
                        text-gray-600 hover:text-red-400 focus:text-red-400 active:text-red-700 right-0 -top-0.5 hidden"
                 aria-label="Copy" tabindex="-1" @click="copy()">
-            <inline-svg :src="require('@/assets/icons/copy.svg')" class="h-full" />
+            <inline-svg :src="iconCopy" class="h-full" />
         </button>
     </span>
 </span>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
+import iconCopy from '@/assets/icons/copy.svg'
 
 const focusElement = ref(null)
 

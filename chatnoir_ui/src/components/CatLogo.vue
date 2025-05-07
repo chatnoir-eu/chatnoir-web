@@ -16,13 +16,14 @@
 
 <template>
 <span aria-hidden="true" role="img">
-    <inline-svg class="inline-block h-full w-auto max-w-full" :src="require('@/assets/img/chatnoir.svg')" alt=""
+    <inline-svg class="inline-block h-full w-auto max-w-full" :src="logoChatNoir" alt=""
                 @loaded="logoElement = $event" />
 </span>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue';
+import logoChatNoir from '@/assets/img/chatnoir.svg'
 
 const purrTimeout = ref(null)
 const logoElement = ref(null)

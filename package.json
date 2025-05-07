@@ -1,15 +1,16 @@
 {
   "name": "chatnoir_ui",
   "version": "2.1.0",
+  "type": "module",
   "license": "Apache-2.0",
   "author": "Janek Bevendorff <janek.bevendorff@uni-weimar.de> (https://webis.de)",
   "files": [
     "chatnoir_ui/**"
   ],
   "scripts": {
-    "serve": "cd chatnoir_ui && vue-cli-service serve",
-    "build": "cd chatnoir_ui && vue-cli-service build",
-    "lint": "cd chatnoir_ui && vue-cli-service lint"
+    "serve": "vite serve chatnoir_ui",
+    "preview": "vite preview chatnoir_ui",
+    "build": "vite build chatnoir_ui"
   },
   "dependencies": {
     "@vuelidate/core": "^2.0.2",
@@ -18,37 +19,21 @@
     "core-js": "^3.42.0",
     "install": "^0.13.0",
     "vue": "^3.5.13",
-    "vue-inline-svg": "^3.1.2",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^5.0.8",
-    "@vue/cli-plugin-eslint": "^5.0.8",
-    "@vue/cli-service": "^5.0.8",
-    "@babel/eslint-parser": "^7.27.1",
+    "@eslint/js": "^9.26.0",
+    "@tailwindcss/vite": "^4.1.5",
+    "@vitejs/plugin-vue": "^5.2.3",
     "autoprefixer": "^10.4.21",
-    "eslint": "^8.57.1",
+    "eslint": "^9.26.0",
     "eslint-plugin-vue": "^10.1.0",
-    "postcss": "^8.5.3",
-    "postcss-import": "^16.0.1",
-    "tailwindcss": "^3.4.17",
-    "vue-template-compiler": "^2.7.16",
-    "webpack": "^5.99.7",
-    "webpack-bundle-tracker": "^3.1.1"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "babel-eslint"
-    },
-    "rules": {}
+    "globals": "^16.1.0",
+    "tailwindcss": "^4.1.5",
+    "vite": "^6.3.5",
+    "vite-plugin-eslint": "^1.8.1",
+    "vue-inline-svg": "^4.0.1",
+    "vue-template-compiler": "^2.7.16"
   },
   "browserslist": [
     "> 1%",

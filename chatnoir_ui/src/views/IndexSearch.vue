@@ -23,6 +23,6 @@
 </template>
 
 <script setup>
-import Index from './Index'
-import Search from './Search'
+import Index from './Index.vue'
+import Search from './Search.vue'
 </script>

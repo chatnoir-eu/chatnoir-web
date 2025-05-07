@@ -149,9 +149,11 @@ defineExpose([
 </script>
 
 <style>
+@import "tailwindcss";
+
 .tooltip-popup {
     @apply absolute z-50;
-    @apply bg-gray-100;
+    /*@apply bg-gray-100;*/
     @apply border border-gray-300 rounded-sm;
     @apply p-4;
     @apply text-black;
@@ -170,7 +172,7 @@ defineExpose([
     }
 
     &.tail-bottom::after, &.tail-bottom::before {
-        border-top-color: theme('colors.gray.100');
+        border-top-color: var(--color-gray-100);
         border-bottom: 0;
         left: 50%;
         bottom: calc(-1rem + theme('borderWidth.DEFAULT'));
@@ -178,13 +180,13 @@ defineExpose([
     }
 
     &.tail-bottom::before {
-        border-top-color: theme('colors.gray.300');
+        border-top-color: var(--color-gray-300);
         bottom: calc(-1rem - theme('borderWidth.DEFAULT'));
         margin-left: calc(-1rem - theme('borderWidth.DEFAULT'));
     }
 
     &.tail-top::after, &.tail-top::before {
-        border-bottom-color: theme('colors.gray.100');
+        border-bottom-color: var(--color-gray-100);
         border-top: 0;
         left: 50%;
         top: calc(-1rem + theme('borderWidth.DEFAULT'));
@@ -192,13 +194,13 @@ defineExpose([
     }
 
     &.tail-top::before {
-        border-bottom-color: theme('colors.gray.300');
+        border-bottom-color: var(--color-gray-300);
         top: calc(-1rem - theme('borderWidth.DEFAULT'));
         margin-left: calc(-1rem - theme('borderWidth.DEFAULT'));
     }
 
     &.tail-left::after, &.tail-left::before {
-        border-right-color: theme('colors.gray.100');
+        border-right-color: var(--color-gray-100);
         border-left: 0;
         left: calc(-1rem + theme('borderWidth.DEFAULT'));
         top: 50%;
@@ -206,13 +208,13 @@ defineExpose([
     }
 
     &.tail-left::before {
-        border-right-color: theme('colors.gray.300');
+        border-right-color: var(--color-gray-300);
         left: calc(-1rem - theme('borderWidth.DEFAULT'));
         margin-top: calc(-1rem - theme('borderWidth.DEFAULT'));
     }
 
     &.tail-right::after, &.tail-right::before {
-        border-left-color: theme('colors.gray.100');
+        border-left-color: var(--color-gray-100);
         border-right: 0;
         right: -1rem;
         top: 50%;
@@ -220,7 +222,7 @@ defineExpose([
     }
 
     &.tail-right::before {
-        border-left-color: theme('colors.gray.300');
+        border-left-color: var(--color-gray-300);
         right: calc(-1rem - theme('borderWidth.DEFAULT'));
         margin-top: calc(-1rem - theme('borderWidth.DEFAULT'));
     }

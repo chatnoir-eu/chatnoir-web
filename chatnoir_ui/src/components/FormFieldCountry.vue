@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import FormField from '@/components/FormField'
+import FormField from '@/components/FormField.vue'
 
 const props = defineProps({
     emptyValue: {type: String, default: '(Select Country)'},

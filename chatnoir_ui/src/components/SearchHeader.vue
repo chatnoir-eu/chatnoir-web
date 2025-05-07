@@ -21,7 +21,7 @@
     <div class="mx-5">
         <div class="w-auto sm:hidden">
             <router-link to="/">
-                <inline-svg class="inline-block h-10 max-w-full" :src="require('@/assets/img/chatnoir-icon.svg')" alt="" />
+                <inline-svg class="inline-block h-10 max-w-full" :src="iconChatNoir" alt="" />
             </router-link>
         </div>
         <div class="flex flex-row items-center max-w-3xl mx-auto h-24">
@@ -41,12 +41,14 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, toRef, watch } from 'vue'
-import CatLogo from '@/components/CatLogo';
-import SearchField from '@/components/SearchField';
-import ProgressBar from '@/components/ProgressBar'
+import { onMounted, ref, toRef, watch } from 'vue'
+import CatLogo from '@/components/CatLogo.vue';
+import SearchField from '@/components/SearchField.vue';
+import ProgressBar from '@/components/ProgressBar.vue'
 import { SearchModel } from '@/search-model'
 import { useRoute } from 'vue-router'
+
+import iconChatNoir from '@/assets/img/chatnoir-icon.svg'
 
 const route = useRoute()
 const emit = defineEmits(['update:modelValue', 'submit'])

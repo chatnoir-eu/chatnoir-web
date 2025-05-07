@@ -20,5 +20,6 @@ app_name = 'chatnoir_frontend'
 
 urlpatterns = [
     path(r'', views.index, name='index'),
+    path(r'init-state', views.init_state, name='init_state'),
     path(r'cache', views.cache, name='cache')
 ]

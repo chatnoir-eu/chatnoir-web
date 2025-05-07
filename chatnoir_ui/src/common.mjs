@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import axios from 'axios'
+
 /**
  * Build a query string from a parameter object.
  *
@@ -70,9 +72,9 @@ export function escapeHTML(text) {
  * Must be an absolute URL. Query string and fragment identifiers will be purged.
  *
  * @param url URL string to abbreviate
- * @param maxSegments: maximum number of segments
- * @param maxLength: maximum path length in characters (full URL may be longer)
- * @param replacement: abbreviation replacement character
+ * @param maxSegments maximum number of segments
+ * @param maxLength maximum path length in characters (full URL may be longer)
+ * @param replacement abbreviation replacement character
  */
 export function abbreviateUrl(url, maxSegments = 3, maxLength = 40,
                               replacement = '\u2009\u2026\u2009') {
@@ -153,6 +155,48 @@ export class ApiToken {
         this.maxAge = maxAge
         this.quota = quota
     }
+
+    static fromJSON(jsonData) {
+        return new ApiToken(objSnake2Camel(jsonData))
+    }
+}
+
+
+/**
+ * Index meta descriptor.
+ */
+export class IndexDesc {
+    constructor({id, name, selected}) {
+        this.id = id
+        this.name = name
+        this.selected = selected || false
+    }
+
+    static fromJSON(jsonData) {
+        return jsonData.map((i) => i instanceof IndexDesc ? i : new IndexDesc(i))
+    }
+}
+
+
+let INITIAL_STATE = null
+
+
+/**
+ * Request new temporary API tokens.
+ */
+async function initState() {
+
+    console.log('request')
+    const state = await axios({
+        method: 'POST',
+        url: import.meta.env.VITE_BACKEND_ADDRESS + 'init-state',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    }).catch(() => { throw new Error('Invalid state returned.') });
+    INITIAL_STATE = state.data
+    INITIAL_STATE.token = ApiToken.fromJSON(INITIAL_STATE.token)
+    INITIAL_STATE.indices = IndexDesc.fromJSON(INITIAL_STATE.indices)
 }
 
 /**
@@ -160,14 +204,12 @@ export class ApiToken {
  *
  * @returns {ApiToken} token
  */
-export function getApiToken() {
-    if (!window.DATA || !window.DATA.token) {
-        return null
+export async function getApiToken() {
+    if (!INITIAL_STATE) {
+        console.log('api')
+        await initState()
     }
-    if (!(window.DATA.token instanceof ApiToken)) {
-        window.DATA.token = new ApiToken(objSnake2Camel(window.DATA.token))
-    }
-    return window.DATA.token
+    return INITIAL_STATE.token
 }
 
 
@@ -176,9 +218,24 @@ export function getApiToken() {
  *
  * @returns {ApiToken} token
  */
-export function getCsrfToken() {
-    if (!window.DATA || !window.DATA.csrfToken) {
-        return null
+export async function getCsrfToken() {
+    if (!INITIAL_STATE) {
+        console.log('csrf')
+        await initState()
     }
-    return window.DATA.csrfToken
+    return INITIAL_STATE.csrfToken
+}
+
+
+/**
+ * Get list of available indices from initial state.
+ *
+ * @returns {ApiToken} token
+ */
+export async function getAvailableIndices() {
+    if (!INITIAL_STATE) {
+        console.log('indices')
+        await initState()
+    }
+    return INITIAL_STATE.indices
 }

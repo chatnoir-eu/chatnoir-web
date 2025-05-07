@@ -28,8 +28,8 @@
 import { onMounted, ref } from "vue"
 import { useRouter } from 'vue-router'
 
-import CatLogo from '@/components/CatLogo'
-import SearchField from '@/components/SearchField'
+import CatLogo from '@/components/CatLogo.vue'
+import SearchField from '@/components/SearchField.vue'
 import { SearchModel } from '@/search-model'
 
 const router = useRouter()

@@ -1,33 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>{% spaceless %}
-    {% load chatnoir_tags %}
-    {% load render_bundle from webpack_loader %}
-    {% endspaceless %}
+<head>
     <meta charset="utf-8">
     <title>{% app_name %}</title>
     {% include 'include/favicon_head.html' %}
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui">
-
-    {% load render_bundle from webpack_loader %}
-    {% render_bundle 'index' 'css' is_preload=True %}
-    {% render_bundle 'index' 'js' is_preload=True %}
-    {% render_bundle 'index' 'css' %}
 </head>
 <body>
 <noscript>
-    <strong>We're sorry but ChatNoir doesn't work properly without JavaScript enabled.
+    <strong>We're sorry, but ChatNoir doesn't work properly without JavaScript enabled.
         Please enable it to continue.</strong>
 </noscript>
 <section id="app"></section>
-<script>
-window.DATA = {
-    token: {% search_session_apikey %},
-    timestamp: {% now 'U' %},
-    csrfToken: '{{ csrf_token }}',
-    indices: {{ indices | json | safe }}
-}
-</script>
-{% render_bundle "index" 'js' %}
 </body>
 </html>

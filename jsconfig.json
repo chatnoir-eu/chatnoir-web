@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "baseUrl": "",
+    "paths": {
+      "@/*": ["./chatnoir_ui/src/*"]
+    }
+  }
+}
