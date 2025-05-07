@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Janek Bevendorff
+ * Copyright 2025 Janek Bevendorff
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 @import './fonts.css';
-@import "./theme.css";
-
-@import "tailwindcss";
-/*@import "tailwindcss/utilities";*/
+@import './theme.css';
+@import './utilities.css';
 
 @layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+
     ::selection {
         @apply bg-red-100;
     }
 
     :focus {
-        outline-color: var(--color-red-200);
+        outline-color: var(--color-red-200)
     }
 
     html {
@@ -40,7 +45,7 @@
     }
 
     a:focus-visible, button:focus-visible {
-        @apply outline-none ring-1 ring-red-300 ring-offset-4;
+        @apply outline-hidden ring-1 ring-red-300 ring-offset-4;
     }
 
     a:visited {
@@ -75,181 +80,5 @@
         @apply mr-4;
         @apply inline-block;
         @apply leading-6;
-    }
-}
-
-@layer components {
-    .btn, .text-field, .chk, .radio, .select {
-        @apply shadow-sm;
-        @apply outline-none;
-    }
-
-    .btn, .text-field, .select {
-        @apply border border-gray-300 rounded-md;
-        @apply px-4 py-1;
-        @apply bg-white;
-        @apply text-gray-600;
-
-        &:hover {
-            @apply border-gray-500;
-            @apply text-gray-700;
-        }
-
-        &:focus {
-            @apply text-gray-800;
-        }
-    }
-
-    .select {
-        @apply py-1.5;
-    }
-
-    .select option {
-        @apply border-gray-500;
-        @apply py-1;
-    }
-
-    .text-field, .select {
-        @apply shadow-inner;
-
-        &:hover, &:focus {
-            @apply shadow-md;
-        }
-    }
-
-    .text-field:focus, .select:focus {
-        @apply border-red-100;
-    }
-
-    .btn {
-        @apply text-gray-800;
-        @apply bg-gray-200;
-        @apply border-gray-200;
-        @apply w-auto;
-
-        &:hover, &:focus {
-            @apply bg-gray-300;
-            @apply border-gray-300;
-            @apply text-gray-900;
-        }
-
-        &:active {
-            @apply shadow-inner;
-            @apply border-gray-400;
-        }
-
-        &.primary {
-            @apply bg-red-400;
-            @apply border-red-400;
-            @apply text-white;
-
-            &:hover, &:focus {
-                @apply border-red-500;
-                @apply bg-red-500;
-            }
-
-            &:active {
-                @apply shadow-inner;
-                @apply border-red-700;
-            }
-        }
-    }
-
-    .chk, .radio {
-        @apply appearance-none;
-        @apply border border-red-400 rounded-sm;
-        @apply m-1;
-        @apply mt-0.5;
-        @apply mr-2;
-        @apply align-middle;
-        @apply relative;
-        height: 1.1rem;
-        width: 1.1rem;
-
-        &:checked {
-            @apply bg-red-400;
-        }
-
-        &:hover, &:focus {
-            @apply border-red-500;
-        }
-
-        &:checked:hover, &:checked:focus {
-            @apply bg-red-500;
-        }
-
-        &:active {
-            @apply shadow-inner;
-            @apply border-red-700;
-        }
-    }
-
-    .chk:checked::before {
-        @apply border-white;
-        @apply absolute;
-        @apply transform rotate-45;
-        @apply box-border;
-        content: "";
-        border-bottom-width: .2rem;
-        border-right-width: .2rem;
-        width: .4rem;
-        height: .8rem;
-        bottom: calc(50% - .35rem);
-        left: calc(50% - .18rem);
-    }
-
-    .radio {
-        @apply rounded-full;
-
-        &:checked::before {
-            @apply bg-white;
-            @apply absolute;
-            @apply rounded-full;
-            @apply box-border;
-            content: "";
-            width:.55rem;
-            height: .55rem;
-            top: calc(50% - .55rem / 2);
-            left: calc(50% - .55rem / 2);
-        }
-    }
-
-    .input-lg, .input-xl {
-        @apply px-6 py-2;
-        @apply rounded-full;
-    }
-
-    .input-xl {
-        @apply m-2;
-        @apply px-6 py-3;
-    }
-
-    .lbl-block {
-        @apply block;
-        @apply text-sm;
-        @apply my-0.5;
-    }
-
-    .lbl-required {
-        @apply font-bold;
-        @apply italic;
-    }
-
-    .invalid {
-        @apply text-red-500;
-    }
-
-    .form-error {
-        @apply font-bold text-red-500;
-    }
-}
-
-@layer utilities {
-    .fade-enter-active, .fade-leave-active {
-        transition: opacity 500ms ease;
-    }
-
-    .fade-enter-from, .fade-leave-to {
-        opacity: 0;
     }
 }

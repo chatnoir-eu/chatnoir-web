@@ -16,16 +16,16 @@
 
 <template>
 <nav class="text-lg" aria-label="Pagination" role="navigation">
-    <a v-for="p in pagesBefore()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
+    <a v-for="p in pagesBefore()" :key="p.label" :href="getPageUrl(p.num)" class="page-button"
        @click.prevent="navigateToPage(p.num)">
         <inline-svg v-if="p.icon" :src="p.icon" />
         <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
     </a>
-    <span :class="$style['page-button']" class="text-gray-800 font-bold text-2xl pt-0.5"
+    <span class="page-button text-gray-800 font-bold text-2xl pt-0.5"
           :aria-label="`Page ${page} (Current)`" aria-current="page">
         {{ page }}
     </span>
-    <a v-for="p in pagesAfter()" :key="p.label" :href="getPageUrl(p.num)" :class="$style['page-button']"
+    <a v-for="p in pagesAfter()" :key="p.label" :href="getPageUrl(p.num)" class="page-button"
        @click.prevent="navigateToPage(p.num)">
         <inline-svg v-if="p.icon" :src="p.icon" />
         <span v-else :aria-label="`Page ${p.num}`">{{ p.label }}</span>
@@ -126,7 +126,9 @@ function pagesAfter() {
 
 </script>
 
-<style module>
+<style scoped>
+@reference "@/assets/css/index.css";
+
 .page-button {
     @apply px-2 inline-block align-middle leading-relaxed;
 

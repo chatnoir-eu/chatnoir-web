@@ -18,14 +18,14 @@
 <teleport to="body">
     <transition name="fade" @enter="enterHandler()">
         <div v-if="modalState"
-             class="fixed z-50 top-0 left-0 w-full h-full bg-black bg-opacity-50 border border-gray-700 flex items-center"
+             class="fixed z-50 top-0 left-0 w-full h-full bg-black/50 border border-gray-700 flex items-center"
              @click.self="cancel()" @keyup.enter="confirm()" @keyup.esc="cancel()">
-            <section ref="modalMain" tabindex="-1" class="bg-white rounded-md -mt-28 mx-auto shadow shadow-md overscroll-auto flex flex-col outline-none">
+            <section ref="modalMain" tabindex="-1" class="bg-white rounded-md -mt-28 mx-auto shadow-sm overscroll-auto flex flex-col outline-hidden">
                 <header class="h-4 flex flex-row border-b border-gray-200 rounded-t-lg bg-gray-100 mb-4 pt-4 pb-9 px-6">
                     <h2 class="flex-grow text-lg font-bold"><slot name="header" /></h2>
                     <button ref="closeButton" title="Close"
                             class="text-gray-700 -mr-1 h-6 w-6 ml-6 align-middle text-center border-2 border-transparent rounded-full
-                            outline-none hover:text-red-600 focus:text-red-600 hover:border-red-600 focus:border-red-600"
+                            outline-hidden hover:text-red-600 focus:text-red-600 hover:border-red-600 focus:border-red-600"
                             @click.prevent="cancel()">
                         <inline-svg :src="iconClose" class="h-full p-0.5 mx-auto" aria-label="Close" />
                     </button>

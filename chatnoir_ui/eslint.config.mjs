@@ -9,6 +9,9 @@ export default defineConfig([
         files: ['**/*.{js,mjs,cjs,vue}'],
         plugins: {js},
         extends: ['js/recommended'],
+        rules: {
+            'no-unused-vars': 'warn',
+        }
     },
     {
         files: ['**/*.{js,mjs,cjs,vue}'],

@@ -22,32 +22,32 @@
            class="text-gray-800 visited:text-gray-800 text-sm">
             {{ abbreviateUrl(data.targetUri, 2).replace(/^https?:\/\//i, '') }}
         </a>
-        <h2 :class="$style.title" class="leading-none">
+        <h2 class="title leading-none">
             <a :href="data.cacheUri" rel="nofollow" class="text-xl text-red-700" v-html="data.title"></a>
         </h2>
         <div class="text-sm text-gray-800 mt-0.5">
-            <span v-if="data.authors && data.authors.length > 0" :class="$style['meta-link']">
+            <span v-if="data.authors && data.authors.length > 0" class="meta-link">
                 <a :href="getAuthorUrl(data.authors[0])">{{ getLastName(data.authors[0]) }}</a>
                 <span v-if="data.authors.length === 2"> and </span>
                 <a v-if="data.authors.length === 2" :href="getAuthorUrl(data.authors[1])">{{ getLastName(data.authors[1]) }}</a>
                 <span v-if="data.authors.length > 2"> et al.</span>
             </span>
 
-            <span v-if="data.index && data.warcId" :class="$style['meta-link']">
+            <span v-if="data.index && data.warcId" class="meta-link">
                 <a :href="getQueryUrl(route, `index:${data.index} ${meta.queryString.replace(RegExp(`index:${data.index}\\s+`), '')}`, null)">
                     {{ getFullIndexName() }}
                 </a>
             </span>
 
-            <span v-if="data.venue" :class="$style['meta-link']">
+            <span v-if="data.venue" class="meta-link">
                 <a :href="getQueryUrl(route, `venue:${data.venue}`)">{{ data.venue }}</a>
             </span>
 
-            <span v-if="data.year" :class="$style['meta-link']">
+            <span v-if="data.year" class="meta-link">
                 <a :href="getQueryUrl(route, `year:${data.year}`)">{{ data.year }}</a>
             </span>
 
-            <span v-if="!data.year && data.crawlDate" :class="$style['meta-link']">
+            <span v-if="!data.year && data.crawlDate" class="meta-link">
                 Crawled {{ new Intl.DateTimeFormat('en-US', {month: 'short', year: 'numeric'}).format(Date.parse(data.crawlDate)) }}
             </span>
 
@@ -57,7 +57,7 @@
 
             <ToolTipPopup :visible="detailsShown" :aria-hidden="(!detailsShown).toString()" :ref-element="$refs.detailsButton"
                           class="tail-top max-w-lg" @close="detailsShown = false">
-                <dl :class="$style['meta-details']">
+                <dl class="meta-details">
                     <dt>Score:</dt>
                     <dd>{{ data.score.toFixed(2) }}</dd>
 
@@ -130,7 +130,7 @@
         </div>
     </header>
 
-    <p :class="$style.snippet" class="text-gray-900 mt-1" v-html="data.snippet"></p>
+    <p class="snippet text-gray-900 mt-1" v-html="data.snippet"></p>
 </article>
 </template>
 
@@ -170,7 +170,9 @@ function getFullIndexName() {
 }
 </script>
 
-<style module>
+<style scoped>
+@reference "@/assets/css/index.css";
+
 .title em, .snippet em {
     @apply font-bold;
     @apply not-italic;

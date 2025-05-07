@@ -15,7 +15,7 @@
 -->
 
 <template>
-<div class="text-left max-w-full inline-block relative" :class="$style['search-field']">
+<div class="text-left max-w-full inline-block relative search-field">
     <form class="box-border py-3 relative"
           :action="action" :method="method" @submit.prevent="emitModelUpdate(true)">
         <input ref="searchInput" v-model="searchModel.query"
@@ -26,7 +26,7 @@
                @keyup="emit('keyup', $event)">
 
         <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button"
-                class="mr-12 w-4" :class="$style['btn-options']" @click="showOptions = !showOptions">
+                class="btn-options mr-12 w-4" @click="showOptions = !showOptions">
             <inline-svg class="h-full mx-auto align-middle" :src="iconSettings" alt="Options" />
         </button>
         <options-drop-down
@@ -37,8 +37,8 @@
             @close="showOptions = false"
         />
 
-        <button type="submit" class="mr-6" :class="$style['btn-submit']">
-            <inline-svg class="h-full mx-auto align-middle" :src="iconSearch" alt="Search" />
+        <button type="submit" class="btn-submit mr-6">
+            <inline-svg class="h-full mx-auto align-middle icon-search" :src="iconSearch" alt="Search" />
         </button>
     </form>
 </div>
@@ -122,13 +122,15 @@ onMounted(() => {
 })
 </script>
 
-<style module>
+<style scoped>
+@reference "@/assets/css/index.css";
+
 .search-field {
     width: 40rem;
 
     button {
         @apply absolute;
-        @apply outline-none;
+        @apply outline-hidden;
         @apply text-gray-400;
         height: 1rem;
         top: calc(50% - .5rem);
@@ -140,7 +142,7 @@ onMounted(() => {
         }
     }
 
-    &:hover, &:focus-within .btn-submit,
+    &:hover .btn-submit, &:focus-within .btn-submit,
     button:hover, button:focus {
         @apply text-red-500;
     }

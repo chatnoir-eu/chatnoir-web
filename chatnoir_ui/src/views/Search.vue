@@ -43,7 +43,7 @@
         <div v-if="!error && searchModel.response && searchModel.response.results.length === 0" class="max-w-3xl mt-12 mx-auto text-center text-lg">
             No results found… ;-(
         </div>
-        <div v-if="error" class="max-w-3xl mx-auto mt-10 py-4 text-center text-lg bg-red-500 bg-opacity-10 border border-red-300 rounded-md shadow text-red-800">
+        <div v-if="error" class="max-w-3xl mx-auto mt-10 py-4 text-center text-lg bg-red-500/10 border border-red-300 rounded-md shadow-sm text-red-800">
             Error processing your request. Got:<br>
             <strong>{{ error }}</strong><br>
             <span v-if="apiResponseCode === 500 || apiResponseCode === null">Please try again later.</span>

@@ -148,16 +148,16 @@ defineExpose([
 ])
 </script>
 
-<style>
-@import "tailwindcss";
+<style scoped>
+@reference "@/assets/css/index.css";
 
 .tooltip-popup {
     @apply absolute z-50;
-    /*@apply bg-gray-100;*/
-    @apply border border-gray-300 rounded-sm;
+    @apply bg-gray-100;
+    @apply border border-gray-300 rounded-xs;
     @apply p-4;
     @apply text-black;
-    @apply shadow shadow-lg;
+    @apply shadow-lg;
     @apply ease-in-out;
 
     &::after, &::before {

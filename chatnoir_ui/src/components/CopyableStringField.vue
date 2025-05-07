@@ -16,7 +16,7 @@
 
 <template>
 <span class="group inline-block nowrap relative pr-3.5">
-    <span ref="focusElement" class="group outline-none inline-block focus:ring-1 focus:ring-offset-0 focus:ring-red-300" tabindex="0"
+    <span ref="focusElement" class="group outline-hidden inline-block focus:ring-1 focus:ring-offset-0 focus:ring-red-300" tabindex="0"
           @click="select()" @keyup.enter="select(true)" @keyup.space="select(true)">
         <slot />
         <button class="absolute group-hover:inline-block group-focus:inline-block h-3
