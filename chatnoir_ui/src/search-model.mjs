@@ -45,9 +45,9 @@ export async function refreshGlobalState() {
             headers: {
                 'Content-Type': 'application/json',
             }
-        }).catch(() => {
-            throw new Error('Invalid state returned.')
-        });
+        }).catch((e) => {
+            throw new Error('Invalid state returned. ' + e)
+        })
 
         GLOBAL_STATE.apiToken = ApiToken.fromJSON(response.data.token)
         GLOBAL_STATE.csrfToken = response.data.csrfToken
