@@ -24,7 +24,7 @@
 
 <script setup>
 import { onMounted, onUnmounted, ref, toRef, watch } from 'vue'
-import { rem2Px } from '@/common'
+import { rem2Px } from '@/common.mjs'
 
 const emit = defineEmits(['close'])
 const props = defineProps({
@@ -142,10 +142,10 @@ onUnmounted(() => {
     }
 })
 
-defineExpose([
+defineExpose({
     reposition,
     toggleVisibility
-])
+})
 </script>
 
 <style scoped>

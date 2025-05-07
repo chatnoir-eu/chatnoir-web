@@ -2,10 +2,13 @@ SECRET_KEY = 'RANDOM STRING'
 
 DEBUG = True
 
-CORS_ALLOWED_ORIGINS = [
-    # Allow dev web frontend
-    'http://localhost:5173',
-]
+# Allow dev web frontend (remove for production deployments)
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = [
+        'http://127.0.0.1:5173',
+        'http://localhost:5173',
+    ]
+
 
 # Configure email backend
 EMAIL_HOST = 'localhost'

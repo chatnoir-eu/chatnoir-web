@@ -170,11 +170,10 @@ import { email, helpers, required, requiredIf, sameAs } from '@vuelidate/validat
 
 import SearchHeader from '@/components/SearchHeader.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
-import { SearchModel } from '@/search-model'
+import { getCsrfToken, SearchModel } from '@/search-model.mjs'
 import FormField from '@/components/FormField.vue'
 import FormFieldCountry from '@/components/FormFieldCountry.vue'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
-import { getCsrfToken } from '@/common'
 
 const router = useRouter()
 const route = useRoute()

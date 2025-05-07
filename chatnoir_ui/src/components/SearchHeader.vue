@@ -45,7 +45,7 @@ import { onMounted, ref, toRef, watch } from 'vue'
 import CatLogo from '@/components/CatLogo.vue';
 import SearchField from '@/components/SearchField.vue';
 import ProgressBar from '@/components/ProgressBar.vue'
-import { SearchModel } from '@/search-model'
+import { SearchModel } from '@/search-model.mjs'
 import { useRoute } from 'vue-router'
 
 import iconChatNoir from '@/assets/img/chatnoir-icon.svg'

@@ -15,6 +15,7 @@
   "dependencies": {
     "@vuelidate/core": "^2.0.2",
     "@vuelidate/validators": "^2.0.4",
+    "async-mutex": "^0.5.0",
     "axios": "^1.9.0",
     "core-js": "^3.42.0",
     "install": "^0.13.0",

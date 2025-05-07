@@ -25,12 +25,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue"
+import {onMounted, ref} from "vue"
 import { useRouter } from 'vue-router'
 
 import CatLogo from '@/components/CatLogo.vue'
 import SearchField from '@/components/SearchField.vue'
-import { SearchModel } from '@/search-model'
+import { SearchModel } from '@/search-model.mjs'
 
 const router = useRouter()
 const searchFieldRef = ref(null)
@@ -41,8 +41,4 @@ function search() {
         router.push({name: 'IndexSearch', query: searchModel.value.toQueryStringObj()})
     }
 }
-
-onMounted(() => {
-    searchModel.value.setIndices()
-})
 </script>

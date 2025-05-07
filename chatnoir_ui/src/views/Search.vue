@@ -60,10 +60,8 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
 
-import { getApiToken } from '@/common'
-import { SearchModel } from '@/search-model'
+import { SearchModel } from '@/search-model.mjs'
 
 import SearchHeader from '@/components/SearchHeader.vue'
 import SearchResult from '@/components/SearchResult.vue'
@@ -79,34 +77,15 @@ const searchModel = ref(new SearchModel())
 const requestProgress = ref(0)
 const error = ref(null)
 const apiResponseCode = ref(null)
-let requestCounter = 0
 
 /**
  * Request search result JSON from the server.
  */
 async function requestResults() {
-    requestCounter += 1
-
-    // Refresh search API token if expired or over quota
-    const apiToken = await getApiToken()
-    if (Date.now() / 1000 - apiToken.timestamp >= apiToken.maxAge || requestCounter > apiToken.quota) {
-        location.reload()
-        return
-    }
-
     if (!route.query.q) {
         return;
     }
-    const baseUrl = import.meta.env.VITE_API_BACKEND_ADDRESS + route.path.substring(1)
     const requestOptions = {
-        method: 'POST',
-        url: baseUrl +'_search',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + apiToken.token
-        },
-        data: searchModel.value.toApiRequestBody(),
-        timeout: 30000,
         onDownloadProgress(e) {
             requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
         }
@@ -119,21 +98,22 @@ async function requestResults() {
         requestProgress.value = 25
         error.value = ''
         apiResponseCode.value = 200
+        const response = await searchModel.value.search(requestOptions)
 
-        const response = await axios(requestOptions)
         // Clear reload indicator on successful return
         if (location.hash === '#reload') {
             location.hash = ''
         }
-        return response.data
+        return response
     } catch (ex) {
         apiResponseCode.value = ex.response ? ex.response.status : null
         if (ex.code === 'ECONNABORTED' || (ex.response && ex.response.data.error === 'timeout')) {
             error.value = 'Search took too long (Timeout).'
         } else if ((ex.response.status === 401 || ex.response.status === 429) && location.hash !== '#reload') {
             // Probably an API token error, try to refresh page once
-            location.hash = 'reload'
-            location.reload()
+            // TODO: Delete
+            // location.hash = 'reload'
+            // location.reload()
         } else if (ex.response.status !== 200) {
             if (ex.response.data.message) {
                 error.value = `${ex.response.data.message} (Error ${ex.response.data.code})`

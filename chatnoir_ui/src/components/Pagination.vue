@@ -35,7 +35,7 @@
 
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { buildQueryString } from '@/common'
+import { buildQueryString } from '@/common.mjs'
 import iconAngleLeft from '@/assets/icons/angle-left.svg'
 import iconAngleDoubleLeft from '@/assets/icons/angle-double-left.svg'
 import iconAngleRight from '@/assets/icons/angle-right.svg'

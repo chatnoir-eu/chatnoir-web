@@ -53,7 +53,7 @@ export default {
 <script setup>
 import { onMounted, ref, reactive, watch } from 'vue'
 
-import { SearchModel } from '@/search-model'
+import { SearchModel } from '@/search-model.mjs'
 import OptionsDropDown from '@/components/OptionsDropDown.vue'
 
 import iconSettings from '@/assets/icons/settings.svg'
@@ -119,6 +119,7 @@ onMounted(() => {
     if (props.focus) {
         setFocus()
     }
+    searchModel.initState()
 })
 </script>
 

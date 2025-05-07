@@ -138,7 +138,7 @@
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { abbreviateUrl, getQueryUrl } from '@/common'
+import { abbreviateUrl, getQueryUrl } from '@/common.mjs'
 
 import ToolTipPopup from '@/components/ToolTipPopup.vue'
 import ModalDialog from '@/components/ModalDialog.vue'

@@ -17,7 +17,7 @@
 import { createApp } from 'vue'
 import InlineSvg from 'vue-inline-svg'
 import ChatNoirApp from '@/ChatNoir.vue'
-import router from '@/routes'
+import router from '@/routes.mjs'
 
 import '@/assets/css/index.css'
 

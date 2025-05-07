@@ -15,8 +15,107 @@
  */
 
 
-import { objSnake2Camel, objCamelToSnake, IndexDesc, getAvailableIndices } from '@/common'
+import axios from "axios";
+import { Mutex } from 'async-mutex'
+import { objSnake2Camel, objCamelToSnake } from '@/common.mjs'
 
+
+const GLOBAL_STATE = {
+    apiToken: null,
+    csrfToken: null,
+    indices: [],
+    counter: -1,
+    mutex: new Mutex()
+}
+
+/**
+ * Request new temporary API tokens.
+ */
+export async function refreshGlobalState() {
+    await GLOBAL_STATE.mutex.runExclusive(async () => {
+        if (GLOBAL_STATE.apiToken !== null
+            && Date.now() / 1000 - GLOBAL_STATE.apiToken.timestamp < GLOBAL_STATE.apiToken.maxAge - 20
+            && GLOBAL_STATE.counter < GLOBAL_STATE.apiToken.quota) {
+            return
+        }
+        const ret = await axios({
+            method: 'POST',
+            url: import.meta.env.VITE_BACKEND_ADDRESS + 'init-state',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        }).catch(() => {
+            throw new Error('Invalid state returned.')
+        });
+
+        GLOBAL_STATE.apiToken = ApiToken.fromJSON(ret.data.token)
+        GLOBAL_STATE.csrfToken = ret.data.csrfToken
+        GLOBAL_STATE.indices = IndexDesc.fromJSON(ret.data.indices)
+        GLOBAL_STATE.counter = 0
+    })
+    return GLOBAL_STATE
+}
+
+/**
+ * Request token data class.
+ */
+export class ApiToken {
+    constructor({token, timestamp, maxAge, quota}) {
+        this.token = token
+        this.timestamp = timestamp
+        this.maxAge = maxAge
+        this.quota = quota
+    }
+
+    static fromJSON(jsonData) {
+        return new ApiToken(objSnake2Camel(jsonData))
+    }
+}
+
+/**
+ * Index meta descriptor.
+ */
+export class IndexDesc {
+    constructor({id, name, selected}) {
+        this.id = id
+        this.name = name
+        this.selected = selected || false
+    }
+
+    static fromJSON(jsonData) {
+        return jsonData.map((i) => i instanceof IndexDesc ? i : new IndexDesc(i))
+    }
+}
+
+
+/**
+ * Get the current request token for API and form requests.
+ *
+ * @returns {ApiToken} token
+ */
+export async function getApiToken() {
+    return (await refreshGlobalState()).apiToken
+}
+
+
+/**
+ * Get the current request CSRF token.
+ *
+ * @returns {ApiToken} token
+ */
+export async function getCsrfToken() {
+    return (await refreshGlobalState()).csrfToken
+}
+
+
+/**
+ * Get list of available indices from initial state.
+ *
+ * @returns {ApiToken} token
+ */
+export async function getAvailableIndices() {
+    return (await refreshGlobalState()).indices
+}
 
 export class SearchResponse {
     constructor(meta, results) {
@@ -26,12 +125,34 @@ export class SearchResponse {
 }
 
 export class SearchModel {
-    constructor({query, indices, page, pageSize} = {}) {
-        this.query = query || ''
-        this.pageSize =  parseInt(pageSize) || 10
-        this.page = Math.max(1, parseInt(page)) || 1
+    constructor({query = '', indices = [], page = 1, pageSize = 10, init = false} = {}) {
+        this.query = query
+        this.pageSize =  parseInt(pageSize)
+        this.page = Math.max(1, parseInt(page))
+        this.indices = indices
         this.response = null
-        this.setIndices(indices)
+        if (init) {
+            this.initState()
+        }
+    }
+
+    async initState() {
+        this.indices = (await refreshGlobalState()).indices
+    }
+
+    async search(requestOptions) {
+        ++GLOBAL_STATE.counter
+        const response = await axios(Object.assign({
+            method: 'POST',
+            url: import.meta.env.VITE_API_BACKEND_ADDRESS +'_search',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (await getApiToken()).token
+            },
+            data: this.toApiRequestBody(),
+            timeout: 30000,
+        }, requestOptions))
+        return response.data
     }
 
     /**
@@ -76,7 +197,7 @@ export class SearchModel {
         
         this.page = Math.floor(this.response.meta.resultsFrom / this.response.meta.pageSize) + 1
         this.pageSize = this.response.meta.pageSize
-        this.setIndices(this.response.meta.indices)
+        this.indices = IndexDesc.fromJSON(this.response.meta.indices)
     }
 
     /**
@@ -91,9 +212,6 @@ export class SearchModel {
         }
 
         this.query = queryString.q || ''
-        if (this.indices.length === 0) {
-            this.setIndices()
-        }
         this.indices = this.indices.map((i) => Object.assign(
             {}, i, {selected: !queryIndices.length ? i.selected : queryIndices.includes(i.id)}))
         this.page = Math.max(1, parseInt(queryString.p) || 1)
@@ -108,23 +226,6 @@ export class SearchModel {
             return 0
         }
         return this.response.meta.maxPage
-    }
-
-    /**
-     * Update list of available and selected from a list of (JSON) objects with the following shape:
-     * `{id: "index_id", name: "Index name", selected: true | false}`.
-     *
-     * If `indices` is unset, the list will be requested from the backend.
-     *
-     * @param indices JSON list, list of `IndexDesc` objects, or undefined
-     */
-    setIndices(indices = null) {
-        if (!indices) {
-            this.indices = []
-            getAvailableIndices().then((i) => this.setIndices(i))
-            return
-        }
-        this.indices = IndexDesc.fromJSON(indices)
     }
 
     /**
