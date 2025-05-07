@@ -173,7 +173,7 @@ function getFullIndexName() {
 <style scoped>
 @reference "@/assets/css/index.css";
 
-.title em, .snippet em {
+.title a > * {
     @apply font-bold;
     @apply not-italic;
 }

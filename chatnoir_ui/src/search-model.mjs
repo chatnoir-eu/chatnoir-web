@@ -38,9 +38,10 @@ export async function refreshGlobalState() {
             && GLOBAL_STATE.counter < GLOBAL_STATE.apiToken.quota) {
             return
         }
-        const ret = await axios({
+        const response = await axios({
             method: 'POST',
             url: import.meta.env.VITE_BACKEND_ADDRESS + 'init-state',
+            withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
             }
@@ -48,9 +49,9 @@ export async function refreshGlobalState() {
             throw new Error('Invalid state returned.')
         });
 
-        GLOBAL_STATE.apiToken = ApiToken.fromJSON(ret.data.token)
-        GLOBAL_STATE.csrfToken = ret.data.csrfToken
-        GLOBAL_STATE.indices = IndexDesc.fromJSON(ret.data.indices)
+        GLOBAL_STATE.apiToken = ApiToken.fromJSON(response.data.token)
+        GLOBAL_STATE.csrfToken = response.data.csrfToken
+        GLOBAL_STATE.indices = IndexDesc.fromJSON(response.data.indices)
         GLOBAL_STATE.counter = 0
     })
     return GLOBAL_STATE
@@ -145,6 +146,7 @@ export class SearchModel {
         const response = await axios(Object.assign({
             method: 'POST',
             url: import.meta.env.VITE_API_BACKEND_ADDRESS +'_search',
+            withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + (await getApiToken()).token

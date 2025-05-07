@@ -109,11 +109,11 @@ async function requestResults() {
         apiResponseCode.value = ex.response ? ex.response.status : null
         if (ex.code === 'ECONNABORTED' || (ex.response && ex.response.data.error === 'timeout')) {
             error.value = 'Search took too long (Timeout).'
-        } else if ((ex.response.status === 401 || ex.response.status === 429) && location.hash !== '#reload') {
-            // Probably an API token error, try to refresh page once
-            // TODO: Delete
-            // location.hash = 'reload'
-            // location.reload()
+        // TODO: Delete
+        // } else if ((ex.response.status === 401 || ex.response.status === 429) && location.hash !== '#reload') {
+        //     // Probably an API token error, try to refresh page once
+        //     location.hash = 'reload'
+        //     location.reload()
         } else if (ex.response.status !== 200) {
             if (ex.response.data.message) {
                 error.value = `${ex.response.data.message} (Error ${ex.response.data.code})`
