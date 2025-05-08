@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Janek Bevendorff
+ * Copyright 2025 Janek Bevendorff
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-Csrf-Token';
 
 // Dev server, first need to retrieve CSRF token from backend server
-if (import.meta.env.DEV && import.meta.url.indexOf(import.meta.env.VITE_BACKEND_ADDRESS) === -1) {
+if (import.meta.env.DEV && import.meta.url.indexOf(import.meta.env.VITE_BACKEND_ADDRESS) !== 0) {
     await axios({
         method: 'GET',
         url: import.meta.env.VITE_BACKEND_ADDRESS,
