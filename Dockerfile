@@ -1,61 +1,42 @@
-FROM ubuntu:20.04
+FROM node:24 as node_build
 
-ENV DEBIAN_FRONTEND noninteractive
+COPY package.* /work/
+COPY chatnoir_ui/ /work/chatnoir_ui/
 
+# Build frontend in temporary stage
+WORKDIR /work/
 RUN set -x \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-        build-essential \
-        curl \
-        gnupg2 \
-        gosu \
-        locales \
-        lsb-release \
-        python3 \
-        python3-dev \
-        python3-pip \
-        python3-psycopg2 \
-        python3-setuptools \
-        python3-wheel \
-        liblz4-dev \
-        libre2-dev \
-        libuchardet-dev \
-    && curl -sfL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
-    && echo "deb https://deb.nodesource.com/node_19.x/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/node.list \
-    && curl -sfL https://lexbor.com/keys/lexbor_signing.key | apt-key add - \
-    && echo "deb https://packages.lexbor.com/ubuntu/ $(lsb_release -sc) liblexbor" > /etc/apt/sources.list.d/lexbor.list \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends nodejs liblexbor-dev liblexbor \
-    && rm -rf /var/lib/apt/lists/*
+    && ls \
+    && npm install \
+    && npm run build
+
+
+FROM python:3.12
 
 # Force UTF-8 locale
-RUN set -x && locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
+RUN set -x \
+    && apt update \
+    && apt install -y locales \
+    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && dpkg-reconfigure --frontend=noninteractive locales \
+    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
 
-COPY ./chatnoir/ /opt/chatnoir/
+# Install ChatNoir
+COPY pyproject.toml poetry.lock LICENSE README.md /opt/chatnoir/
+COPY chatnoir/ /opt/chatnoir/chatnoir/
+COPY --from=node_build /work/chatnoir_ui/dist/ /opt/chatnoir/chatnoir_ui/dist/
+
+WORKDIR /opt/chatnoir/
 RUN set -x \
     && groupadd -g 1000 chatnoir \
     && useradd -u 1000 -g chatnoir -d /opt/chatnoir -s /bin/bash chatnoir \
-    && (cd /opt/chatnoir \
-        && ln -nfs /usr/bin/python3 /usr/bin/python \
-        && python3 -m pip install --no-cache-dir -r requirements.txt) \
+    && python3 -m pip install --no-cache-dir --break-system-packages --editable /opt/chatnoir/ \
+    && chatnoir-manage collectstatic \
     && chown -R chatnoir:chatnoir /opt/chatnoir
-
-COPY ./chatnoir_ui/ /opt/chatnoir_ui/
-RUN set -x \
-    && (cd /opt/chatnoir_ui \
-        && npm install \
-        && npm run build \
-        && rm -rf node_modules) \
-    && chown -R chatnoir:chatnoir /opt/chatnoir_ui
-
-RUN set -x \
-    && mkdir /opt/chatnoir_static \
-    && chown chatnoir:chatnoir /opt/chatnoir_static
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
-WORKDIR /opt/chatnoir
+USER chatnoir
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["uwsgi", "--ini", "/opt/chatnoir/wsgi.ini"]
+CMD ["uwsgi", "--ini", "/opt/chatnoir/chatnoir/wsgi.ini"]

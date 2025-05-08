@@ -1,11 +1,52 @@
-**/*.swp
-**/*~
-**/*.directory
-**/__pycache__/
-**/*.pyc
-**/local_settings.py
-*.sqlite3
+### Django
+chatnoir_static
+local_settings.py
+**/db.sqlite3
 
-chatnoir_ui/dist/
-chatnoir_ui/node_modules/
-chatnoir_ui/webpack-stats.json
+### Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.egg-info/
+**/.installed.cfg
+**/*.egg
+**/*.so
+**/MANIFEST
+**/.venv
+**/env/
+**/venv/
+**/wheels/
+**/sdist/
+**/eggs/
+**/.coverage
+**/.coverage.*
+
+### NPM
+**/node_modules/
+**/dist/
+
+### OS-specific
+**/.directory
+**/desktop.ini
+**/Thumbs.db
+**/.DS_Store
+
+### IDEs and temporary files
+**/.idea
+**/.swp
+**/*~
+**/*.tmp
+**/.vscode
+**/*.suo
+**/*.ntvs*
+**/*.njsproj
+**/*.sln
+**/*.sw?
+**/.cache/
+
+### Local env files
+**/.env.local
+**/.env.*.local
+
+### Docker build
+build-docker.sh

@@ -1,20 +1,29 @@
 ### Django
-*.log
-*.pot
-*.pyc
-__pycache__/
-local_settings.py
-secret.py
-db.sqlite3
-media
-venv/
-src/data
 chatnoir_static
+local_settings.py
+db.sqlite3
 
-### NPM, Webpack
-node_modules
+### Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.installed.cfg
+*.egg
+*.so
+MANIFEST
+.venv
+env/
+venv/
+wheels/
+sdist/
+eggs/
+.coverage
+.coverage.*
+
+### NPM
+node_modules/
 dist/
-webpack-stats.json
 
 ### Log files
 npm-debug.log*
@@ -33,6 +42,7 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+.cache/
 
 ### OS-specific
 .directory
