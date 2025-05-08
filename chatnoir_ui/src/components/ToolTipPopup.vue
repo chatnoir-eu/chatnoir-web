@@ -58,7 +58,7 @@ function reposition() {
     const tailOffset = rem2Px(1.3)
     popup.value.style.maxWidth = `${document.documentElement.clientWidth - 2}px`
 
-    let left = props.refElement.offsetLeft - (popup.value.offsetWidth - props.refElement.offsetWidth) / 2
+    let left = props.refElement.offsetLeft - (popup.value.offsetWidth - props.refElement.offsetWidth) / 2 - 1
     let top = props.refElement.offsetTop + props.refElement.offsetHeight + tailOffset
 
     // flip popup if scroll / document height insufficient
@@ -95,7 +95,7 @@ function toggleVisibility(visible) {
     popup.value.style.transition = ''
     const animationClasses = ['opacity-0', 'invisible', '-translate-y-3']
     popup.value.classList.add(...animationClasses)
-    popup.value.style.transition = 'opacity 400ms, visibility 400ms, transform 400ms'
+    popup.value.style.transition = 'opacity 400ms, visibility 400ms, translate 400ms'
 
     if (visible) {
         document.addEventListener('click', closeOnClick, true)
