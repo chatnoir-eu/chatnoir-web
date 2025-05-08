@@ -37,7 +37,7 @@ def app_name():
 @register.simple_tag
 def frontend_scripts():
     static_root = Path(settings.STATIC_ROOT).resolve()
-    assets_dir = static_root / 'assets'
+    assets_dir = static_root / 'ui' / 'assets'
     js = list(assets_dir.glob('index-*.js'))
     css = list(assets_dir.glob('index-*.css'))
 

@@ -13,9 +13,14 @@
 # limitations under the License.
 
 from django.apps import AppConfig
+from django.contrib.staticfiles.apps import StaticFilesConfig
 from django.utils.translation import gettext_lazy as _
 
 
 class ChatnoirWebConfig(AppConfig):
     name = 'chatnoir_frontend'
     verbose_name = _('ChatNoir Web Frontend')
+
+
+class ChatnoirStaticFilesConfig(StaticFilesConfig):
+    ignore_patterns = ['CVS', '.*', '*~', 'ui/index.html']

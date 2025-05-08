@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'chatnoir_frontend.apps.ChatnoirStaticFilesConfig',
     'corsheaders',
     'rest_framework',
     'solo'
@@ -173,7 +173,7 @@ USE_THOUSAND_SEPARATOR = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, '..', 'chatnoir_static')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'chatnoir_frontend', 'static')
+    os.path.join(BASE_DIR, '..', 'chatnoir_ui', 'dist')
 ]
 
 # Elasticsearch backend settings (override me)

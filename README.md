@@ -20,7 +20,7 @@ A static version of the frontend can be built with:
 ```bash
 npm run build
 ```
-The compiled files are written to `chatnoir_ui/dist`. This static version can be used for production deployments, where you want to run only the Django backend server (ideally via uWSGI). See the next section for more information.
+The compiled files are written to `chatnoir_ui/dist/ui`. This static version can be used for production deployments, where you want to run only the Django backend server (ideally via uWSGI). See the next section for more information.
 
 
 ## Run Search Backend
@@ -50,7 +50,7 @@ The `chatnoir-manage` command behaves the same way as Django's default `manage.p
 If you're not using the Vite dev server, compile a static version of the frontend and collect the static files for Django to serve:
 ```bash
 npm run build
-yes yes | chatnoir-manage collectstatic --clear 
+yes yes | poetry run chatnoir-manage collectstatic --clear 
 ```
 
 Finally, start the backend server:
@@ -75,7 +75,8 @@ The `chatnoir-serve` command runs any pending migrations and then loads the defa
 To run any other installed Django app or to pass additional parameters to the server, specify the app name after the `chatnoir-serve` command (note: you have to pass explicit port names to run multiple apps concurrently):
 ```bash
 poetry run chatnoir-serve chatnoir
-poetry run chatnoir-serve chatnoir_admin 8001
-poetry run chatnoir-serve ir_anthology 8002
+poetry run chatnoir-serve web_cache 8001
+poetry run chatnoir-serve chatnoir_admin 8002
+poetry run chatnoir-serve ir_anthology 8003
 ```
 The parameters are the same as for Django's `runserver` command (run `chatnoir-serve APPNAME --help` for more information).

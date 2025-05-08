@@ -48,7 +48,7 @@ import ProgressBar from '@/components/ProgressBar.vue'
 import { SearchModel } from '@/search-model.mjs'
 import { useRoute } from 'vue-router'
 
-import iconChatNoir from '@/assets/img/chatnoir-icon.svg'
+import iconChatNoir from '@/assets/icons/chatnoir.svg'
 
 const route = useRoute()
 const emit = defineEmits(['update:modelValue', 'submit'])

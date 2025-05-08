@@ -30,11 +30,20 @@ def index(request):
     if request.method == 'HEAD':
         return HttpResponse(status=200)
 
+    # Frontend token init request
     if (request.method == 'POST'
             and 'init' in request.GET
             and request.headers.get('X-Requested-With') == 'XMLHttpRequest'):
         return _init_frontend_session(request)
 
+    # Vite dev server CSRF request, we don't need a template for this
+    if (settings.DEBUG
+            and request.method == 'GET'
+            and request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+            and request.headers.get('Origin') in settings.CSRF_TRUSTED_ORIGINS):
+        return HttpResponse(status=200)
+
+    # Regular GET request
     if request.method == 'GET':
         return render(request, 'index.html')
 

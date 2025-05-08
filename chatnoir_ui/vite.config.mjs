@@ -21,5 +21,8 @@ export default defineConfig(({ mode }) => {
         server: {
             port: 5173,
         },
+        build: {
+            outDir: fileURLToPath(new URL('./dist/ui', import.meta.url)),
+        }
     }
 })
