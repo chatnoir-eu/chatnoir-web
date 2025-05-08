@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+from pathlib import Path
 
 from django import template
 from django.conf import settings
@@ -33,16 +34,18 @@ def app_name():
     return settings.APPLICATION_NAME
 
 
-@register.simple_tag(takes_context=True)
-def search_session_apikey(context):
-    """
-    Get a temporary session API key.
-    Using this template tag will invalidate any previous session API key.
-    """
-    apikey = ApiKeyAuthentication.issue_temporary_session_apikey(context['request'], issuer='web_frontend')
-    return mark_safe(json.dumps({
-        'token': apikey.api_key,
-        'timestamp': int(apikey.issue_date.timestamp()),
-        'max_age': int((apikey.expires - apikey.issue_date).total_seconds()) + 1,
-        'quota': apikey.limits_day
-    }))
+@register.simple_tag
+def frontend_scripts():
+    static_root = Path(settings.STATIC_ROOT).resolve()
+    assets_dir = static_root / 'assets'
+    js = list(assets_dir.glob('index-*.js'))
+    css = list(assets_dir.glob('index-*.css'))
+
+    if len(js) != 1 or len(css) != 1:
+        raise IOError('Static frontend asssets not found. Did you run "chatnoir-manage collectstatic --clear"?')
+
+    assets_url = Path(settings.STATIC_URL)
+    return mark_safe('\n'.join([
+        f'<script type="module" src="{assets_url / js[0].relative_to(static_root)}"></script>',
+        f'<link rel="stylesheet" href="{assets_url / css[0].relative_to(static_root)}">'
+    ]))

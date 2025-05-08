@@ -9,7 +9,6 @@
   ],
   "scripts": {
     "serve": "vite serve chatnoir_ui",
-    "preview": "vite preview chatnoir_ui",
     "build": "vite build chatnoir_ui"
   },
   "dependencies": {

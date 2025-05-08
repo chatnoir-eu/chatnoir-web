@@ -8,11 +8,29 @@ import os
 APPLICATION_NAME = 'ChatNoir'
 DEBUG = False
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# HTTP security settings
 ALLOWED_HOSTS = ['*']
 X_FRAME_OPTIONS = 'SAMEORIGIN'
-CSRF_USE_SESSIONS = True
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_NAME = 'csrftoken'
+CSRF_HEADER_NAME = 'HTTP_X_CSRF_TOKEN'
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+        "Accept",
+        "Authorization",
+        "Content-Type",
+        "User-Agent",
+        "X-Requested-With",
+        CSRF_HEADER_NAME[5:].replace('_', '-').title()
+    ]
+CORS_ALLOW_METHODS = ['HEAD', 'GET', 'POST', 'OPTIONS']
 
 # Email settings
 EMAIL_HOST = 'localhost'
@@ -20,6 +38,7 @@ SERVER_EMAIL = 'no-reply@localhost'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_SUBJECT_PREFIX = ''
 MANAGERS = []
+
 
 # Application definition
 INSTALLED_APPS = [

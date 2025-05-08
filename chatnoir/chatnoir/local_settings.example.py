@@ -4,9 +4,8 @@ DEBUG = True
 
 # Allow cross-site requests from dev web frontend for debugging purposes
 if DEBUG:
-    CORS_ALLOWED_ORIGIN_REGEXES = [r'https?://(?:localhost|127\.0\.0\.1):\d+']
-    CORS_ALLOW_CREDENTIALS = True
-    CORS_ALLOW_HEADERS = ['*']
+    CORS_ALLOWED_ORIGIN_REGEXES = ['http://localhost:5173', 'http://127.0.0.1:5173']
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
 
 # Configure email backend
 EMAIL_HOST = 'localhost'

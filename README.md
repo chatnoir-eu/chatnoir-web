@@ -10,15 +10,18 @@ Install dependencies:
 npm install
 ```
 
-For development purposes, it is most convenient to run a Node dev server with auto-reload:
+For development purposes, it is most convenient to run a [Vite](https://vite.dev/) dev server with auto-reload:
 ```bash
 npm run serve
 ```
+The dev server will run at `http://localhost:5173` and send requests to the backend server running at `http://localhost:8000` (see next section).
 
-For production deployments, you want to run only the Django backend server (ideally via uWSGI), in which case you will have to compile a static version of the frontend with:
+A static version of the frontend can be built with:
 ```bash
 npm run build
 ```
+The compiled files are written to `chatnoir_ui/dist`. This static version can be used for production deployments, where you want to run only the Django backend server (ideally via uWSGI). See the next section for more information.
+
 
 ## Run Search Backend
 The backend uses [Poetry](https://python-poetry.org/) as a package manager. If you haven't installed it yet, do that first:
@@ -44,18 +47,23 @@ poetry run chatnoir-manage createsuperuser
 ```
 The `chatnoir-manage` command behaves the same way as Django's default `manage.py` script and should be used in its stead.
 
+If you're not using the Vite dev server, compile a static version of the frontend and collect the static files for Django to serve:
+```bash
+npm run build
+yes yes | chatnoir-manage collectstatic --clear 
+```
+
 Finally, start the backend server:
 ```bash
 poetry run chatnoir-serve
 ```
+The `chatnoir-serve` command runs any pending migrations and then loads the default `chatnoir` Django app. If no other port is given, the server will run at `http://localhost:8000` and serve the static version of the frontend (if compiled), as well as the API backend.
 
-The `chatnoir-serve` command will run any pending migrations and load the default `chatnoir` Django app. The Django server runs by default at `localhost:8000`. If deployed, the Node development server runs at `localhost:8080`. Both serve the same frontend web UI. Although you can access either one, only the Django server will provide the temporary API tokens required for communication between frontend and backend.
 
 ### Hints and Troubleshooting
 
-- Make sure you run both servers either on `localhost` or on `127.0.0.1`, but not on a mixture of the two, which would create CORS issues.
-- If you use the Node dev server and the served website is missing assets (images or CSS), delete `node_modules/.cache` and restart the Node server.
-- The Django server should be used for development only. Production deployments should use uWSGI instead. A `Dockerfile` for a production-ready ChatNoir image is provided in this repository.
+- If you use the Vite dev server, make sure you have configured Django's CORS headers properly (see `local_settings.example.py`).
+- The built-in Django server and the Vite dev server should be used for development only. Production deployments should use uWSGI instead. A `Dockerfile` for a production-ready ChatNoir image is provided in this repository.
 - Instead of using `poetry run`, you can also start an interactive Poetry shell in which you can invoke `chatnoir-serve` or `chatnoir-manage` directly:
   ```bash
   poetry shell

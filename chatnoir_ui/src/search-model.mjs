@@ -15,14 +15,13 @@
  */
 
 
-import axios from "axios";
 import { Mutex } from 'async-mutex'
 import { objSnake2Camel, objCamelToSnake } from '@/common.mjs'
+import xhr from '@/xhr.mjs'
 
 
 const GLOBAL_STATE = {
     apiToken: null,
-    csrfToken: null,
     indices: [],
     counter: -1,
     mutex: new Mutex()
@@ -38,19 +37,17 @@ export async function refreshGlobalState() {
             && GLOBAL_STATE.counter < GLOBAL_STATE.apiToken.quota) {
             return
         }
-        const response = await axios({
+
+        const response = await xhr({
             method: 'POST',
-            url: import.meta.env.VITE_BACKEND_ADDRESS + 'init-state',
+            url: import.meta.env.VITE_BACKEND_ADDRESS + '?init',
             withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            withXSRFToken: true,
         }).catch((e) => {
             throw new Error('Invalid state returned. ' + e)
         })
 
         GLOBAL_STATE.apiToken = ApiToken.fromJSON(response.data.token)
-        GLOBAL_STATE.csrfToken = response.data.csrfToken
         GLOBAL_STATE.indices = IndexDesc.fromJSON(response.data.indices)
         GLOBAL_STATE.counter = 0
     })
@@ -100,16 +97,6 @@ export async function getApiToken() {
 
 
 /**
- * Get the current request CSRF token.
- *
- * @returns {ApiToken} token
- */
-export async function getCsrfToken() {
-    return (await refreshGlobalState()).csrfToken
-}
-
-
-/**
  * Get list of available indices from initial state.
  *
  * @returns {ApiToken} token
@@ -143,12 +130,11 @@ export class SearchModel {
 
     async search(requestOptions) {
         ++GLOBAL_STATE.counter
-        const response = await axios(Object.assign({
+        const response = await xhr(Object.assign({
             method: 'POST',
             url: import.meta.env.VITE_API_BACKEND_ADDRESS +'_search',
             withCredentials: true,
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + (await getApiToken()).token
             },
             data: this.toApiRequestBody(),

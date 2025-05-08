@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import axios from 'axios'
-
 /**
  * Build a query string from a parameter object.
  *

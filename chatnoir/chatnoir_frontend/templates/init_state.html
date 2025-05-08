@@ -1,8 +1,0 @@
-{% load chatnoir_tags %}<script>
-window.DATA = {
-    token: {% search_session_apikey %},
-    timestamp: {% now 'U' %},
-    csrfToken: '{{ csrf_token }}',
-    indices: {{ indices | json | safe }}
-}
-</script>

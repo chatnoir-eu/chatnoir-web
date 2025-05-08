@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    {% load static %}{% load chatnoir_tags %}
     <title>{% app_name %}</title>
     {% include 'include/favicon_head.html' %}
+    {% frontend_scripts %}
 </head>
 <body>
 <noscript>

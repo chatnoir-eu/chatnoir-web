@@ -15,32 +15,34 @@
 import time
 
 from django.conf import settings
-from django.http import HttpResponsePermanentRedirect, JsonResponse
+from django.http import HttpResponsePermanentRedirect, HttpResponseNotAllowed, JsonResponse, HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_safe, require_POST
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, requires_csrf_token
+from django.views.decorators.http import require_safe
 
 from chatnoir_api.authentication import ApiKeyAuthentication
 from chatnoir_search.search import SimpleSearch
 
 
-@require_safe
+@ensure_csrf_cookie
 def index(request):
-    return render(request, 'index.html')
+    if request.method == 'HEAD':
+        return HttpResponse(status=200)
+
+    if (request.method == 'POST'
+            and 'init' in request.GET
+            and request.headers.get('X-Requested-With') == 'XMLHttpRequest'):
+        return _init_frontend_session(request)
+
+    if request.method == 'GET':
+        return render(request, 'index.html')
+
+    return HttpResponseNotAllowed(permitted_methods=['GET'])
 
 
-def _get_indices(request):
-    """List of configured indices."""
-    search = SimpleSearch(indices=request.GET.getlist('index'))
-    selected = search.selected_indices
-    return [{'id': k, 'name': v.get('display_name'), 'selected': k in selected}
-            for k, v in search.allowed_indices.items()]
-
-
-@require_POST
-@csrf_exempt
-def init_state(request):
+@csrf_protect
+def _init_frontend_session(request):
     apikey = ApiKeyAuthentication.issue_temporary_session_apikey(request, issuer='web_frontend')
     return JsonResponse({
         'token': {
@@ -53,6 +55,14 @@ def init_state(request):
         'csrfToken': get_token(request),
         'indices': _get_indices(request)
     })
+
+
+def _get_indices(request):
+    """List of configured indices."""
+    search = SimpleSearch(indices=request.GET.getlist('index'))
+    selected = search.selected_indices
+    return [{'id': k, 'name': v.get('display_name'), 'selected': k in selected}
+            for k, v in search.allowed_indices.items()]
 
 
 @require_safe

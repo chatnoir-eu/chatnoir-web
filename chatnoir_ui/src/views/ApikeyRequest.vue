@@ -165,12 +165,12 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import useVuelidate from '@vuelidate/core'
-import axios from 'axios'
 import { email, helpers, required, requiredIf, sameAs } from '@vuelidate/validators'
+import xhr from '@/xhr.mjs'
 
+import { SearchModel } from '@/search-model.mjs'
 import SearchHeader from '@/components/SearchHeader.vue'
 import ModalDialog from '@/components/ModalDialog.vue'
-import { getCsrfToken, SearchModel } from '@/search-model.mjs'
 import FormField from '@/components/FormField.vue'
 import FormFieldCountry from '@/components/FormFieldCountry.vue'
 import LoadingIndicator from '@/components/LoadingIndicator.vue'
@@ -287,18 +287,19 @@ async function submitForm() {
 
     const requestOptions = {
         method: 'POST',
-        url: route.path,
+        url: import.meta.env.VITE_BACKEND_ADDRESS + route.path,
         headers: {
-            'Content-Type': 'multipart/form-data',
-            'X-CSRFToken': await getCsrfToken()
+            'Content-Type': 'multipart/form-data'
         },
+        withCredentials: true,
+        withXSRFToken: true,
         data: new FormData(requestFormRef.value),
         onDownloadProgress(e) {
             requestProgress.value = Math.max(Math.round((e.loaded * 100) / e.total), requestProgress.value)
         }
     }
 
-    const response = await axios(requestOptions)
+    const response = await xhr(requestOptions)
 
     if (!response.data.valid) {
         Object.keys(response.data.errors).forEach((k) => {
