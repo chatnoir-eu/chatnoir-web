@@ -14,13 +14,7 @@
 
 from hashlib import sha256
 
-from django.core.mail import mail_managers
-from django.http import JsonResponse, Http404
-from django.shortcuts import render, redirect
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
-from django.views.decorators.http import require_http_methods
 import elasticsearch
 from rest_framework import routers, viewsets, exceptions as rest_exceptions
 from rest_framework.request import QueryDict
@@ -28,7 +22,6 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_504_GATEWAY_TIMEOUT
 
 from .authentication import ApiKeyAuthentication, HasKeyCreateRole
-from .forms import KeyRequestForm
 from .metadata import ApiMetadata
 from .serializers import *
 
@@ -332,96 +325,3 @@ class ManageKeysRevokeViewSet(ManageKeysUpdateViewSet):
             'message': _('API key revoked.'),
             'apikey': api_key.api_key
         })
-
-
-@ensure_csrf_cookie
-def apikey_request_index(request):
-    """API key request index view."""
-    return render(request, 'index.html')
-
-
-@ensure_csrf_cookie
-def apikey_request_academic(request):
-    """Request form view for academic API keys."""
-    if request.method == 'GET':
-        return apikey_request_index(request)
-
-    return _apikey_request(request, False)
-
-
-@ensure_csrf_cookie
-def apikey_request_passcode(request):
-    """Request form view for passcode-issued API keys."""
-    if request.method == 'GET':
-        return apikey_request_index(request)
-
-    return _apikey_request(request, True)
-
-
-@csrf_protect
-@require_http_methods(['POST'])
-def _apikey_request(request, passcode):
-    form = KeyRequestForm(request.POST, passcode=passcode)
-
-    if not form.is_valid():
-        return JsonResponse({
-            'valid': False,
-            'errors': form.errors.get_json_data()
-        })
-
-    instance = form.save(commit=False)
-    activation_code = instance.generate_activation_code(save=True)
-    instance.send_verification_mail(
-        request.build_absolute_uri(reverse('chatnoir_api:apikey_request_verify', args=[activation_code])))
-
-    if passcode:
-        return JsonResponse({
-            'valid': True,
-            'message': _('We have received your API key request. To complete the process, '
-                         'please check your inbox and click the activation link contained in the email.')
-        })
-
-    return JsonResponse({
-        'valid': True,
-        'message': _('We have received your API key request and will review your application. '
-                     'If approved, you will receive your API key within the next few days by email.')
-    })
-
-
-def apikey_request_verify_index(request):
-    """User email verification view (default index)."""
-    return render(request, 'index.html')
-
-
-def apikey_request_verify(request, activation_code):
-    """User email verification view."""
-
-    if not activation_code:
-        raise Http404
-
-    user = ApiPendingUser.verify_email_by_activation_code(activation_code)
-    if user is None:
-        # Invalid code
-        return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?error=invalid+code')
-    if user is False:
-        # Already activated
-        return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?already_verified')
-
-    # Activate user instantly if they have a passcode, otherwise notify managers
-    if user.passcode:
-        user.activate(send_email=True)
-    else:
-        mail_context = {
-            'app_name': settings.APPLICATION_NAME,
-            'user': user,
-        }
-        SEND_MAIL_EXECUTOR.submit(mail_managers,
-                                  _('New pending %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
-                                  render_to_string('email/apikey_request_notification.txt', mail_context),
-                                  fail_silently=True
-        )
-
-    query_string = f'?success'
-    if user.passcode:
-        query_string += '&passcode'
-    return redirect(reverse('chatnoir_api:apikey_request_verify_index') + query_string)

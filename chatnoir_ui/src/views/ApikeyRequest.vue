@@ -285,9 +285,10 @@ async function submitForm() {
         return
     }
 
+    console.log(import.meta.env.VITE_BACKEND_ADDRESS + route.path.substring(1))
     const requestOptions = {
         method: 'POST',
-        url: import.meta.env.VITE_BACKEND_ADDRESS + route.path,
+        url: import.meta.env.VITE_BACKEND_ADDRESS + route.path.substring(1),
         headers: {
             'Content-Type': 'multipart/form-data'
         },

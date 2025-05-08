@@ -15,18 +15,29 @@
 import time
 
 from django.conf import settings
-from django.http import HttpResponsePermanentRedirect, HttpResponseNotAllowed, JsonResponse, HttpResponse
+from django.core.mail import mail_managers
+from django.http import HttpResponsePermanentRedirect, HttpResponseNotAllowed, JsonResponse, HttpResponse, Http404
 from django.middleware.csrf import get_token
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, requires_csrf_token
-from django.views.decorators.http import require_safe
+from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
+from django.views.decorators.http import require_safe, require_POST
+from django.utils.translation import gettext_lazy as _
 
 from chatnoir_api.authentication import ApiKeyAuthentication
+from chatnoir_api.forms import KeyRequestForm
+from chatnoir_api.models import ApiPendingUser, SEND_MAIL_EXECUTOR
 from chatnoir_search.search import SimpleSearch
 
 
+# -----------------------
+#    Main index view
+# -----------------------
+
 @ensure_csrf_cookie
 def index(request):
+    """Index view."""
     if request.method == 'HEAD':
         return HttpResponse(status=200)
 
@@ -73,6 +84,94 @@ def _get_indices(request):
     return [{'id': k, 'name': v.get('display_name'), 'selected': k in selected}
             for k, v in search.allowed_indices.items()]
 
+
+# ----------------------------
+#    API key request pages
+# ----------------------------
+
+@ensure_csrf_cookie
+def apikey_request_academic(request):
+    """Request form view for academic API keys."""
+    if request.method == 'GET':
+        return index(request)
+    return _apikey_request(request, False)
+
+
+@ensure_csrf_cookie
+def apikey_request_passcode(request):
+    """Request form view for passcode-issued API keys."""
+    if request.method == 'GET':
+        return index(request)
+    return _apikey_request(request, True)
+
+
+@csrf_protect
+@require_POST
+def _apikey_request(request, passcode):
+    form = KeyRequestForm(request.POST, passcode=passcode)
+
+    if not form.is_valid():
+        return JsonResponse({
+            'valid': False,
+            'errors': form.errors.get_json_data()
+        })
+
+    instance = form.save(commit=False)
+    activation_code = instance.generate_activation_code(save=True)
+    instance.send_verification_mail(
+        request.build_absolute_uri(reverse('chatnoir_api:apikey_request_verify', args=[activation_code])))
+
+    if passcode:
+        return JsonResponse({
+            'valid': True,
+            'message': _('We have received your API key request. To complete the process, '
+                         'please check your inbox and click the activation link contained in the email.')
+        })
+
+    return JsonResponse({
+        'valid': True,
+        'message': _('We have received your API key request and will review your application. '
+                     'If approved, you will receive your API key within the next few days by email.')
+    })
+
+
+@require_safe
+def apikey_request_verify(request, activation_code=None):
+    """User email link verification view."""
+
+    if not activation_code:
+        return index(request)
+
+    user = ApiPendingUser.verify_email_by_activation_code(activation_code)
+    if user is None:
+        # Invalid code
+        return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?error=invalid+code')
+    if user is False:
+        # Already activated
+        return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?already_verified')
+
+    # Activate user instantly if they have a passcode, otherwise notify managers
+    if user.passcode:
+        user.activate(send_email=True)
+    else:
+        mail_context = {
+            'app_name': settings.APPLICATION_NAME,
+            'user': user,
+        }
+        SEND_MAIL_EXECUTOR.submit(mail_managers,
+                                  _('New pending %(appname)s API key request') % {'appname': settings.APPLICATION_NAME},
+                                  render_to_string('email/apikey_request_notification.txt', mail_context),
+                                  fail_silently=True)
+
+    query_string = f'?success'
+    if user.passcode:
+        query_string += '&passcode'
+    return redirect(reverse('chatnoir_api:apikey_request_verify_index') + query_string)
+
+
+# -----------------------
+#    Cache redirect
+# -----------------------
 
 @require_safe
 def cache(request):
