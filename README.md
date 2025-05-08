@@ -62,7 +62,7 @@ The `chatnoir-serve` command runs any pending migrations and then loads the defa
 
 ### Hints and Troubleshooting
 
-- If you use the Vite dev server, make sure you have configured Django's CORS headers properly (see `local_settings.example.py`).
+- If you use the Vite dev server, make sure you have configured Django's `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS` properly (see `local_settings.example.py`).
 - The built-in Django server and the Vite dev server should be used for development only. Production deployments should use uWSGI instead. A `Dockerfile` for a production-ready ChatNoir image is provided in this repository.
 - Instead of using `poetry run`, you can also start an interactive Poetry shell in which you can invoke `chatnoir-serve` or `chatnoir-manage` directly:
   ```bash
