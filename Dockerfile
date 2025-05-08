@@ -12,6 +12,9 @@ RUN set -x \
 
 
 FROM python:3.12
+LABEL org.opencontainers.image.source=https://github.com/chatnoir-eu/chatnoir-web
+LABEL org.opencontainers.image.description="ChatNoir Web Frontend"
+LABEL org.opencontainers.image.licenses=Apache-2.0
 
 # Force UTF-8 locale
 RUN set -x \
