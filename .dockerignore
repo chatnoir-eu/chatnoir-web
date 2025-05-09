@@ -1,6 +1,6 @@
 ### Django
 chatnoir_static
-local_settings.py
+**/local_settings.py
 **/db.sqlite3
 
 ### Python

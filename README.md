@@ -80,3 +80,21 @@ poetry run chatnoir-serve chatnoir_admin 8002
 poetry run chatnoir-serve ir_anthology 8003
 ```
 The parameters are the same as for Django's `runserver` command (run `chatnoir-serve APPNAME --help` for more information).
+
+
+### Run ChatNoir in Docker
+
+You can also run the ChatNoir front- and backend(s) in Docker:
+```bash
+docker run --rm --init -p 8000:8000 ghcr.io/chatnoir-eu/chatnoir-web
+```
+This will run a production-ready uWSGI server inside the container and expose it on port `8000`. Run without additional arguments, the ChatNoir server will have no `local_settings.py`, so requests to it will fail with an error. You can mount a local config into the container like so:
+```bash
+docker run --rm --init -p 8000:8000 \
+    -v $(pwd)/local_settings.py:/opt/chatnoir-web/chatnoir/chatnoir/local_settings.py \
+    ghcr.io/chatnoir-eu/chatnoir-web
+```
+Set the `CHATNOIR_APP` environment variable to start any of the non-default ChatNoir Django apps:
+```bash
+docker run --rm --init -p 8000:8000 -e CHATNOIR_APP=web_cache ghcr.io/chatnoir-eu/chatnoir-web
+```

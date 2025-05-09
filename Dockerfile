@@ -26,20 +26,20 @@ RUN set -x \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
 
 # Install ChatNoir
-COPY pyproject.toml poetry.lock LICENSE README.md /opt/chatnoir/
-COPY chatnoir/ /opt/chatnoir/chatnoir/
-COPY --from=node_build /work/chatnoir_ui/dist/ /opt/chatnoir/chatnoir_ui/dist/
+COPY pyproject.toml poetry.lock LICENSE README.md /opt/chatnoir-web/
+COPY chatnoir/ /opt/chatnoir-web/chatnoir/
+COPY --from=node_build /work/chatnoir_ui/dist/ /opt/chatnoir-web/chatnoir_ui/dist/
 
-WORKDIR /opt/chatnoir/
+WORKDIR /opt/chatnoir-web/
 RUN set -x \
     && groupadd -g 1000 chatnoir \
     && useradd -u 1000 -g chatnoir -d /opt/chatnoir -s /bin/bash chatnoir \
-    && python3 -m pip install --no-cache-dir --break-system-packages --editable /opt/chatnoir/ \
+    && python3 -m pip install --no-cache-dir --break-system-packages --editable /opt/chatnoir-web/ \
     && chatnoir-manage collectstatic \
-    && chown -R chatnoir:chatnoir /opt/chatnoir
+    && chown -R chatnoir:chatnoir /opt/chatnoir-web/
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
 USER chatnoir
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["uwsgi", "--ini", "/opt/chatnoir/chatnoir/wsgi.ini"]
+CMD ["uwsgi", "--ini", "/opt/chatnoir-web/chatnoir/wsgi.ini"]

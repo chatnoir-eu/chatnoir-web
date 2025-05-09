@@ -52,4 +52,5 @@ API_TRUST_X_FORWARDED_FOR = False
 try:
     from .local_settings import *
 except ImportError:
-    raise RuntimeError("Could not find local_settings.py.")
+    import logging
+    logging.getLogger(__name__).error('No local_settings.py found. Loading (insecure) default config.')
