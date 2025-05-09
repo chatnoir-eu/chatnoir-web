@@ -65,13 +65,13 @@
                     <dd>{{ getFullIndexName() }}</dd>
 
                     <dt>Document ID:</dt>
-                    <dd class="font-mono text-2xs"><CopyableStringField>{{ data.uuid }}</CopyableStringField></dd>
+                    <dd class="font-mono text-xs"><CopyableStringField>{{ data.uuid }}</CopyableStringField></dd>
 
                     <dt v-if="data.warcId">WARC ID:</dt>
-                    <dd v-if="data.warcId" class="font-mono text-2xs"><CopyableStringField>{{ data.warcId }}</CopyableStringField></dd>
+                    <dd v-if="data.warcId" class="font-mono text-xs"><CopyableStringField>{{ data.warcId }}</CopyableStringField></dd>
 
                     <dt v-if="data.trecId">TREC ID:</dt>
-                    <dd v-if="data.trecId" class="font-mono text-2xs"><CopyableStringField>{{ data.trecId }}</CopyableStringField></dd>
+                    <dd v-if="data.trecId" class="font-mono text-xs"><CopyableStringField>{{ data.trecId }}</CopyableStringField></dd>
 
                     <dt v-if="data.pageRank">Page Rank:</dt>
                     <dd v-if="data.pageRank">{{ data.pageRank }}</dd>
@@ -190,12 +190,12 @@ function getFullIndexName() {
 
 .meta-details {
     dt {
-        @apply font-bold text-right;
+        @apply font-bold leading-5 text-right;
         @apply float-left w-24 clear-left;
     }
 
     dd {
-        @apply ml-28;
+        @apply ml-28 leading-5;
     }
 }
 </style>
