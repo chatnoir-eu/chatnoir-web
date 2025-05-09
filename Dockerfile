@@ -35,8 +35,13 @@ RUN set -x \
     && groupadd -g 1000 chatnoir \
     && useradd -u 1000 -g chatnoir -d /opt/chatnoir -s /bin/bash chatnoir \
     && python3 -m pip install --no-cache-dir --break-system-packages --editable /opt/chatnoir-web/ \
-    && chatnoir-manage collectstatic \
     && chown -R chatnoir:chatnoir /opt/chatnoir-web/
+
+RUN set -x \
+    && (cd chatnoir \
+        && for s in $(ls **/settings.py); do \
+            yes yes | chatnoir-manage collectstatic --settings "$(echo "$s" | sed 's/\//./g' | sed 's/\.py//')"; done) \
+    && chown -R chatnoir:chatnoir /opt/chatnoir-web/chatnoir_static/
 
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
