@@ -19,7 +19,8 @@
     <div class="max-w-screen-xl mx-auto p-6 pt-7 sm:flex justify-between text-center sm:text-left">
         <div class="mb-3 sm:m-0">
             <span v-for="(item, index) of additionalLinks" :key="item.href">
-                <a class="group" :href="item.href">{{ item.anchor }}</a>
+                <router-link v-if="item.href.fullPath !== undefined" class="group" :to="item.href.fullPath">{{ item.anchor }}</router-link>
+                <a v-else class="group" :href="item.href">{{ item.anchor }}</a>
                 <span v-if="index !== additionalLinks.length - 1" class="sep">•</span>
             </span>
         </div>
