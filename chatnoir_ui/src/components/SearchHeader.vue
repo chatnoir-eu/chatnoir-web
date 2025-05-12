@@ -32,7 +32,7 @@
             </div>
 
             <search-field ref="searchFieldRef" v-model="searchFieldModel" :focus="focus"
-                          @submit="emitSubmit()" @change="$refs.catLogoElement.purr()" />
+                          @submit="submitSearch()" @change="$refs.catLogoElement.purr()" />
         </div>
     </div>
 
@@ -46,11 +46,13 @@ import CatLogo from '@/components/CatLogo.vue';
 import SearchField from '@/components/SearchField.vue';
 import ProgressBar from '@/components/ProgressBar.vue'
 import { SearchModel } from '@/search-model.mjs'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import iconChatNoir from '@/assets/icons/chatnoir.svg'
 
 const route = useRoute()
+const router = useRouter()
+
 const emit = defineEmits(['update:modelValue', 'submit'])
 const props = defineProps({
     action: {type: String, default:''},
@@ -61,13 +63,17 @@ const props = defineProps({
     },
     progress: {type: Number, default: 0},
     focus: {type: Boolean, default: false},
+    noReroute: {type: Boolean, default: false},
 })
 
 const searchFieldRef = ref(null)
 const searchFieldModel = ref(null)
 const requestProgress = ref(0)
 
-async function emitSubmit() {
+async function submitSearch() {
+    if (!props.noReroute) {
+        await router.push({name: 'IndexSearch', query: searchFieldModel.value.toQueryStringObj()})
+    }
     emit('submit', searchFieldModel.value)
 }
 

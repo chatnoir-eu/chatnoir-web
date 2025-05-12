@@ -59,7 +59,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { SearchModel } from '@/search-model.mjs'
 
@@ -68,7 +68,6 @@ import SearchResult from '@/components/SearchResult.vue'
 import Pagination from '@/components/Pagination.vue'
 
 const route = useRoute()
-const router = useRouter()
 
 const searchHeaderRef = ref(null)
 const resultsElement = ref(null)
@@ -128,10 +127,7 @@ async function requestResults() {
 /**
  * Initiate a search request.
  */
-async function search(reroute = true) {
-    if (reroute) {
-        await router.push({name: 'IndexSearch', query: searchModel.value.toQueryStringObj(), hash: route.hash})
-    }
+async function search() {
     if (searchModel.value.query) {
         const results = await requestResults()
         if (Object.keys(results).length === 0) {
@@ -146,6 +142,6 @@ function numFormat(num, opts) {
 }
 
 onMounted(() => {
-    search(false)
+    search()
 })
 </script>

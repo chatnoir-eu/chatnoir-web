@@ -16,7 +16,7 @@
 
 <template>
 <div class="max-w-full px-5">
-    <search-header v-model="searchHeaderModel" :progress="requestProgress" @submit="redirectSearch()" />
+    <search-header v-model="searchHeaderModel" />
 
     <div class="max-w-3xl mx-auto mt-10">
         <div v-if="$route.name === 'ApikeyRequest'">
@@ -223,10 +223,6 @@ const formNameField = ref(null)
 
 function isAcademic() {
     return route.name === 'ApikeyRequest_Academic'
-}
-
-function redirectSearch() {
-    router.push({name: 'IndexSearch', query: searchHeaderModel.value.toQueryStringObj()})
 }
 
 function cancelApplication() {
