@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load chatnoir_tags %}{% load static %}{% block head %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    {% load static %}{% load chatnoir_tags %}
-    <title>{% app_name %}</title>
+    <title>{% block title %}{% app_name %}{% endblock %}</title>
     {% include 'include/favicon_head.html' %}
+    {% endblock %}
     {% frontend_scripts %}
+    {% block head_additional %}{% endblock %}
 </head>
 <body>
-<noscript>
+{% block noscript %}<noscript>
     <strong>We're sorry, but ChatNoir doesn't work properly without JavaScript enabled.
         Please enable it to continue.</strong>
-</noscript>
-<section id="app"></section>
+</noscript>{% endblock %}
+{% block before_app %}{% endblock %}
+{% block app %}<section id="app"></section>{% endblock %}
+{% block after_app %}{% endblock %}
 </body>
 </html>

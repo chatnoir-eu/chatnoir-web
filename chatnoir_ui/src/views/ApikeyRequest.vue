@@ -15,19 +15,19 @@
 -->
 
 <template>
-<div class="max-w-full px-5">
+<div class="search-page">
     <search-header v-model="searchHeaderModel" />
 
-    <div class="max-w-3xl mx-auto mt-10">
+    <div class="search-page-body">
         <div v-if="$route.name === 'ApikeyRequest'">
-            <h1 class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
+            <h1>Request a ChatNoir API key</h1>
 
-            <p class="my-3">Purr&hellip; Thank you for your interest in ChatNoir, we are glad to see you here!</p>
-            <p class="my-3">
+            <p>Purr&hellip; Thank you for your interest in ChatNoir, we are glad to see you here!</p>
+            <p>
                 We offer free API keys for members of verified research institutes. If you qualify for a free API key, you can
                 apply by clicking the button below. We will review your request and you will receive your API key by email once approved.
             </p>
-            <p class="my-3">
+            <p>
                 Alternatively, if you have a ChatNoir passcode, you can use it to issue a (usually time-limited)
                 API key immediately.
             </p>
@@ -39,35 +39,35 @@
         </div>
 
         <div v-else-if="$route.name === 'ApikeyRequest_Academic' || $route.name === 'ApikeyRequest_Passcode'">
-            <h1 class="text-2xl font-bold my-3">Request a ChatNoir API key</h1>
+            <h1>Request a ChatNoir API key</h1>
 
             <div v-if="isAcademic()">
-                <p class="my-3">
+                <p>
                     We offer free API keys for members of verified research institutes for academic use.
                 </p>
-                <p class="my-3">
+                <p>
                     To apply for a free academic API key, please enter your personal details and affiliation below.
                     We will verify your request and you will receive your API key within 1&ndash;2 working days if eligible.
                 </p>
-                <p class="my-3">
+                <p>
                     If you do not qualify for a free API key or need a key for non-academic purposes, please contact us directly,
                     so we can assess your use case and potentially work out an agreement.
                 </p>
             </div>
             <div v-else>
-                <p class="my-3">
+                <p>
                     If you have a ChatNoir passcode, you can use it to issue an API key to yourself. Passcodes are handed out at special
                     events such as shared tasks, so participants can obtain their own personal API keys. API keys issued via
                     passcodes are bound to a specific event and are usually time-limited.
                 </p>
-                <p class="my-3">
+                <p>
                     If you are a shared task organizer yourself and want a passcode for your participants, please contact us by email with details
                     about your task and we will be more than happy to help you out.
                 </p>
             </div>
 
-            <h2 v-if="isAcademic()" class="text-lg font-bold mt-8 mb-4">API key request form (academic):</h2>
-            <h2 v-else class="text-lg font-bold mt-8 mb-4">API key request form (passcode):</h2>
+            <h2 v-if="isAcademic()">API key request form (academic):</h2>
+            <h2 v-else>API key request form (passcode):</h2>
 
             <form ref="requestFormRef" action="" method="post" novalidate class="sm:ml-1 mb-20" @submit.prevent="submitForm()">
                 <form-field ref="formNameField" v-model="form.commonName" name="common_name"
@@ -115,16 +115,16 @@
         </div>
 
         <div v-else-if="$route.name === 'ApikeyRequest_Received'">
-            <h1 class="text-2xl font-bold my-3">Thank you!</h1>
-            <p class="my-3">
+            <h1>Thank you!</h1>
+            <p>
                 {{ $route.meta.message }}
             </p>
         </div>
 
         <div v-else-if="$route.name === 'ApikeyRequest_Verified'">
             <div v-if="$route.query.success !== undefined">
-                <h1 class="text-2xl font-bold my-3">Email verified</h1>
-                <p class="my-3">Thanks! Your email has been verified.</p>
+                <h1>Email verified</h1>
+                <p>Thanks! Your email has been verified.</p>
                 <p v-if="$route.query.passcode !== undefined">
                     Your new API key has been sent to you by email. If you do not receive a message within the next few
                     minutes, please check your spam folder.
@@ -134,12 +134,12 @@
                 </p>
             </div>
             <div v-else-if="$route.query.already_verified !== undefined">
-                <h1 class="text-2xl font-bold my-3">No need :-)</h1>
-                <p class="my-3">Your email address has been verified already.</p>
+                <h1>No need :-)</h1>
+                <p>Your email address has been verified already.</p>
             </div>
             <div v-else>
                 <h1 class="text-2xl font-bold my-3">Error!</h1>
-                <p class="my-3">
+                <p>
                     Your email address could not be verified<span v-if="$route.query.error"> ({{ $route.query.error }})</span>.
                 </p>
             </div>
@@ -281,7 +281,6 @@ async function submitForm() {
         return
     }
 
-    console.log(import.meta.env.VITE_BACKEND_ADDRESS + route.path.substring(1))
     const requestOptions = {
         method: 'POST',
         url: import.meta.env.VITE_BACKEND_ADDRESS + route.path.substring(1),

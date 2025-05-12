@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-@import 'tailwindcss';
 
 @utility btn {
     @apply shadow-xs;
@@ -270,4 +269,21 @@
 
 @utility fade-leave-to {
     opacity: 0;
+}
+
+@utility search-page {
+    @apply max-w-full;
+    @apply px-5;
+}
+
+@utility search-page-body {
+    @apply max-w-3xl;
+    @apply mx-auto;
+    @apply mt-10 mb-20;
+}
+
+@utility code-block {
+    @apply bg-gray-100 border-1 border-gray-200;
+    @apply my-3 py-3 px-4;
+    @apply rounded-lg;
 }

@@ -20,7 +20,7 @@ from django.http import HttpResponsePermanentRedirect, HttpResponseNotAllowed, J
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
-from django.urls import reverse
+from django.urls import resolve, reverse
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 from django.views.decorators.http import require_safe, require_POST
 from django.utils.translation import gettext_lazy as _
@@ -167,6 +167,17 @@ def apikey_request_verify(request, activation_code=None):
     if user.passcode:
         query_string += '&passcode'
     return redirect(reverse('chatnoir_api:apikey_request_verify_index') + query_string)
+
+
+# -----------------------
+#        API Docs
+# -----------------------
+@require_safe
+def docs(request):
+    url_name = resolve(request.path_info).url_name
+    if url_name in ['docs_index', 'docs_api_general', 'docs_api_advanced', 'docs_api_advanced_management']:
+        return render(request, f'docs/{url_name[5:]}.html')
+    raise Http404
 
 
 # -----------------------

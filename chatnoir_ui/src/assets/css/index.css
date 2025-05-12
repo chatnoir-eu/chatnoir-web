@@ -15,7 +15,10 @@
  */
 @import './fonts.css';
 @import './theme.css';
+
+@import 'tailwindcss' source('../../../../');
 @import './utilities.css';
+@import './components.css';
 
 @layer base {
     *,

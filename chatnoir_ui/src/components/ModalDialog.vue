@@ -22,7 +22,7 @@
              @click.self="cancel()" @keyup.enter="confirm()" @keyup.esc="cancel()">
             <section ref="modalMain" tabindex="-1" class="bg-white rounded-md -mt-28 mx-auto shadow-sm overscroll-auto flex flex-col outline-hidden">
                 <header class="h-4 flex flex-row border-b border-gray-200 rounded-t-lg bg-gray-100 mb-4 pt-4 pb-9 px-6">
-                    <h2 class="flex-grow text-lg font-bold"><slot name="header" /></h2>
+                    <h2 class="flex-grow text-lg font-bold m-0"><slot name="header" /></h2>
                     <button ref="closeButton" title="Close"
                             class="text-gray-700 -mr-1 h-6 w-6 ml-6 align-middle text-center border-2 border-transparent rounded-full
                             outline-hidden hover:text-red-600 focus:text-red-600 hover:border-red-600 focus:border-red-600"

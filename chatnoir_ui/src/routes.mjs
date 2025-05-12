@@ -25,13 +25,23 @@ export default createRouter({
             component: () => import('@/views/IndexSearch.vue')
         },
         {
+            path: '/docs/',
+            name: 'Docs',
+            component: () => import('@/views/Docs.vue'),
+            alias: [
+                '/docs/api-general',
+                '/docs/api-advanced',
+                '/docs/api-advanced/management',
+            ]
+        },
+        {
             path: '/apikey/',
             name: 'ApikeyRequest',
             component: () => import('@/views/ApikeyRequest.vue'),
             children: [
-                { path: 'request_academic', name: 'ApikeyRequest_Academic', component: () => import('@/views/ApikeyRequest.vue')},
-                { path: 'request_passcode', name: 'ApikeyRequest_Passcode', component: () => import('@/views/ApikeyRequest.vue')},
-                { path: 'request_received', name: 'ApikeyRequest_Received', component: () => import('@/views/ApikeyRequest.vue')},
+                { path: 'request-academic', name: 'ApikeyRequest_Academic', component: () => import('@/views/ApikeyRequest.vue')},
+                { path: 'request-passcode', name: 'ApikeyRequest_Passcode', component: () => import('@/views/ApikeyRequest.vue')},
+                { path: 'request-received', name: 'ApikeyRequest_Received', component: () => import('@/views/ApikeyRequest.vue')},
                 { path: 'verify/:activation_code?', name: 'ApikeyRequest_Verified', component: () => import('@/views/ApikeyRequest.vue')},
             ]
         }

@@ -1,0 +1,251 @@
+{% extends "../index.html" %}
+{% load chatnoir_tags %}
+{% block title %}{% app_name %} API Documentation: General Search API{% endblock %}
+{% block after_app %}
+    <template id="doc">
+        <h1 class="h1">General Search API</h1>
+
+        <p>ChatNoir exposes its search interface via a REST API which you can use in
+            your own software to query search results programmatically.</p>
+
+        <p>To access the REST API, an API key is required, which we issue upon request to
+            interested parties.</p>
+
+        <h2 class="h2">Indices</h2>
+        <p>At the moment we provide three different indices to search from:</p>
+
+        - [ClueWeb09](https://lemurproject.org/clueweb09/) (short name: *cw09*)
+        - [ClueWeb12](http://lemurproject.org/clueweb12/) (short name: *cw12*)
+        - [CommonCrawl 11/2015](https://commoncrawl.org/2015/11/) (short name: *cc1511*)
+
+        <h2 class="h2">API Basics</h2>
+        <p>The current API version is provided at <code>/api/v1/</code>. Search requests can be sent as either
+        <code>GET<code> or </code>POST<code> requests and parameters can be passed either via the </code>GET</code> query
+            string or as a JSON object in the <code>POST</code> body.</p>
+
+        <p>A list of values can be specified in a <code>GET</code> query string by separating values
+            with commas.</p>
+
+        <p>All requests take the <strong>required</strong> <code>apikey</code> parameter and the optional boolean
+            parameter <code>pretty</code> to format the response in a more human-readable way.</p>
+
+        <p>For example, the following two API requests are equivalent:</p>
+
+        <pre class="code-block"><code>GET /api/v1/_search?apikey=<strong>$APIKEY</strong>&query=hello%20world&amp;index=cw09,cw12&amp;pretty</code></pre>
+
+        <pre class="code-block"><code>POST /api/v1/_search
+{
+  "apikey": "<strong>$APIKEY</strong>",
+  "query": "hello world",
+  "index": ["cw09", "cw12"],
+  "pretty": true
+}</code></pre>
+
+        <p>It is also possible to mix both forms. If parameters conflict, the <code>POST</code> body
+            parameter takes precedence.</p>
+
+        <h2 class="h2">Simple Search</h2>
+        <p>The default search module provides a flexible and generic search interface,
+            which supports the standard operators known from other web search services.</p>
+
+        <p>The simple module is the same module that our end-user web search services uses.
+        That means you can use all operators supported by the web interface (*AND* , *OR*,
+            *-*, *"…"*, *site:…* etc.) also in your API query string.</p>
+
+        <h3>API Endpoint:</h3>
+        <p>The API endpoint for the simple search module is: <code>/api/v1/_search</code>.</p>
+
+        <h3>Parameters:</h3>
+        <ul class="list-disc list-inside">
+            <li><code>query<code>, </code>q</code>: query string (<strong>required</strong>)</li>
+            <li><code>index</code>: list of indices to search (see above)</li>
+            <li><code>from</code>: result pagination begin</li>
+            <li><code>size</code>: number of results per page</li>
+            <li><code>explain</code>: return additional scoring information (boolean flag)</li>
+        </ul>
+
+        <h3>Response Data:</h3>
+        <ul>
+            <li><code>meta</code>: global result meta information
+                <ul>
+                    <li><code>query_time</code>: query time in milliseconds</li>
+                    <li><code>total_results</code>: number of total hits</li>
+                    <li><code>indices</code>: list of indices that were searched</li>
+                </ul>
+            </li>
+            <li><code>results</code>: list of search results
+                <ul>
+                    <li>each entry has the following properties:
+                        <ul>
+                            <li><code>score</code>: ranking score of this result</li>
+                            <li><code>uuid</code>: Webis UUID of this document</li>
+                            <li><code>index</code>: index the document was retrieved from</li>
+                            <li><code>trec_id<code>: TREC ID of the result if available (</code>null</code> otherwise)</li>
+                            <li><code>target_hostname</code>: web host this document was crawled from</li>
+                            <li><code>target_uri</code>: full web URI</li>
+                            <li><code>page_rank<code>: page rank of this document if available (</code>null</code> otherwise)</li>
+                            <li><code>spam_rank<code>: spam rank of this document if available (</code>null</code> otherwise)</li>
+                            <li><code>title</code>: document title with highlights</li>
+                            <li><code>snippet</code>: document body snippet with highlights</li>
+                            <li><code>explanation<code>: additional scoring information if </code>explain<code> was set to </code>true</code></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>Example:</h3>
+        <h4>Request:</h4>
+        <pre class="code-block"><code>POST /api/v1/_search
+{
+  "apikey": "<strong>$APIKEY</strong>",
+  "query": "hello world",
+  "index": ["cw12", "cc1511"],
+  "size": 1,
+  "pretty": true
+}</code></pre>
+
+        <h4>Response:</h4>
+        <pre class="code-block"><code>{
+  "meta" : {
+    "query_time" : 345,
+    "total_results" : 5740000,
+    "indices" : [
+      "cw12",
+      "cc1511"
+    ]
+  },
+  "results" : [
+    {
+      "score" : 621.297,
+      "uuid" : "e635baa8-7341-596a-b3cf-b33c05954361",
+      "index" : "cc1511",
+      "trec_id" : null,
+      "target_hostname" : "www.perlmonks.org",
+      "target_uri" : "http://www.perlmonks.org/index.pl?node=329174",
+      "page_rank" : null,
+      "spam_rank" : null,
+      "title" : "<em>hello</em> <em>world</em>",
+      "snippet" : "Wowjust . wow.you could make a poster out of that and sell quite a few i bet. A T-Shirt of this would rock. And it&amp;#x27;d save me the trouble of stapling multiple posters together to wear. :) Very cool script! How mean, we beginners just figure out how to write the &amp;quot;<em>hello</em> <em>world</em>&amp;quot; script the",
+      "explanation" : null
+    }
+  ]
+}</code></pre>
+
+        <h2>Phrase Search</h2>
+        <p>The phrase search module can be used to retrieve snippets containing certain
+            fixed phrases from our indices.</p>
+
+        <h3>API Endpoint:</h3>
+        <p>The API endpoint for the phrase search module is: <code>/api/v1/_phrases</code>.</p>
+
+        <h3>Parameters:</h3>
+        <ul class="list-disc list-inside">
+            <li><code>query<code>, </code>q</code>: query phrase string (<strong>required</strong>)</li>
+            <li><code>slop</code>: how far terms in a phrase may be apart (valid values: 0, 1, 2; default: 0)</li>
+            <li><code>index</code>: list of indices to search (see above)</li>
+            <li><code>from</code>: result pagination begin</li>
+            <li><code>size</code>: number of results per page</li>
+            <li><code>minimal<code>: reduce result list to </code>score<code>, </code>uuid<code>, </code>target_uri<code> and </code>snippet</code> for each</li>
+            <li>hit (boolean flag)</li>
+            <li><code>explain</code>: return additional scoring information (boolean flag)</li>
+        </ul>
+
+        <h3>Response Data:</h3>
+        <ul>
+            <li><code>meta</code>: global result meta information
+                <ul>
+                    <li><code>query_time</code>: query time in milliseconds</li>
+                    <li><code>total_results</code>: number of total hits</li>
+                    <li><code>indices</code>: list of indices that were searched</li>
+                </ul>
+            <li><code>results</code>: list of search results
+                <ul>
+                    <li>each entry has the following properties:
+                        <ul>
+                            <li><code>score</code>: ranking score of this result</li>
+                            <li><code>uuid</code>: Webis UUID of this document</li>
+                            <li><code>index</code>: index the document was retrieved from *</li>
+                            <li><code>trec_id<code>: TREC ID of the result if available (</code>null</code> otherwise) *</li>
+                            <li><code>target_hostname</code>: web host this document was crawled from *</li>
+                            <li><code>target_uri</code>: full web URI</li>
+                            <li><code>page_rank<code>: page rank of this document if available (</code>null</code> otherwise) *</li>
+                            <li><code>spam_rank<code>: spam rank of this document if available (</code>null</code> otherwise) *</li>
+                            <li><code>title</code>: document title with highlights *</li>
+                            <li><code>snippet</code>: document body snippet with highlights</li>
+                            <li><code>explanation<code>: additional scoring information if </code>explain<code> was set to </code>true</code> **</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <p>* field is not returned if <code>minimal</code> is set.<br>
+            ** <code>explanation<code> is only returned if </code>minimal<code> is not set or </code>explain<code> is </code>true</code>.</p>
+
+        <h3>Example:</h3>
+        <h4>Request:</h4>
+        <pre class="code-block"><code>POST /api/v1/_phrases
+{
+  "apikey": "<strong>$APIKEY</strong>",
+  "query": "hello world",
+  "index": ["cw12", "cc1511"],
+  "size": 1,
+  "pretty": true,
+  "minimal": true
+}</code></pre>
+
+        <h4>Response:</h4>
+        <pre class="code-block"><code>{
+  "meta" : {
+    "query_time" : 575,
+    "total_results" : 267741,
+    "indices" : [
+      "cw12",
+      "cc1511"
+    ]
+  },
+  "results" : [
+    {
+      "score" : 194.76102,
+      "uuid" : "caccc982-ed46-51c6-a935-1d91fefbc166",
+      "target_uri" : "http://cboard.cprogramming.com/brief-history-cprogramming-com/46831-hello-world.html",
+      "snippet" : "This is a discussion on <em>Hello</em> <em>World</em>! within the A Brief History of Cprogramming.com forums, part of the Community Boards category; <em>Hello</em> <em>World</em>! I thought people might find this link intresting, it&amp;#x27;s a collection of how to say <em>Hello</em> <em>World</em> in . <em>Hello</em> <em>World</em>! I thought people might find this link"
+    }
+  ]
+}</code></pre>
+
+        <h2>Retrieving Full Documents</h2>
+        <p>The full HTML contents of a search result can be retrieved from</p>
+
+        <pre class="code-block"><code>GET /cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw</code></pre>
+
+        <p>where <code><strong>$UUID</strong></code> is the document's UUID as returned by the search API and <code><strong>$INDEX</strong></code>
+            is the index name this document is from. No API key is required for this request.</p>
+
+        <p>By default, the returned HTML contents are post-processed in order to rewrite links, stylesheet URLs, meta tags, etc.
+            If you want the original, unaltered HTML body, add the <code>no-rewrite</code> parameter to the URL:</p>
+
+        <pre class="code-block"><code>GET /cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw&amp;no-rewrite</code></pre>
+
+        <p>A plain text rendering with basic HTML-subset formatting can be retrieved by adding the <code>plain</code> parameter.</p>
+
+        <pre class="code-block"><code>GET /cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw&amp;plain</code></pre>
+
+        <h3>Document UUIDs</h3>
+
+        <p>Document UUIDs are derived from the original crawl's internal document IDs as follows:</p>
+
+        <pre class="code-block"><code>UUID := UUID5(UUID::NameSpace_URL, $PREFIX + ":" + $ID)</code></pre>
+
+        <p><code>UUID::NameSpace_URL</code> is the pre-defined URL namespace <code>6ba7b811-9dad-11d1-80b4-00c04fd430c8</code>
+            (see: [RFC4122](https://tools.ietf.org/html/rfc4122#appendix-C)) and <code>$PREFIX</code> is a corpus-specific prefix
+            (currently: <code>clueweb09</code>, <code>clueweb12</code>, or <code>commoncrawl</code>).</p>
+
+        <p>For documents from one of the ClueWebs, <code>$ID</code> is the document's TREC-ID. For the Common Crawls, it is the value of the <code>WARC-Record-ID</code> header.</p>
+
+        <p>For convenience, ClueWeb documents can also be retrieved directly by their TREC ID:</p>
+
+        <pre class="code-block"><code>GET /cache?trec-id=<strong>$TREC-ID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw</code></pre>
+    </template>
+{% endblock %}

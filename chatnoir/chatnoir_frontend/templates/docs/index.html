@@ -1,0 +1,19 @@
+{% extends "../index.html" %}
+{% load chatnoir_tags %}
+{% block title %}{% app_name %} API Documentation{% endblock %}
+{% block after_app %}
+    <template id="doc">
+        <h1 class="h1">{% app_name %}  API Documentation</h1>
+
+        <p>The following API documentation resources are available:</p>
+
+        <ul class="list-disc list-inside my-4">
+            <li><a href="{% url "chatnoir_frontend:docs_api_general" %}">General Search API</a></li>
+            <li><a href="{% url "chatnoir_frontend:docs_api_advanced" %}">Advanced API</a>
+                <ul class="list-disc list-inside ml-6">
+                    <li><a href="{% url "chatnoir_frontend:docs_api_advanced_management" %}">Management API</a></li>
+                </ul>
+            </li>
+        </ul>
+    </template>
+{% endblock %}

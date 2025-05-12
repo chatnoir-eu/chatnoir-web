@@ -10,6 +10,7 @@
         :additional-links="[
             {href: 'https://webis.de/publications.html?q=bevendorff_2018', anchor: 'Cite'},
             {href: $router.resolve({name: 'ApikeyRequest'}), anchor: 'Request API Key'},
+            {href: $router.resolve({name: 'Docs'}), anchor: 'API Documentation'},
         ]"
     />
 </section>
@@ -18,11 +19,9 @@
 <script setup>
 import { onMounted } from 'vue'
 import WebisFooter from '@/components/WebisFooter.vue'
-import {useRouter} from "vue-router";
-const router = useRouter()
+
 onMounted(() => {
     // Hide browser address bar
     setTimeout(() => window.scrollTo(0, 1), 0)
-    console.log(router.resolve({name: 'Docs'}))
 })
 </script>
