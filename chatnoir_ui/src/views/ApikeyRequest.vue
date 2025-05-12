@@ -33,8 +33,8 @@
             </p>
 
             <div class="my-10 text-center">
-                <button class="btn input-xl primary mx-4" @click="$router.push({name: 'ApikeyRequest_Academic'})">Apply for a free API key</button>
-                <button class="btn input-xl mx-4" @click="$router.push({name: 'ApikeyRequest_Passcode'})">I have a passcode</button>
+                <button class="btn input-xl primary mx-4 my-2" @click="$router.push({name: 'ApikeyRequest_Academic'})">Apply for a free API key</button>
+                <button class="btn input-xl mx-4 my-2" @click="$router.push({name: 'ApikeyRequest_Passcode'})">I have a passcode</button>
             </div>
         </div>
 
@@ -106,9 +106,9 @@
                 </form-field>
 
                 <div class="my-10">
-                    <input v-if="isAcademic()" type="submit" value="Request Academic API Key" class="btn input-lg primary mr-4">
-                    <input v-else type="submit" value="Request API Key" class="btn input-lg primary mr-4">
-                    <button class="btn input-lg" @click.prevent="cancelModalState = true">Cancel and Go Back</button>
+                    <input v-if="isAcademic()" type="submit" value="Request Academic API Key" class="btn input-lg primary mr-4 mb-4">
+                    <input v-else type="submit" value="Request API Key" class="btn input-lg primary mr-4 mb-4">
+                    <button class="btn input-lg mb-4" @click.prevent="cancelModalState = true">Cancel and Go Back</button>
                     <loading-indicator v-if="requestProgress > 0" class="ml-3" />
                 </div>
             </form>
@@ -153,8 +153,8 @@
         <div class="m-3">
             <p>Do you want to discard all input and cancel the application process?</p>
             <div class="text-center mt-6">
-                <button class="btn input-lg mx-2" @click.prevent="cancelApplication()">Cancel Application</button>
-                <button class="btn primary input-lg mx-2" @click.prevent="cancelModal()">Go Back To Form</button>
+                <button class="btn input-lg mx-2 mb-4" @click.prevent="cancelApplication()">Cancel Application</button>
+                <button class="btn primary input-lg mx-2 mb-4" @click.prevent="cancelModal()">Go Back To Form</button>
             </div>
         </div>
     </modal-dialog>
