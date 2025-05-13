@@ -39,5 +39,6 @@ onMounted(async () => {
         )).data.querySelector('#doc')
     }
     docComponent.value.appendChild(docTemplate.content)
+    docTemplate.remove()
 })
 </script>

@@ -10,7 +10,7 @@
         :additional-links="[
             {href: 'https://webis.de/publications.html?q=bevendorff_2018', anchor: 'Cite'},
             {href: $router.resolve({name: 'ApikeyRequest'}), anchor: 'Request API Key'},
-            {href: $router.resolve({name: 'Docs'}), anchor: 'API Documentation'},
+            {href: $router.resolve({name: 'Docs'}).fullPath, anchor: 'API Documentation'},
         ]"
     />
 </section>
