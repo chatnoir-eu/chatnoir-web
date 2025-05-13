@@ -166,7 +166,7 @@ class SimpleSearchViewSet(ApiViewSet):
         except elasticsearch.ConnectionTimeout:
             raise rest_exceptions.APIException(_('The search backend took too long to respond.',
                                                  code=HTTP_504_GATEWAY_TIMEOUT), 'timeout')
-        serp_ctx = serp_ctx.to_dict(results=True, meta=True, extended_meta=params.data.get('extended_meta', False))
+        serp_ctx = serp_ctx.to_dict(results=True, meta=True, extended_meta=params.data.get('_extended_meta', False))
 
         if hasattr(search_obj, 'search_method') and 'meta' in serp_ctx:
             serp_ctx['meta']['search_method'] = search_obj.search_method

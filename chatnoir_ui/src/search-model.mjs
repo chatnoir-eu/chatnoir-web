@@ -168,7 +168,7 @@ export class SearchModel {
             index: this.selectedIndices().map((e) => e.id),
             from: Math.max(0, this.page - 1) * this.pageSize,
             size: this.pageSize,
-            extendedMeta: true,
+            _extendedMeta: true,
             ... additionalFields
         })
     }

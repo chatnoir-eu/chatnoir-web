@@ -49,6 +49,12 @@ class ApiSerializer(serializers.Serializer):
         """
         return {k.rstrip('_'): v for k, v in super().get_fields().items()}
 
+    def get_initial(self):
+        """
+        :return: fields for web form display with private fields (starting with '_') stripped
+        """
+        return {k: v for k, v in super().get_initial().items() if not k.startswith('_')}
+
 
 class ApiModelSerializer(ApiSerializer, serializers.ModelSerializer):
     pass
@@ -115,7 +121,7 @@ class SimpleSearchRequestSerializer(AuthenticatedApiSerializer):
         default=False,
         help_text=_('Return additional scoring information')
     )
-    extended_meta = ImplicitBooleanField(
+    _extended_meta = ImplicitBooleanField(
         required=False,
         default=False,
         help_text=_('Return extended meta data')
