@@ -1,6 +1,7 @@
 FROM node:24 as node_build
 
 COPY package.* /work/
+COPY chatnoir/ /work/chatnoir/
 COPY chatnoir_ui/ /work/chatnoir_ui/
 
 # Build frontend in temporary stage
