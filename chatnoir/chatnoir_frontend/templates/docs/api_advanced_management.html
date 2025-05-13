@@ -70,26 +70,26 @@
 
         <h4>Response:</h4>
         <pre class="code-block"><code>{
-  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$APIKEY</strong>"</span>,
-  <span class="text-purple-600">"expires"</span>: <span class="text-red-400">"2026-11-14T12:05:37.95"</span>,
-  <span class="text-purple-600">"revoked"</span>: <span class="text-blue-500">false</span>,
-  <span class="text-purple-600">"user"</span>: {
-    <span class="text-purple-600">"common_name"</span>: <span class="text-red-400">"John Doe"</span>,
-    <span class="text-purple-600">"email"</span>: <span class="text-red-400">"john@example.com"</span>,
-    <span class="text-purple-600">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
-    <span class="text-purple-600">"address"</span>: <span class="text-red-400">"Example Address"</span>,
-    <span class="text-purple-600">"zip_code"</span>: <span class="text-red-400">"00000"</span>,
-    <span class="text-purple-600">"state"</span>: <span class="text-red-400">"TH"</span>,
-    <span class="text-purple-600">"country"</span>: <span class="text-red-400">"DE"</span>
+  <span class="text-violet-500">"apikey"</span>: <span class="text-red-400">"<strong>$APIKEY</strong>"</span>,
+  <span class="text-violet-500">"expires"</span>: <span class="text-red-400">"2026-11-14T12:05:37.95"</span>,
+  <span class="text-violet-500">"revoked"</span>: <span class="text-teal-600">false</span>,
+  <span class="text-violet-500">"user"</span>: {
+    <span class="text-violet-500">"common_name"</span>: <span class="text-red-400">"John Doe"</span>,
+    <span class="text-violet-500">"email"</span>: <span class="text-red-400">"john@example.com"</span>,
+    <span class="text-violet-500">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
+    <span class="text-violet-500">"address"</span>: <span class="text-red-400">"Example Address"</span>,
+    <span class="text-violet-500">"zip_code"</span>: <span class="text-red-400">"00000"</span>,
+    <span class="text-violet-500">"state"</span>: <span class="text-red-400">"TH"</span>,
+    <span class="text-violet-500">"country"</span>: <span class="text-red-400">"DE"</span>
   },
-  <span class="text-purple-600">"roles"</span>: [],
-  <span class="text-purple-600">"remote_hosts"</span>: [],
-  <span class="text-purple-600">"limits"</span>: {
-    <span class="text-purple-600">"week"</span>: <span class="text-blue-500">10000</span>,
-    <span class="text-purple-600">"month"</span>: <span class="text-blue-500">70000</span>,
-    <span class="text-purple-600">"day"</span>: <span class="text-blue-500">310000</span>
+  <span class="text-violet-500">"roles"</span>: [],
+  <span class="text-violet-500">"remote_hosts"</span>: [],
+  <span class="text-violet-500">"limits"</span>: {
+    <span class="text-violet-500">"week"</span>: <span class="text-teal-600">10000</span>,
+    <span class="text-violet-500">"month"</span>: <span class="text-teal-600">70000</span>,
+    <span class="text-violet-500">"day"</span>: <span class="text-teal-600">310000</span>
   },
-  <span class="text-purple-600">"comment"</span>: <span class="text-red-400">""</span>
+  <span class="text-violet-500">"comment"</span>: <span class="text-red-400">""</span>
 }</code></pre>
 
 
@@ -147,30 +147,30 @@
         <h4>Request:</h4>
         <pre class="code-block"><code><span class="text-green-600 font-bold">POST</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_manage_keys/create?pretty</span>
 {
-  <span class="text-purple-600">"user"</span>: {
-    <span class="text-purple-600">"common_name"</span>: <span class="text-red-400">"Jane Doe"</span>,
-    <span class="text-purple-600">"email"</span>: <span class="text-red-400">"jane@example.com"</span>,
-    <span class="text-purple-600">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
-    <span class="text-purple-600">"address"</span>: <span class="text-red-400">"Example Address"</span>,
-    <span class="text-purple-600">"zip_code"</span>: <span class="text-red-400">"12345"</span>,
-    <span class="text-purple-600">"state"</span>: <span class="text-red-400">"TH"</span>,
-    <span class="text-purple-600">"country"</span>: <span class="text-red-400">"DE"</span>
+  <span class="text-violet-500">"user"</span>: {
+    <span class="text-violet-500">"common_name"</span>: <span class="text-red-400">"Jane Doe"</span>,
+    <span class="text-violet-500">"email"</span>: <span class="text-red-400">"jane@example.com"</span>,
+    <span class="text-violet-500">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
+    <span class="text-violet-500">"address"</span>: <span class="text-red-400">"Example Address"</span>,
+    <span class="text-violet-500">"zip_code"</span>: <span class="text-red-400">"12345"</span>,
+    <span class="text-violet-500">"state"</span>: <span class="text-red-400">"TH"</span>,
+    <span class="text-violet-500">"country"</span>: <span class="text-red-400">"DE"</span>
   },
-  <span class="text-purple-600">"roles"</span>: [],
-  <span class="text-purple-600">"remote_hosts"</span>: [],
-  <span class="text-purple-600">"limits"</span>: {
-    <span class="text-purple-600">"week"</span>: <span class="text-blue-500">100</span>,
-    <span class="text-purple-600">"month"</span>: <span class="text-blue-500">300</span>,
-    <span class="text-purple-600">"day"</span>: <span class="text-blue-500">1000</span>
+  <span class="text-violet-500">"roles"</span>: [],
+  <span class="text-violet-500">"remote_hosts"</span>: [],
+  <span class="text-violet-500">"limits"</span>: {
+    <span class="text-violet-500">"week"</span>: <span class="text-teal-600">100</span>,
+    <span class="text-violet-500">"month"</span>: <span class="text-teal-600">300</span>,
+    <span class="text-violet-500">"day"</span>: <span class="text-teal-600">1000</span>
   },
-  <span class="text-purple-600">"expires"</span>: <span class="text-red-400">"2026-01-01T00:00:00Z"</span>,
-  <span class="text-purple-600">"comment"</span>: <span class="text-red-400">""</span>
+  <span class="text-violet-500">"expires"</span>: <span class="text-red-400">"2026-01-01T00:00:00Z"</span>,
+  <span class="text-violet-500">"comment"</span>: <span class="text-red-400">""</span>
 }</code></pre>
 
         <h4>Response:</h4>
         <pre class="code-block"><code>{
-  <span class="text-purple-600">"message"</span>: <span class="text-red-400">"API key created."</span>,
-  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$APIKEY</strong>"</span>
+  <span class="text-violet-500">"message"</span>: <span class="text-red-400">"API key created."</span>,
+  <span class="text-violet-500">"apikey"</span>: <span class="text-red-400">"<strong>$APIKEY</strong>"</span>
 }</code></pre>
 
 
@@ -227,30 +227,30 @@
         <h4>Request:</h4>
         <pre class="code-block"><code><span class="text-green-600 font-bold">PUT</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_manage_keys/update/<strong>$TARGET_APIKEY</strong>?pretty</span>
 {
-  <span class="text-purple-600">"user"</span>: {
-    <span class="text-purple-600">"common_name"</span>: <span class="text-red-400">"Jane Doe"</span>,
-    <span class="text-purple-600">"email"</span>: <span class="text-red-400">"jane@example.com"</span>,
-    <span class="text-purple-600">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
-    <span class="text-purple-600">"address"</span>: <span class="text-red-400">"Example Address"</span>,
-    <span class="text-purple-600">"zip_code"</span>: <span class="text-red-400">"12345"</span>,
-    <span class="text-purple-600">"state"</span>: <span class="text-red-400">"TH"</span>,
-    <span class="text-purple-600">"country"</span>: <span class="text-red-400">"DE"</span>
+  <span class="text-violet-500">"user"</span>: {
+    <span class="text-violet-500">"common_name"</span>: <span class="text-red-400">"Jane Doe"</span>,
+    <span class="text-violet-500">"email"</span>: <span class="text-red-400">"jane@example.com"</span>,
+    <span class="text-violet-500">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
+    <span class="text-violet-500">"address"</span>: <span class="text-red-400">"Example Address"</span>,
+    <span class="text-violet-500">"zip_code"</span>: <span class="text-red-400">"12345"</span>,
+    <span class="text-violet-500">"state"</span>: <span class="text-red-400">"TH"</span>,
+    <span class="text-violet-500">"country"</span>: <span class="text-red-400">"DE"</span>
   },
-  <span class="text-purple-600">"roles"</span>: [],
-  <span class="text-purple-600">"remote_hosts"</span>: [],
-  <span class="text-purple-600">"limits"</span>: {
-    <span class="text-purple-600">"week"</span>: <span class="text-blue-500">100</span>,
-    <span class="text-purple-600">"month"</span>: <span class="text-blue-500">300</span>,
-    <span class="text-purple-600">"day"</span>: <span class="text-blue-500">1000</span>
+  <span class="text-violet-500">"roles"</span>: [],
+  <span class="text-violet-500">"remote_hosts"</span>: [],
+  <span class="text-violet-500">"limits"</span>: {
+    <span class="text-violet-500">"week"</span>: <span class="text-teal-600">100</span>,
+    <span class="text-violet-500">"month"</span>: <span class="text-teal-600">300</span>,
+    <span class="text-violet-500">"day"</span>: <span class="text-teal-600">1000</span>
   },
-  <span class="text-purple-600">"expires"</span>: <span class="text-red-400">"2026-01-01T00:00:00Z"</span>,
-  <span class="text-purple-600">"comment"</span>: <span class="text-red-400">""</span>
+  <span class="text-violet-500">"expires"</span>: <span class="text-red-400">"2026-01-01T00:00:00Z"</span>,
+  <span class="text-violet-500">"comment"</span>: <span class="text-red-400">""</span>
 }</code></pre>
 
         <h4>Response:</h4>
         <pre class="code-block"><code>{
-  <span class="text-purple-600">"message"</span>: <span class="text-red-400">"API key updated."</span>,
-  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$TARGET_APIKEY</strong>"</span>
+  <span class="text-violet-500">"message"</span>: <span class="text-red-400">"API key updated."</span>,
+  <span class="text-violet-500">"apikey"</span>: <span class="text-red-400">"<strong>$TARGET_APIKEY</strong>"</span>
 }</code></pre>
 
 
@@ -286,8 +286,8 @@
 
         <h4>Response:</h4>
         <pre class="code-block"><code>{
-  <span class="text-purple-600">"message"</span>: <span class="text-red-400">"API key revoked."</span>,
-  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$TARGET_APIKEY</strong>"</span>
+  <span class="text-violet-500">"message"</span>: <span class="text-red-400">"API key revoked."</span>,
+  <span class="text-violet-500">"apikey"</span>: <span class="text-red-400">"<strong>$TARGET_APIKEY</strong>"</span>
 }</code></pre>
 
     </template>

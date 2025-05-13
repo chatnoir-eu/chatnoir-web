@@ -46,16 +46,16 @@
 <hr class="my-4"><code><span class="text-green-600 font-bold">GET</span> <span class="text-gray-600">/api/v1/_search?apikey=<strong>$APIKEY</strong>&query=hello%20world&amp;index=cw12,cw22&amp;pretty</span></code>
 <hr class="my-4"><code><span class="text-green-600 font-bold">POST</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_search</span>
 {
-  <span class="text-purple-600">"query"</span>: <span class="text-red-400">"hello world"</span>,
-  <span class="text-purple-600">"index"</span>: [<span class="text-red-400">"cw12"</span>, <span class="text-red-400">"cw22"</span>],
-  <span class="text-purple-600">"pretty"</span>: <span class="text-blue-500">true</span>
+  <span class="text-violet-500">"query"</span>: <span class="text-red-400">"hello world"</span>,
+  <span class="text-violet-500">"index"</span>: [<span class="text-red-400">"cw12"</span>, <span class="text-red-400">"cw22"</span>],
+  <span class="text-violet-500">"pretty"</span>: <span class="text-teal-600">true</span>
 }</code>
 <hr class="my-4"><code><span class="text-green-600 font-bold">POST</span> <span class="text-gray-600">/api/v1/_search</span>
 {
-  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$APIKEY</strong>"</span>,
-  <span class="text-purple-600">"query"</span>:<span class="text-red-400"> "hello world"</span>,
-  <span class="text-purple-600">"index"</span>: [<span class="text-red-400">"cw12"</span>, <span class="text-red-400">"cw22"</span>],
-  <span class="text-purple-600">"pretty"</span>: <span class="text-blue-500">true</span>
+  <span class="text-violet-500">"apikey"</span>: <span class="text-red-400">"<strong>$APIKEY</strong>"</span>,
+  <span class="text-violet-500">"query"</span>:<span class="text-red-400"> "hello world"</span>,
+  <span class="text-violet-500">"index"</span>: [<span class="text-red-400">"cw12"</span>, <span class="text-red-400">"cw22"</span>],
+  <span class="text-violet-500">"pretty"</span>: <span class="text-teal-600">true</span>
 }</code></pre>
 
         <p>The parameter <code>pretty[=true]</code> can be added to all requests to return the response in a more human-readable format. The parameter <code>minimal[=true]</code> reduces fields in the returned result list to a minimal set.</p>
@@ -121,40 +121,40 @@
         <h4>Request:</h4>
         <pre class="code-block"><code><span class="text-green-600 font-bold">POST</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_search</span>
 {
-  <span class="text-purple-600">"query"</span>: <span class="text-red-400">"hello world"</span>,
-  <span class="text-purple-600">"index"</span>: [<span class="text-red-400">"cw12"</span>, <span class="text-red-400">"cw22"</span>],
-  <span class="text-purple-600">"size"</span>: <span class="text-blue-500">1</span>,
-  <span class="text-purple-600">"pretty"</span>: <span class="text-blue-500">true</span>
+  <span class="text-violet-500">"query"</span>: <span class="text-red-400">"hello world"</span>,
+  <span class="text-violet-500">"index"</span>: [<span class="text-red-400">"cw12"</span>, <span class="text-red-400">"cw22"</span>],
+  <span class="text-violet-500">"size"</span>: <span class="text-teal-600">1</span>,
+  <span class="text-violet-500">"pretty"</span>: <span class="text-teal-600">true</span>
 }</code></pre>
 
         <h4>Response:</h4>
         <pre class="code-block"><code>{
-  <span class="text-purple-600">"meta"</span>: {
-    <span class="text-purple-600">"indices"</span>: [
+  <span class="text-violet-500">"meta"</span>: {
+    <span class="text-violet-500">"indices"</span>: [
       <span class="text-red-400">"cw12"</span>,
       <span class="text-red-400">"cw22"</span>
     ],
-    <span class="text-purple-600">"query_time"</span>: <span class="text-blue-500">345</span>,
-    <span class="text-purple-600">"total_results"</span>: <span class="text-blue-500">4778601</span>,
-    <span class="text-purple-600">"search_method"</span>: <span class="text-red-400">"default"</span>
+    <span class="text-violet-500">"query_time"</span>: <span class="text-teal-600">345</span>,
+    <span class="text-violet-500">"total_results"</span>: <span class="text-teal-600">4778601</span>,
+    <span class="text-violet-500">"search_method"</span>: <span class="text-red-400">"default"</span>
   },
-  <span class="text-purple-600">"results"</span> : [
+  <span class="text-violet-500">"results"</span> : [
     {
-      <span class="text-purple-600">"index"</span>: <span class="text-red-400">"cw22"</span>,
-      <span class="text-purple-600">"uuid"</span>: <span class="text-red-400">"UvPR6h5AWnCcnGoQSTQZTw"</span>,
-      <span class="text-purple-600">"warc_id"</span>: <span class="text-red-400">"d80b9e3a-204e-44a2-9758-6906df5906e2"</span>,
-      <span class="text-purple-600">"trec_id"</span>: <span class="text-red-400">"clueweb22-en0044-06-02359"</span>,
-      <span class="text-purple-600">"score"</span>: <span class="text-blue-500">1937.0731</span>,
-      <span class="text-purple-600">"target_uri"</span>: <span class="text-red-400">"https://helloworldbookblog.com/"</span>,
-      <span class="text-purple-600">"cache_uri"</span>: <span class="text-red-400">"https://chatnoir-webcontent.web.webis.de?index=cw22&uuid=UvPR6h5AWnCcnGoQSTQZTw"</span>,
-      <span class="text-purple-600">"target_hostname"</span>: <span class="text-red-400">"helloworldbookblog.com"</span>,
-      <span class="text-purple-600">"crawl_date"</span>: <span class="text-red-400">"2022-08-28T06:21:41"</span>,
-      <span class="text-purple-600">"page_rank"</span>: <span class="text-blue-500">null</span>,
-      <span class="text-purple-600">"spam_rank"</span>: <span class="text-blue-500">null</span>,
-      <span class="text-purple-600">"title"</span>: <span class="text-red-400">"&lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;World&lt;/em&gt;!"</span>,
-      <span class="text-purple-600">"snippet"</span>: <span class="text-red-400">"&lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;World&lt;/em&gt;!\n&lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;World&lt;/em&gt;!
+      <span class="text-violet-500">"index"</span>: <span class="text-red-400">"cw22"</span>,
+      <span class="text-violet-500">"uuid"</span>: <span class="text-red-400">"UvPR6h5AWnCcnGoQSTQZTw"</span>,
+      <span class="text-violet-500">"warc_id"</span>: <span class="text-red-400">"d80b9e3a-204e-44a2-9758-6906df5906e2"</span>,
+      <span class="text-violet-500">"trec_id"</span>: <span class="text-red-400">"clueweb22-en0044-06-02359"</span>,
+      <span class="text-violet-500">"score"</span>: <span class="text-teal-600">1937.0731</span>,
+      <span class="text-violet-500">"target_uri"</span>: <span class="text-red-400">"https://helloworldbookblog.com/"</span>,
+      <span class="text-violet-500">"cache_uri"</span>: <span class="text-red-400">"https://chatnoir-webcontent.web.webis.de?index=cw22&uuid=UvPR6h5AWnCcnGoQSTQZTw"</span>,
+      <span class="text-violet-500">"target_hostname"</span>: <span class="text-red-400">"helloworldbookblog.com"</span>,
+      <span class="text-violet-500">"crawl_date"</span>: <span class="text-red-400">"2022-08-28T06:21:41"</span>,
+      <span class="text-violet-500">"page_rank"</span>: <span class="text-teal-600">null</span>,
+      <span class="text-violet-500">"spam_rank"</span>: <span class="text-teal-600">null</span>,
+      <span class="text-violet-500">"title"</span>: <span class="text-red-400">"&lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;World&lt;/em&gt;!"</span>,
+      <span class="text-violet-500">"snippet"</span>: <span class="text-red-400">"&lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;World&lt;/em&gt;!\n&lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;World&lt;/em&gt;!
 Welcome to the home page for our book: &lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;World&lt;/em&gt;! Computer Programming for Kids and Other Beginners. Here you can find out more about the authors, download the installer that you need to use with the book, or contact us if you’re having trouble!"</span>,
-      <span class="text-purple-600">"lang"</span>: <span class="text-red-400">"en"</span>
+      <span class="text-violet-500">"lang"</span>: <span class="text-red-400">"en"</span>
     }
   ]
 }</code></pre>
@@ -215,32 +215,32 @@ Welcome to the home page for our book: &lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;Worl
         <h4>Request:</h4>
         <pre class="code-block"><code><span class="text-green-600 font-bold">POST</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_phrases</span>
 {
-  <span class="text-purple-600">"query"</span>: <span class="text-red-400">"hello world"</span>,
-  <span class="text-purple-600">"index"</span>: [<span class="text-red-400">"cw12"</span>, <span class="text-red-400">"cw22"</span>],
-  <span class="text-purple-600">"size"</span>: <span class="text-blue-500">1</span>,
-  <span class="text-purple-600">"pretty"</span>: <span class="text-blue-500">true</span>,
-  <span class="text-purple-600">"minimal"</span>: <span class="text-blue-500">true</span>
+  <span class="text-violet-500">"query"</span>: <span class="text-red-400">"hello world"</span>,
+  <span class="text-violet-500">"index"</span>: [<span class="text-red-400">"cw12"</span>, <span class="text-red-400">"cw22"</span>],
+  <span class="text-violet-500">"size"</span>: <span class="text-teal-600">1</span>,
+  <span class="text-violet-500">"pretty"</span>: <span class="text-teal-600">true</span>,
+  <span class="text-violet-500">"minimal"</span>: <span class="text-teal-600">true</span>
 }</code></pre>
 
         <h4>Response:</h4>
         <pre class="code-block"><code>{
-  <span class="text-purple-600">"meta"</span>: {
-    <span class="text-purple-600">"indices"</span>: [
+  <span class="text-violet-500">"meta"</span>: {
+    <span class="text-violet-500">"indices"</span>: [
       <span class="text-red-400">"cw12"</span>,
       <span class="text-red-400">"cw22"</span>
     ],
-    <span class="text-purple-600">"query_time"</span>: <span class="text-blue-500">2715</span>,
-    <span class="text-purple-600">"total_results"</span>: <span class="text-blue-500">279558,</span>
-    <span class="text-purple-600">"search_method"</span>: <span class="text-red-400">"default"</span>
+    <span class="text-violet-500">"query_time"</span>: <span class="text-teal-600">2715</span>,
+    <span class="text-violet-500">"total_results"</span>: <span class="text-teal-600">279558,</span>
+    <span class="text-violet-500">"search_method"</span>: <span class="text-red-400">"default"</span>
   },
-  <span class="text-purple-600">"results"</span> : [
+  <span class="text-violet-500">"results"</span> : [
     {
-      <span class="text-purple-600">"index"</span>: <span class="text-red-400">"cw22"</span>,
-      <span class="text-purple-600">"uuid"</span>: <span class="text-red-400">"IGkZcCgcXO6PmRw89ztvFg"</span>,
-      <span class="text-purple-600">"score"</span>: <span class="text-blue-500">1450.2303</span>,
-      <span class="text-purple-600">"target_uri"</span>: <span class="text-red-400">"https://www.worldofhello.org/"</span>,
-      <span class="text-purple-600">"title"</span>: <span class="text-red-400">"&lt;em&gt;WORLD&lt;/em&gt; of &lt;em&gt;HELLO&lt;/em&gt; - &lt;em&gt;World&lt;/em&gt; of &lt;em&gt;Hello&lt;/em&gt;"</span>,
-      <span class="text-purple-600">"snippet"</span>: <span class="text-red-400">"WORLD of &lt;em&gt;HELLO&lt;/em&gt; - &lt;em&gt;World&lt;/em&gt; of &lt;em&gt;Hello&lt;/em&gt;\n&lt;em&gt;World&lt;/em&gt; of Hello\nBETA\nWorld of Hello - Promo\nWatch on\nDownload Here\nDownload now on Android, iOS, and Windows devices!\nWe&#x27;re getting ready for the Web release!\nWorld of Hello has been quickly expanding -- and it shows!"</span>
+      <span class="text-violet-500">"index"</span>: <span class="text-red-400">"cw22"</span>,
+      <span class="text-violet-500">"uuid"</span>: <span class="text-red-400">"IGkZcCgcXO6PmRw89ztvFg"</span>,
+      <span class="text-violet-500">"score"</span>: <span class="text-teal-600">1450.2303</span>,
+      <span class="text-violet-500">"target_uri"</span>: <span class="text-red-400">"https://www.worldofhello.org/"</span>,
+      <span class="text-violet-500">"title"</span>: <span class="text-red-400">"&lt;em&gt;WORLD&lt;/em&gt; of &lt;em&gt;HELLO&lt;/em&gt; - &lt;em&gt;World&lt;/em&gt; of &lt;em&gt;Hello&lt;/em&gt;"</span>,
+      <span class="text-violet-500">"snippet"</span>: <span class="text-red-400">"WORLD of &lt;em&gt;HELLO&lt;/em&gt; - &lt;em&gt;World&lt;/em&gt; of &lt;em&gt;Hello&lt;/em&gt;\n&lt;em&gt;World&lt;/em&gt; of Hello\nBETA\nWorld of Hello - Promo\nWatch on\nDownload Here\nDownload now on Android, iOS, and Windows devices!\nWe&#x27;re getting ready for the Web release!\nWorld of Hello has been quickly expanding -- and it shows!"</span>
     }
   ]
 }</code></pre>
@@ -268,7 +268,7 @@ Welcome to the home page for our book: &lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;Worl
 
         <p>Document UUIDs are derived from the original crawl's internal document IDs as follows:</p>
 
-        <pre class="code-block"><code><span class="text-blue-500">DOC_UUID</span> := <span class="text-green-600">URLSAFE_BASE64</span>(<span class="text-green-600">UUID5</span>(<span class="text-purple-600">UUID</span>::<span class="text-gray-600">Namespace_URL</span>, <span class="text-blue-500">$PREFIX</span> + <span class="text-red-400">":"</span> + <span class="text-blue-500">$ID</span>))[:-2]</code></pre>
+        <pre class="code-block"><code><span class="text-teal-600">DOC_UUID</span> := <span class="text-green-600">URLSAFE_BASE64</span>(<span class="text-green-600">UUID5</span>(<span class="text-violet-500">UUID</span>::<span class="text-gray-600">Namespace_URL</span>, <span class="text-teal-600">$PREFIX</span> + <span class="text-red-400">":"</span> + <span class="text-teal-600">$ID</span>))[:<span class="text-teal-600">-2</span>]</code></pre>
 
         <p><code>UUID::Namespace_URL</code> is the pre-defined URL namespace <code>hex:6ba7b811-9dad-11d1-80b4-00c04fd430c8</code>
             (see <a href="https://tools.ietf.org/html/rfc4122#appendix-C" target="_blank">RFC4122</a> for more information) and <code>$PREFIX</code> is a corpus-specific prefix
