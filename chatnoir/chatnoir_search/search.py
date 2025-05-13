@@ -166,6 +166,11 @@ class SimpleSearch(SearchBase):
     SEARCH_VERSION = 1
 
     """
+    Available retrieval model implementation.
+    """
+    SEARCH_METHODS = ['default', 'bm25']
+
+    """
     Available user query filters.
     
     Assumes string matching by default. Add "<>" to the name to enable numeric range queries (e.g. "year<>").
@@ -275,6 +280,8 @@ class SimpleSearch(SearchBase):
 
     def __init__(self, indices=None, search_from=0, num_results=10, explain=False, search_method='default'):
         super().__init__(indices, search_from, num_results, explain)
+        if search_method not in self.SEARCH_METHODS:
+            raise ValueError(f'Invalid search method "{search_method}"')
         self.search_method = search_method
         if not self.search_method:
             self.search_method = self.default_search_method

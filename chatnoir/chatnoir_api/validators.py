@@ -14,20 +14,12 @@
 
 from ipaddress import ip_network
 
-from django.conf import settings
 from rest_framework.serializers import ValidationError
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 
-from .models import ApiKey, ApiKeyRole, ApiConfiguration
-
-
-def validate_index_names(index_names, search_version=1):
-    for i in index_names:
-        if i not in settings.SEARCH_INDICES or \
-                search_version not in settings.SEARCH_INDICES[i]['compat_search_versions']:
-            raise ValidationError({'index': _('"%s" is not a valid index.') % i}, 'invalid_index')
+from .models import ApiKey, ApiKeyRole
 
 
 def validate_cidr_address(address):

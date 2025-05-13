@@ -13,12 +13,14 @@
 # limitations under the License.
 
 from functools import partial
+import json
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from .models import *
 from .validators import *
+from chatnoir_search.search import SimpleSearch
 
 
 class OptionalListField(serializers.ListField):
@@ -69,11 +71,16 @@ class SimpleSearchRequestSerializer(AuthenticatedApiSerializer):
         help_text=_('Search query')
     )
     index = OptionalListField(
-        child=serializers.CharField(),
+        child=serializers.ChoiceField(
+            error_messages={
+                'invalid_choice': _('"{input}" is not a valid search index (valid indices: %s).') % (
+                    json.dumps(SimpleSearch.SEARCH_METHODS))},
+            choices=[k for k, v in settings.SEARCH_INDICES.items()
+                     if SimpleSearch.SEARCH_VERSION in v['compat_search_versions']]
+        ),
         required=False,
         initial=[k for k, v in settings.SEARCH_INDICES.items() if v.get('default')],
         default=[k for k, v in settings.SEARCH_INDICES.items() if v.get('default')],
-        validators=(validate_index_names,),
         help_text=_('Index name or list of index names to search')
     )
     from_ = serializers.IntegerField(
@@ -88,8 +95,15 @@ class SimpleSearchRequestSerializer(AuthenticatedApiSerializer):
         default=10,
         help_text=_('Number of results per page')
     )
-    search_method = serializers.CharField(
-        required=False, default=None
+    search_method = serializers.ChoiceField(
+        SimpleSearch.SEARCH_METHODS,
+        error_messages={
+            'invalid_choice': _('"{input}" is not a valid search method (valid methods: %s).') % (
+                json.dumps(SimpleSearch.SEARCH_METHODS))},
+        required=False,
+        default=SimpleSearch.SEARCH_METHODS[0],
+        initial=SimpleSearch.SEARCH_METHODS[0],
+        help_text=_("Search method implementation"),
     )
     minimal = ImplicitBooleanField(
         required=False,

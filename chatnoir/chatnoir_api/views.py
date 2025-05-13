@@ -168,7 +168,7 @@ class SimpleSearchViewSet(ApiViewSet):
                                                  code=HTTP_504_GATEWAY_TIMEOUT), 'timeout')
         serp_ctx = serp_ctx.to_dict(results=True, meta=True, extended_meta=params.data.get('extended_meta', False))
 
-        if hasattr(search_obj, 'search_method') and  'meta' in serp_ctx:
+        if hasattr(search_obj, 'search_method') and 'meta' in serp_ctx:
             serp_ctx['meta']['search_method'] = search_obj.search_method
 
         return Response(serp_ctx)
@@ -177,7 +177,11 @@ class SimpleSearchViewSet(ApiViewSet):
         params = SimpleSearchRequestSerializer(data=self._get_request_params(request))
         params.is_valid(raise_exception=True)
         validated = params.validated_data
-        search = SimpleSearch(validated['index'], validated['from'], validated['size'], validated['explain'], validated.get('search_method'))
+        search = SimpleSearch(validated['index'],
+                              validated['from'],
+                              validated['size'],
+                              validated['explain'],
+                              validated.get('search_method'))
         search.minimal_response = validated['minimal']
         return self._process_search(search, request, params)
 
