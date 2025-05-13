@@ -1,0 +1,294 @@
+{% extends "../index.html" %}
+{% load chatnoir_tags %}
+{% block title %}{% app_name %} API Documentation: Advanced API{% endblock %}
+{% block after_app %}
+    <template id="doc">
+        <nav aria-label="Breadcrumb" class="text-sm border-b-1 pb-1">
+            <a href="{% url 'chatnoir_frontend:docs_index' %}">ChatNoir API Documentation</a> »
+            <a href="{% url 'chatnoir_frontend:docs_api_advanced' %}">Advanced API</a> »
+            API Key Management
+        </nav>
+
+
+        <h1>API Key Management</h1>
+        <p>The API key management main endpoint is: <code>/api/v1/_manage_keys</code></p>
+
+        <p>This endpoint can be used by privileged clients to view or update stored information for an API key and issue new keys.
+        Authentication works the same way as for the <a href="{% url "chatnoir_frontend:docs_api_general" %}">search API</a>. That is,
+        you can either supply a bearer token via an <code>Authorization</code> header (recommended) or add an <code>apikey</code>
+        parameter to your requests.</p>
+
+        <p>You can add the parameter <code>pretty[=true]</code> to your requests to get a more human-readable response format.</p>
+
+        <h2>Query API Key User Info</h2>
+        <p>By sending an authenticated <code>GET</code> request to the management API main endpoint, you can retrieve the stored
+            user information for this API key.</p>
+
+        <h3 class="mt-3">Endpoint Action:</h3>
+        <p class="ml-4"><em>None</em></p>
+
+        <h3 class="mt-3">Required Roles:</h3>
+        <p class="ml-4"><em>None</em></p>
+
+        <h3 class="mt-3">Allowed Methods:</h3>
+        <p class="ml-4"><code>GET</code></p>
+
+        <h3 class="mt-3">Parameters:</h3>
+        <p class="ml-4"><em>None</em></p>
+
+        <h3 class="mt-3">Response Data:</h3>
+        <ul class="my-3 ml-4">
+            <li><code class="font-bold">apikey</code>: API key which this info is for</li>
+            <li><code class="font-bold">expires</code>: expiry date of this key as ISO datetime (<code>null</code> for no expiration)</li>
+            <li><code class="font-bold">revoked</code>: whether this key has been revoked</li>
+            <li><code class="font-bold">user</code>:
+                <ul class="ml-4">
+                    <li><code class="font-bold">common_name</code>: user's full name</li>
+                    <li><code class="font-bold">email</code>: user's email address</li>
+                    <li><code class="font-bold">organization</code>: user's organization</li>
+                    <li><code class="font-bold">address</code>: user's postal address</li>
+                    <li><code class="font-bold">zip_code</code>: user's ZIP code</li>
+                    <li><code class="font-bold">state</code>: user's state or province</li>
+                    <li><code class="font-bold">country</code>: user's country code</li>
+                </ul>
+            </li>
+            <li><code class="font-bold">roles</code>: list of assigned user roles</li>
+            <li><code class="font-bold">remote_hosts</code>: allowed remote IP addresses for this key (empty list if no restriction applies)</li>
+            <li><code class="font-bold">limits</code>:
+                <ul class="ml-4">
+                    <li><code class="font-bold">day</code>: daily API request limit (<code>-1</code> for unlimited)</li>
+                    <li><code class="font-bold">week</code>: weekly API request limit (<code>-1</code> for unlimited)</li>
+                    <li><code class="font-bold">month</code>: monthly API request limit (<code>-1</code> for unlimited)</li>
+                </ul>
+            </li>
+            <li><code class="font-bold">comment</code>: optional comment stored with the key</li>
+        </ul>
+
+        <h3 class="mt-3">Example:</h3>
+        <h4>Request:</h4>
+        <pre class="code-block"><code><span class="text-green-600 font-bold">GET</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_manage_keys?pretty</span></code></pre>
+
+        <h4>Response:</h4>
+        <pre class="code-block"><code>{
+  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$APIKEY</strong>"</span>,
+  <span class="text-purple-600">"expires"</span>: <span class="text-red-400">"2026-11-14T12:05:37.95"</span>,
+  <span class="text-purple-600">"revoked"</span>: <span class="text-blue-500">false</span>,
+  <span class="text-purple-600">"user"</span>: {
+    <span class="text-purple-600">"common_name"</span>: <span class="text-red-400">"John Doe"</span>,
+    <span class="text-purple-600">"email"</span>: <span class="text-red-400">"john@example.com"</span>,
+    <span class="text-purple-600">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
+    <span class="text-purple-600">"address"</span>: <span class="text-red-400">"Example Address"</span>,
+    <span class="text-purple-600">"zip_code"</span>: <span class="text-red-400">"00000"</span>,
+    <span class="text-purple-600">"state"</span>: <span class="text-red-400">"TH"</span>,
+    <span class="text-purple-600">"country"</span>: <span class="text-red-400">"DE"</span>
+  },
+  <span class="text-purple-600">"roles"</span>: [],
+  <span class="text-purple-600">"remote_hosts"</span>: [],
+  <span class="text-purple-600">"limits"</span>: {
+    <span class="text-purple-600">"week"</span>: <span class="text-blue-500">10000</span>,
+    <span class="text-purple-600">"month"</span>: <span class="text-blue-500">70000</span>,
+    <span class="text-purple-600">"day"</span>: <span class="text-blue-500">310000</span>
+  },
+  <span class="text-purple-600">"comment"</span>: <span class="text-red-400">""</span>
+}</code></pre>
+
+
+        <h2>Issue a New API Key</h2>
+        <p>By sending a <code>POST</code> request to the <code>/create</code> action of the management endpoint, you can issue a new API key.</p>
+
+        <p><strong>Note:</strong> You cannot assign request limits to the new API key that would exceed
+            your own limits. Similarly, you cannot assign user roles to the new key which you don't belong to.
+            If you pass <code>null</code> values as request limits, the new key will inherit your current request limits.</p>
+
+        <p>You can assign an optional expiry date to the key, but it cannot be further in the future than your own key's expiry date.</p>
+
+        <h3 class="mt-3">Endpoint Action:</h3>
+        <p class="ml-4"><code>/create</code></p>
+
+        <h3 class="mt-3">Required Roles:</h3>
+        <p class="ml-4"><em>keycreate</em></p>
+
+        <h3 class="mt-3">Allowed Methods:</h3>
+        <p class="ml-4"><code>POST</code></p>
+
+        <h3 class="mt-3">Parameters:</h3>
+        <ul class="my-3 ml-4">
+            <li><code class="font-bold">user</code>:
+                <ul class="ml-4">
+                    <li><code class="font-bold">common_name</code>: user's full name (<strong>required</strong>)</li>
+                    <li><code class="font-bold">email</code>: user's email address (<strong>required</strong>)</li>
+                    <li><code class="font-bold">organization</code>: user's organization</li>
+                    <li><code class="font-bold">address</code>: user's postal address</li>
+                    <li><code class="font-bold">zip_code</code>: user's ZIP code</li>
+                    <li><code class="font-bold">state</code>: user's state or province</li>
+                    <li><code class="font-bold">country</code>: user's country code</li>
+                </ul>
+            </li>
+            <li><code class="font-bold">roles</code>: list of assigned user roles</li>
+            <li><code class="font-bold">remote_hosts</code>: allowed remote IP addresses for this key (empty list if no restriction applies)</li>
+            <li><code class="font-bold">limits</code>:
+                <ul class="ml-4">
+                    <li><code class="font-bold">day</code>: daily API request limit (<code>-1</code> for unlimited)</li>
+                    <li><code class="font-bold">week</code>: weekly API request limit (<code>-1</code> for unlimited)</li>
+                    <li><code class="font-bold">month</code>: monthly API request limit (<code>-1</code> for unlimited)</li>
+                </ul>
+            </li>
+            <li><code class="font-bold">expires</code>: optional expiry date of this key as ISO datetime</li>
+            <li><code class="font-bold">comment</code>: optional comment stored with the key</li>
+        </ul>
+
+        <h3 class="mt-3">Response Data:</h3>
+        <ul class="my-3 ml-4">
+            <li><code class="font-bold">message</code>: human-readable status message</li>
+            <li><code class="font-bold">apikey</code>: newly issued API key</li>
+        </ul>
+
+        <h3 class="mt-3">Example:</h3>
+        <h4>Request:</h4>
+        <pre class="code-block"><code><span class="text-green-600 font-bold">POST</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_manage_keys/create?pretty</span>
+{
+  <span class="text-purple-600">"user"</span>: {
+    <span class="text-purple-600">"common_name"</span>: <span class="text-red-400">"Jane Doe"</span>,
+    <span class="text-purple-600">"email"</span>: <span class="text-red-400">"jane@example.com"</span>,
+    <span class="text-purple-600">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
+    <span class="text-purple-600">"address"</span>: <span class="text-red-400">"Example Address"</span>,
+    <span class="text-purple-600">"zip_code"</span>: <span class="text-red-400">"12345"</span>,
+    <span class="text-purple-600">"state"</span>: <span class="text-red-400">"TH"</span>,
+    <span class="text-purple-600">"country"</span>: <span class="text-red-400">"DE"</span>
+  },
+  <span class="text-purple-600">"roles"</span>: [],
+  <span class="text-purple-600">"remote_hosts"</span>: [],
+  <span class="text-purple-600">"limits"</span>: {
+    <span class="text-purple-600">"week"</span>: <span class="text-blue-500">100</span>,
+    <span class="text-purple-600">"month"</span>: <span class="text-blue-500">300</span>,
+    <span class="text-purple-600">"day"</span>: <span class="text-blue-500">1000</span>
+  },
+  <span class="text-purple-600">"expires"</span>: <span class="text-red-400">"2026-01-01T00:00:00Z"</span>,
+  <span class="text-purple-600">"comment"</span>: <span class="text-red-400">""</span>
+}</code></pre>
+
+        <h4>Response:</h4>
+        <pre class="code-block"><code>{
+  <span class="text-purple-600">"message"</span>: <span class="text-red-400">"API key created."</span>,
+  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$APIKEY</strong>"</span>
+}</code></pre>
+
+
+        <h2>Update API Key User Information</h2>
+        <p>By sending a <code>PUT</code> request to the <code>/update</code> action of the management endpoint, you can update an existing API key.</p>
+
+        <p><strong>Note:</strong> You cannot update API keys that you haven't issued yourself (i.e., which aren't children or grandchildren
+            of your own API key). The same restrictions apply as for creating new API keys.</p>
+
+        <p>It may take several minutes for the changes to go live.</p>
+
+        <h3 class="mt-3">Endpoint Action:</h3>
+        <p class="ml-4"><code>/update/$TARGET_APIKEY</code></p>
+
+        <h3 class="mt-3">Required Roles:</h3>
+        <p class="ml-4"><em>keycreate</em></p>
+
+        <h3 class="mt-3">Allowed Methods:</h3>
+        <p class="ml-4"><code>PUT</code></p>
+
+        <h3 class="mt-3">Parameters:</h3>
+        <ul class="my-3 ml-4">
+            <li><code class="font-bold">user</code>:
+                <ul class="ml-4">
+                    <li><code class="font-bold">common_name</code>: user's full name (<strong>required</strong>)</li>
+                    <li><code class="font-bold">email</code>: user's email address (<strong>required</strong>)</li>
+                    <li><code class="font-bold">organization</code>: user's organization</li>
+                    <li><code class="font-bold">address</code>: user's postal address</li>
+                    <li><code class="font-bold">zip_code</code>: user's ZIP code</li>
+                    <li><code class="font-bold">state</code>: user's state or province</li>
+                    <li><code class="font-bold">country</code>: user's country code</li>
+                </ul>
+            </li>
+            <li><code class="font-bold">roles</code>: list of assigned user roles</li>
+            <li><code class="font-bold">remote_hosts</code>: allowed remote IP addresses for this key (empty list if no restriction applies)</li>
+            <li><code class="font-bold">limits</code>:
+                <ul class="ml-4">
+                    <li><code class="font-bold">day</code>: daily API request limit (<code>-1</code> for unlimited)</li>
+                    <li><code class="font-bold">week</code>: weekly API request limit (<code>-1</code> for unlimited)</li>
+                    <li><code class="font-bold">month</code>: monthly API request limit (<code>-1</code> for unlimited)</li>
+                </ul>
+            </li>
+            <li><code class="font-bold">expires</code>: optional expiry date of this key as ISO datetime</li>
+            <li><code class="font-bold">comment</code>: optional comment stored with the key</li>
+        </ul>
+
+        <h3 class="mt-3">Response Data:</h3>
+        <ul class="my-3 ml-4">
+            <li><code class="font-bold">message</code>: human-readable status message</li>
+            <li><code class="font-bold">apikey</code>: updated API key</li>
+        </ul>
+
+        <h3 class="mt-3">Example:</h3>
+        <h4>Request:</h4>
+        <pre class="code-block"><code><span class="text-green-600 font-bold">PUT</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_manage_keys/update/<strong>$TARGET_APIKEY</strong>?pretty</span>
+{
+  <span class="text-purple-600">"user"</span>: {
+    <span class="text-purple-600">"common_name"</span>: <span class="text-red-400">"Jane Doe"</span>,
+    <span class="text-purple-600">"email"</span>: <span class="text-red-400">"jane@example.com"</span>,
+    <span class="text-purple-600">"organization"</span>: <span class="text-red-400">"Example Organization"</span>,
+    <span class="text-purple-600">"address"</span>: <span class="text-red-400">"Example Address"</span>,
+    <span class="text-purple-600">"zip_code"</span>: <span class="text-red-400">"12345"</span>,
+    <span class="text-purple-600">"state"</span>: <span class="text-red-400">"TH"</span>,
+    <span class="text-purple-600">"country"</span>: <span class="text-red-400">"DE"</span>
+  },
+  <span class="text-purple-600">"roles"</span>: [],
+  <span class="text-purple-600">"remote_hosts"</span>: [],
+  <span class="text-purple-600">"limits"</span>: {
+    <span class="text-purple-600">"week"</span>: <span class="text-blue-500">100</span>,
+    <span class="text-purple-600">"month"</span>: <span class="text-blue-500">300</span>,
+    <span class="text-purple-600">"day"</span>: <span class="text-blue-500">1000</span>
+  },
+  <span class="text-purple-600">"expires"</span>: <span class="text-red-400">"2026-01-01T00:00:00Z"</span>,
+  <span class="text-purple-600">"comment"</span>: <span class="text-red-400">""</span>
+}</code></pre>
+
+        <h4>Response:</h4>
+        <pre class="code-block"><code>{
+  <span class="text-purple-600">"message"</span>: <span class="text-red-400">"API key updated."</span>,
+  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$TARGET_APIKEY</strong>"</span>
+}</code></pre>
+
+
+        <h2>Revoke an API Key</h2>
+        <p>By sending a <code>PUT</code> request to the <code>/revoke</code> action of the management endpoint, you can revoke an API key.
+            Revoking a key will also revoke all its child keys.</p>
+
+        <p><strong>Note:</strong> You cannot revoke API keys that you haven't issued yourself (i.e., which aren't children or grandchildren of your own API key).</p>
+
+        <p>It may take several minutes for the changes to go live. Revoked API keys may be deleted after some time.</p>
+
+        <h3 class="mt-3">Endpoint Action:</h3>
+        <p class="ml-4"><code>/revoke/$TARGET_APIKEY</code></p>
+
+        <h3 class="mt-3">Required Roles:</h3>
+        <p class="ml-4"><em>keycreate</em></p>
+
+        <h3 class="mt-3">Allowed Methods:</h3>
+        <p class="ml-4"><code>PUT</code></p>
+
+        <h3 class="mt-3">Parameters:</h3>
+        <p class="ml-4"><em>None</em></p>
+
+        <h3 class="mt-3">Response Data:</h3>
+        <ul class="my-3 ml-4">
+            <li><code class="font-bold">message</code>: human-readable status message</li>
+            <li><code class="font-bold">apikey</code>: revoked API key</li>
+        </ul>
+
+        <h3 class="mt-3">Example:</h3>
+        <h4>Request:</h4>
+        <pre class="code-block"><code><span class="text-green-600 font-bold">PUT</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_manage_keys/revoke/<strong>$TARGET_APIKEY</strong>?pretty</span></code></pre>
+
+        <h4>Response:</h4>
+        <pre class="code-block"><code>{
+  <span class="text-purple-600">"message"</span>: <span class="text-red-400">"API key revoked."</span>,
+  <span class="text-purple-600">"apikey"</span>: <span class="text-red-400">"<strong>$TARGET_APIKEY</strong>"</span>
+}</code></pre>
+
+    </template>
+{% endblock %}

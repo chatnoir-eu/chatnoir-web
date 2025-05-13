@@ -1,0 +1,29 @@
+{% extends "../index.html" %}
+{% load chatnoir_tags %}
+{% block title %}{% app_name %} API Documentation: Advanced API{% endblock %}
+{% block after_app %}
+    <template id="doc">
+        <nav aria-label="Breadcrumb" class="text-sm border-b-1 pb-1">
+            <a href="{% url 'chatnoir_frontend:docs_index' %}">ChatNoir API Documentation</a> »
+            Advanced API
+        </nav>
+
+        <h1 class="h1">Advanced API</h1>
+
+        <p>In addition to ChatNoir's <a href="{% url "chatnoir_frontend:docs_api_general" %}">general read-only search API</a>, we provide an
+            advanced management API. Most of these features can be used only by privileged users. Privileges are granted by assigning
+            specific user roles. If you need access to these advanced features, please contact us and state your use case.</p>
+
+        <p>While the general syntax and API features are the same as for the read-only search API, there is usually a functional
+            difference between <code>GET</code> and <code>POST</code> requests when using these advanced API features.</p>
+
+        <p>API key authentication is required for all API calls.</p>
+
+        <h2>Available Endpoints</h2>
+        <ul class="my-4">
+            <li class="mt-3">
+                <a href="{% url "chatnoir_frontend:docs_api_advanced_management" %}">API Key Management</a>
+                <p class="mt-0 text-sm">Privileged API endpoints for managing and issuing new API keys.</p>
+        </ul>
+    </template>
+{% endblock %}
