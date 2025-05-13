@@ -16,7 +16,7 @@
 
 <template>
 <!-- eslint-disable vue/no-v-html -->
-<article :id="'result-' + data.uuid" class="my-8">
+<article :id="'result-' + data.uuid" class="my-8" aria-label="Result">
     <header class="leading-tight break-words">
         <a v-if="data.targetUri" :href="data.targetUri" rel="nofollow"
            class="text-gray-800 visited:text-gray-800 text-sm">

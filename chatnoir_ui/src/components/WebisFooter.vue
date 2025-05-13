@@ -17,14 +17,14 @@
 <template>
 <footer class="footer" role="contentinfo" aria-label="Footer">
     <div class="max-w-screen-xl mx-auto p-6 pt-7 sm:flex justify-between text-center sm:text-left">
-        <div class="mb-3 sm:m-0">
+        <nav class="mb-3 sm:m-0" aria-label="Footer links" role="navigation">
             <span v-for="(item, index) of additionalLinks" :key="item.href">
                 <router-link v-if="item.href.fullPath !== undefined" class="group" :to="item.href.fullPath">{{ item.anchor }}</router-link>
                 <a v-else class="group" :href="item.href">{{ item.anchor }}</a>
                 <span v-if="index !== additionalLinks.length - 1" class="sep">•</span>
             </span>
-        </div>
-        <div>
+        </nav>
+        <nav aria-label="Contact" role="navigation">
             <span class="group">&copy; {{ (copyrightStartYear ? copyrightStartYear +'&ndash;' : '') + new Date().getFullYear().toString() }} <a href="https://webis.de">Webis Group</a></span>
             <span class="sep">•</span>
             <span class="group">
@@ -38,7 +38,7 @@
                 <span class="sep">•</span>
                 <a class="group" href="https://webis.de/legal.html">Impressum / Terms / Privacy</a>
             </span>
-        </div>
+        </nav>
     </div>
 </footer>
 </template>

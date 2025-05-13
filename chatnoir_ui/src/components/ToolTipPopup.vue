@@ -15,7 +15,7 @@
 -->
 
 <template>
-<div ref="popup" class="tooltip-popup invisible hidden w-max transform" tabindex="-1">
+<div ref="popup" class="tooltip-popup invisible hidden w-max transform" tabindex="-1" aria-label="Tooltip popup">
     <div class="py-1 px-1.5">
         <slot />
     </div>

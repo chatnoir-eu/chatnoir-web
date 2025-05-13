@@ -21,11 +21,11 @@
         <input ref="searchInput" v-model="searchModel.query"
                class="text-field w-full input-xl pr-20 m-0 focus:border-gray-300"
                type="search" name="q" placeholder="Search…"
-               role="searchbox" autocomplete="off" spellcheck="false"
+               role="searchbox" aria-label="Search" autocomplete="off" spellcheck="false"
                v-bind="$attrs"
                @keyup="emit('keyup', $event)">
 
-        <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button"
+        <button v-if="searchModel.indices.length > 0" ref="optionsButton" type="button" aria-label="Search options"
                 class="btn-options mr-12 w-4" @click="showOptions = !showOptions">
             <inline-svg class="h-full mx-auto align-middle" :src="iconSettings" alt="Options" />
         </button>
@@ -37,7 +37,7 @@
             @close="showOptions = false"
         />
 
-        <button type="submit" class="btn-submit mr-6">
+        <button type="submit" class="btn-submit mr-6" aria-label="Submit search">
             <inline-svg class="h-full mx-auto align-middle icon-search" :src="iconSearch" alt="Search" />
         </button>
     </form>
