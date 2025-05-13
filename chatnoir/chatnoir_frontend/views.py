@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import time
 
 from django.conf import settings
@@ -81,7 +82,7 @@ def _get_indices(request):
     """List of configured indices."""
     search = SimpleSearch(indices=request.GET.getlist('index'))
     selected = search.selected_indices
-    return [{'id': k, 'name': v.get('display_name'), 'selected': k in selected}
+    return [{'id': k, 'name': v.get('display_name'), 'source_url': v.get('source_url'), 'selected': k in selected}
             for k, v in search.allowed_indices.items()]
 
 
@@ -175,8 +176,16 @@ def apikey_request_verify(request, activation_code=None):
 @require_safe
 def docs(request):
     url_name = resolve(request.path_info).url_name
+    context = None
     if url_name in ['docs_index', 'docs_api_general', 'docs_api_advanced', 'docs_api_advanced_management']:
-        return render(request, f'docs/{url_name[5:]}.html')
+        if url_name == 'docs_api_general':
+            indices = _get_indices(request)
+            context = {
+                'indices': indices,
+                'default_indices_json': json.dumps([i['id'] for i in indices
+                                                    if settings.SEARCH_INDICES[i['id']].get('default', False)])
+            }
+        return render(request, f'docs/{url_name[5:]}.html', context=context)
     raise Http404
 
 

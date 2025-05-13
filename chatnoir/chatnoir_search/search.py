@@ -72,7 +72,7 @@ class SearchBase(ABC):
         allowed = self.allowed_indices
         indices = {k: allowed[k] for k in self._indices_unvalidated if k in allowed}
         if not indices:
-            indices = {k: v for k, v in allowed.items() if v.get('default')}
+            indices = {k: v for k, v in allowed.items() if v.get('default', False)}
 
         if not indices:
             raise RuntimeError('No default index configured,')

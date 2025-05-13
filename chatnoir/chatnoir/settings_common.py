@@ -193,16 +193,17 @@ S3_ENDPOINT_PROPERTIES = {
 
 # Search index settings (override me)
 SEARCH_INDICES = {
-    'index_shorthand_name': {
-        'index': 'index_internal_name',
-        'warc_index': 'warc_meta_index_name',
-        'warc_bucket': 's3_warc_bucket_name',
-        'warc_uuid_prefix': 'webis-uuid-prefix',
-        'display_name': 'Human-readable display name',
-        'compat_search_versions': [1],
-        'default': True,    # Index is default-selected (optional)
+    'index_shorthand': {                # Index shorthand for referencing it in ChatNoir
+        'index': '',                    # Elasticsearch index name
+        'warc_index': '',               # Elasticsearch WARC offset index
+        'warc_bucket': '',              # WARC S3 bucket
+        'warc_uuid_prefix': '',         # WARC document UUID prefix
+        'display_name': '',             # Friendly index name
+        'source_url': '',               # URL to upstream source dataset
+        'compat_search_versions': [1],  # Compatible search versions (so far always 1)
+        'default': True                 # Whether this is the default index (optional)
     }
 }
 
-# Cache frontend URL (should be different origin to avoid cookie leakage)
+# Cache frontend URL (should be a different origin to avoid cookie leakage)
 CACHE_FRONTEND_URL = 'http://127.0.0.2:8000'

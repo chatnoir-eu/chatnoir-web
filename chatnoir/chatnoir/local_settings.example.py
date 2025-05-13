@@ -43,13 +43,14 @@ S3_ENDPOINT_PROPERTIES = {
 
 # Configure search indices here
 SEARCH_INDICES = {
-  'INDEX_SHORTHAND': {
-      'index': 'INDEX_NAME',
-      'warc_index': '',
-      'warc_bucket': '',
-      'warc_uuid_prefix': '',
-      'display_name': '',
-      'compat_search_versions': [1],
-      'default': True
+  'index_shorthand': {                  # Index shorthand for referencing it in ChatNoir
+      'index': '',                      # Elasticsearch index name
+      'warc_index': '',                 # Elasticsearch WARC offset index
+      'warc_bucket': '',                # WARC S3 bucket
+      'warc_uuid_prefix': '',           # WARC document UUID prefix
+      'display_name': '',               # Friendly index name
+      'source_url': '',                 # URL to upstream source dataset
+      'compat_search_versions': [1],    # Compatible search versions (so far always 1)
+      'default': True                   # Whether this is the default index (optional)
   }
 }

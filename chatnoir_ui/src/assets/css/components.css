@@ -23,21 +23,21 @@
 
     h2 {
         @apply text-xl font-bold;
-        @apply mt-6 mb-2;
+        @apply mt-8 mb-2;
     }
 
     h3 {
         @apply text-lg font-bold;
-        @apply mt-4 mb-1;
+        @apply mt-6;
     }
 
     h4 {
         @apply font-bold;
-        @apply mt-4 mb-1;
+        @apply mt-4;
     }
 
     p {
-        @apply my-3;
+        @apply my-2;
     }
 
     code {
