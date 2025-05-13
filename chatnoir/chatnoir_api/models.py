@@ -331,7 +331,7 @@ class ApiKey(models.Model):
     def is_admin_key(self):
         """Whether key has admin privileges."""
         for r in self.roles.values('role'):
-            if r['role'] == settings.API_ADMIN_ROL:
+            if r['role'] == settings.API_ADMIN_ROLE:
                 return True
         return False
 
