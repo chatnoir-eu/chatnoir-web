@@ -38,6 +38,12 @@ RUN set -x \
     && python3 -m pip install --no-cache-dir --break-system-packages --editable /opt/chatnoir-web/ \
     && chown -R chatnoir:chatnoir /opt/chatnoir-web/
 
+RUN set -x \
+    && (cd chatnoir \
+        && for s in $(ls **/settings.py); do \
+            yes yes | chatnoir-manage collectstatic --settings "$(echo "$s" | sed 's/\//./g' | sed 's/\.py//')"; done) \
+    && chown -R chatnoir:chatnoir /opt/chatnoir-web/chatnoir_static/
+
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 
 USER chatnoir

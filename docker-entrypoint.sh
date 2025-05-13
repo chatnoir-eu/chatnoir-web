@@ -6,7 +6,6 @@ if [ "$1" = "uwsgi" ]; then
 
     if [ "$CHATNOIR_APP" != "web_cache" ]; then
         chatnoir-manage migrate --no-input
-        chatnoir-manage collectstatic
     fi
     if [ "$CHATNOIR_APP" = "chatnoir_admin" ] && [ -n "$DJANGO_SUPERUSER_USERNAME" ]; then
         chatnoir-manage createsuperuser --no-input 2> /dev/null || true
