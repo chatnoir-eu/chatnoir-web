@@ -288,3 +288,9 @@
     @apply my-4 py-3 px-4;
     @apply rounded-lg;
 }
+
+@utility anchor-link {
+    @apply text-current;
+    @apply focus:after:content-['¶'] focus:after:ml-2 focus:no-underline;
+    @apply hover:after:content-['¶'] hover:after:ml-2 hover:no-underline;
+}

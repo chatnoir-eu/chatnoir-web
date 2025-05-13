@@ -10,7 +10,7 @@
         </nav>
 
 
-        <h1>API Key Management</h1>
+        <h1 id="advanced-api"><a href="#advanced-api" class="anchor-link">API Key Management</a></h1>
         <p>The API key management main endpoint is: <code>/api/v1/_manage_keys</code></p>
 
         <p>This endpoint can be used by privileged clients to view or update stored information for an API key and issue new keys.
@@ -20,7 +20,7 @@
 
         <p>You can add the parameter <code>pretty[=true]</code> to your requests to get a more human-readable response format.</p>
 
-        <h2>Query API Key User Info</h2>
+        <h2 id="query-api-key-user-information"><a href="#query-api-key-user-information" class="anchor-link">Query API Key User Information</a></h2>
         <p>By sending an authenticated <code>GET</code> request to the management API main endpoint, you can retrieve the stored
             user information for this API key.</p>
 
@@ -93,7 +93,7 @@
 }</code></pre>
 
 
-        <h2>Issue a New API Key</h2>
+        <h2 id="issue-a-new-api-key"><a href="#issue-a-new-api-key" class="anchor-link">Issue a New API Key</a></h2>
         <p>By sending a <code>POST</code> request to the <code>/create</code> action of the management endpoint, you can issue a new API key.</p>
 
         <p><strong>Note:</strong> You cannot assign request limits to the new API key that would exceed
@@ -174,7 +174,7 @@
 }</code></pre>
 
 
-        <h2>Update API Key User Information</h2>
+        <h2 id="update-api-key-user-information"><a href="#update-api-key-user-information" class="anchor-link">Update API Key User Information</a></h2>
         <p>By sending a <code>PUT</code> request to the <code>/update</code> action of the management endpoint, you can update an existing API key.</p>
 
         <p><strong>Note:</strong> You cannot update API keys that you haven't issued yourself (i.e., which aren't children or grandchildren
@@ -254,7 +254,7 @@
 }</code></pre>
 
 
-        <h2>Revoke an API Key</h2>
+        <h2 id="revoke-an-api-key"><a href="#revoke-an-api-key" class="anchor-link">Revoke an API Key</a></h2>
         <p>By sending a <code>PUT</code> request to the <code>/revoke</code> action of the management endpoint, you can revoke an API key.
             Revoking a key will also revoke all its child keys.</p>
 

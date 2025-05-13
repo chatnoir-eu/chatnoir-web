@@ -8,7 +8,7 @@
             General Search API
         </nav>
 
-        <h1 class="h1">General Search API</h1>
+        <h1 id="general-search-api"><a href="#general-search-api" class="anchor-link">General Search API</a></h1>
 
         <p>ChatNoir exposes its search interface via a REST API which you can use in
             your own software to query search results programmatically.</p>
@@ -16,7 +16,7 @@
         <p>To access the REST API, an API key is required, which we issue upon request to
             interested parties.</p>
 
-        <h2 class="h2">Indices</h2>
+        <h2 id="indices"><a href="#indices" class="anchor-link">Indices</a></h2>
         <p>Currently, we provide the following indices:</p>
 
         <ul class="list-disc ml-8 my-4">
@@ -25,7 +25,7 @@
         {% endfor %}
         </ul>
 
-        <h2 class="h2">API Basics</h2>
+        <h2 id="api-basics"><a href="#api-basics" class="anchor-link">API Basics</a></h2>
         <p>The ChatNoir API is provided at <code>/api/v1/</code>. Search requests can be sent as either
         <code>GET</code> or <code>POST</code> requests and parameters can be passed either via the <code>GET</code> query
             string or as a JSON object in the <code>POST</code> body. It is also possible to mix both forms. If parameters conflict,
@@ -60,7 +60,7 @@
 
         <p>The parameter <code>pretty[=true]</code> can be added to all requests to return the response in a more human-readable format. The parameter <code>minimal[=true]</code> reduces fields in the returned result list to a minimal set.</p>
 
-        <h2 class="h2">Simple Search</h2>
+        <h2 id="simple-search"><a href="#simple-search" class="anchor-link">Simple Search</a></h2>
         <p>The default search module provides a flexible and generic search interface,
             which supports the standard operators known from other web search services.</p>
 
@@ -159,7 +159,7 @@ Welcome to the home page for our book: &lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;Worl
   ]
 }</code></pre>
 
-        <h2>Phrase Search</h2>
+        <h2 id="phrase-search"><a href="#phrase-search" class="anchor-link">Phrase Search</a></h2>
         <p>The phrase search module can be used to retrieve snippets containing certain
             fixed phrases from our indices.</p>
 
@@ -245,7 +245,7 @@ Welcome to the home page for our book: &lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;Worl
   ]
 }</code></pre>
 
-        <h2>Retrieving Full Documents</h2>
+        <h2 id="retrieving-full-documents"><a href="#retrieving-full-documents" class="anchor-link">Retrieving Full Documents</a></h2>
         <p>The full HTML contents of a search result can be retrieved from</p>
 
         <pre class="code-block"><code><span class="text-green-600 font-bold">GET</span> <span class="text-gray-600">/cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw</span></code></pre>
