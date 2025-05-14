@@ -14,8 +14,8 @@
     limitations under the License.
 -->
 <template>
-<div class="max-w-full h-full flex flex-row items-center mt-9 mb-5">
-    <div class="block mx-auto max-w-full pb-52 sm:mb-64 text-center px-7">
+<div class="max-w-full h-full flex flex-row items-center">
+    <div class="block mx-auto max-w-full mb-[12svh] sm:mb-[27svh] text-center px-7">
         <cat-logo ref="catLogoElement" class="block h-40" />
 
         <search-field ref="searchFieldRef" v-model="searchModel" focus
