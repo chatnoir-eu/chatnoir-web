@@ -35,18 +35,17 @@ function purr() {
     if (purrTimeout.value !== null) {
         clearTimeout(purrTimeout.value)
     }
-
-    const eyes = logoElement.value.querySelector('#Eyes')
-    eyes.setAttribute('visibility', 'hidden')
+    const eyes = logoElement.value.querySelector('#Eyelids')
+    eyes.style.display = 'inline'
 
     purrTimeout.value = setTimeout(() => {
-        eyes.setAttribute('visibility', 'visible')
+        eyes.style.removeProperty('display')
         purrTimeout.value = null
-    }, 300)
+    }, 400)
 }
 
 watch(logoElement, () => {
-    logoElement.value.querySelector('#Body').addEventListener('mousemove', purr)
+    logoElement.value.querySelector('#Cat').addEventListener('mousemove', purr)
 })
 
 defineExpose({

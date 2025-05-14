@@ -15,12 +15,12 @@
             margin: 20vh auto;
             padding: 3rem;
         }
-        .logo {
+        #chatnoir-logo {
             height: 15rem;
             width: auto;
             float: left;
         }
-        .message {
+        #error-message {
             margin-left: 12rem;
             padding-top: 1rem;
         }
@@ -28,12 +28,31 @@
 </head>
 <body>
     <main>
-        <img class="logo" alt="" src="{% static 'ui/img/chatnoir-cat-only.svg' %}">
-        <div class="message">
+        <object id="chatnoir-logo" data="{% static 'ui/img/chatnoir-cat-only.svg' %}" type="image/svg+xml"></object>
+        <div id="error-message">
             <h1>{{ title }}</h1>
             <p>{{ message }}</p>
             <p>(Error: {{ error }})</p>
         </div>
     </main>
+    <script>
+        const catLogo = document.querySelector('#chatnoir-logo')
+        let purrTimeout = null
+
+        catLogo.addEventListener('load', () => {
+            const eyes = catLogo.contentDocument.querySelector('#Eyelids')
+            const cat = catLogo.contentDocument.querySelector('#Cat')
+            cat.addEventListener('mousemove', () => {
+                if (purrTimeout !== null) {
+                    clearTimeout(purrTimeout)
+                }
+                eyes.style.display = 'inline'
+                purrTimeout = setTimeout(() => {
+                    eyes.style.removeProperty('display')
+                    purrTimeout = null
+                }, 400)
+            })
+        })
+    </script>
 </body>
 </html>
