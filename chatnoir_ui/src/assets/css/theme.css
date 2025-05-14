@@ -18,7 +18,7 @@
     /* Fonts */
     --font-sans: 'Carlito', 'ui-sans-serif', 'system-ui', 'sans-serif';
     --font-serif: 'ui-serif';
-    --font-mono: 'ui-monospace', 'monospace';
+    --font-mono: 'Cousine', 'ui-monospace', 'monospace';
 
     /* Font sizes */
     --text-2xs: .65rem;
