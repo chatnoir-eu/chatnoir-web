@@ -7,8 +7,8 @@
     <title>{% block title %}{% app_name %}{% endblock %}</title>
     {% include 'include/favicon_head.html' %}
     {% endblock %}
-    {% frontend_scripts %}
     {% block head_additional %}{% endblock %}
+    {% frontend_scripts %}
 </head>
 <body>
 {% block noscript %}<noscript>

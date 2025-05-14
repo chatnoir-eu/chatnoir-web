@@ -19,9 +19,9 @@ from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
 
-from chatnoir_api.authentication import ApiKeyAuthentication
-
 register = template.Library()
+
+from .views import _get_frontend_settings
 
 
 @register.filter(name='json')
@@ -46,6 +46,7 @@ def frontend_scripts():
 
     assets_url = Path(settings.STATIC_URL)
     return mark_safe('\n'.join([
+        f'<link rel="stylesheet" href="{assets_url / css[0].relative_to(static_root)}">',
+        f'<script type="module">window._APP_SETTINGS = {json.dumps(_get_frontend_settings())}</script>',
         f'<script type="module" src="{assets_url / js[0].relative_to(static_root)}"></script>',
-        f'<link rel="stylesheet" href="{assets_url / css[0].relative_to(static_root)}">'
     ]))

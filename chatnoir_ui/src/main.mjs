@@ -18,8 +18,22 @@ import { createApp } from 'vue'
 import InlineSvg from 'vue-inline-svg'
 import ChatNoirApp from '@/ChatNoir.vue'
 import router from '@/routes.mjs'
+import xhr from '@/xhr.mjs'
 
 import '@/assets/css/index.css'
+
+// Running the dev server: We first need to retrieve CSRF token from backend server.
+if (import.meta.env.DEV
+    && import.meta.url.indexOf(import.meta.env.VITE_BACKEND_ADDRESS) !== 0
+    && window._APP_SETTINGS === undefined) {
+    window._APP_SETTINGS = (await xhr.default({
+        method: 'GET',
+        url: import.meta.env.VITE_BACKEND_ADDRESS + '?init-dev',
+        withCredentials: true,
+    }).catch((e) => {
+        throw new Error('Failed to initialize app state. Is the backend running?\nError: ' + e)
+    })).data
+}
 
 createApp(ChatNoirApp)
     .use(router)

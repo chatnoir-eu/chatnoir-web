@@ -42,18 +42,19 @@ def index(request):
     if request.method == 'HEAD':
         return HttpResponse(status=200)
 
-    # Frontend token init request
+    # Regular frontend token init request
     if (request.method == 'POST'
             and 'init' in request.GET
             and request.headers.get('X-Requested-With') == 'XMLHttpRequest'):
         return _init_frontend_session(request)
 
-    # Vite dev server CSRF request, we don't need a template for this
+    # Vite dev server init request for CSRF token and settings
     if (settings.DEBUG
             and request.method == 'GET'
+            and 'init-dev' in request.GET
             and request.headers.get('X-Requested-With') == 'XMLHttpRequest'
             and request.headers.get('Origin') in settings.CSRF_TRUSTED_ORIGINS):
-        return HttpResponse(status=200)
+        return JsonResponse(_get_frontend_settings())
 
     # Regular GET request
     if request.method == 'GET':
@@ -76,6 +77,15 @@ def _init_frontend_session(request):
         'csrfToken': get_token(request),
         'indices': _get_indices(request)
     })
+
+
+def _get_frontend_settings():
+    s = {
+        'app_name': settings.APPLICATION_NAME,
+        'app_module': settings._wrapped.SETTINGS_MODULE.replace('.settings', ''),
+    }
+    s.update(settings.FRONTEND_ADDITIONAL_SETTINGS)
+    return s
 
 
 def _get_indices(request):

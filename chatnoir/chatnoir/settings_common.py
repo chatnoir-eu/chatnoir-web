@@ -207,3 +207,6 @@ SEARCH_INDICES = {
 
 # Cache frontend URL (should be a different origin to avoid cookie leakage)
 CACHE_FRONTEND_URL = 'http://127.0.0.2:8000'
+
+# Additional settings to pass to the JavaScript frontend (all settings in this are user-readable!)
+FRONTEND_ADDITIONAL_SETTINGS = {}

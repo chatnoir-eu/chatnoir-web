@@ -22,15 +22,4 @@ axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-Csrf-Token';
 
-// Dev server, first need to retrieve CSRF token from backend server
-if (import.meta.env.DEV && import.meta.url.indexOf(import.meta.env.VITE_BACKEND_ADDRESS) !== 0) {
-    await axios({
-        method: 'GET',
-        url: import.meta.env.VITE_BACKEND_ADDRESS,
-        withCredentials: true,
-    }).catch((e) => {
-        throw new Error('Failed to retrieve CSRF token. ' + e)
-    })
-}
-
 export default axios
