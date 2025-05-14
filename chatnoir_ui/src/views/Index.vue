@@ -20,6 +20,10 @@
 
         <search-field ref="searchFieldRef" v-model="searchModel" focus
                       @submit="search()" @change="$refs.catLogoElement.purr()" />
+
+        <div v-if="getModuleName() === 'chatnoir'" class="text-xs my-1 text-right">
+            <a href="https://old.chatnoir.eu/" title="It's still there (for now&hellip;)">Looking for the old ChatNoir?</a>
+        </div>
     </div>
 </div>
 </template>
@@ -40,5 +44,9 @@ function search() {
     if (searchModel.value.query) {
         router.push({name: 'IndexSearch', query: searchModel.value.toQueryStringObj()})
     }
+}
+
+function getModuleName() {
+    return window._APP_SETTINGS.app_module
 }
 </script>
