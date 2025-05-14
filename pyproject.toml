@@ -26,6 +26,7 @@ python-frontmatter = "^1.1.0"
 resiliparse = "^0.15.2"
 tzdata = "^2025.2"
 psycopg = "^3.2.7"
+django-minify-html = "^1.12.0"
 
 [tool.poetry.scripts]
 chatnoir-manage = 'chatnoir_manage:main'

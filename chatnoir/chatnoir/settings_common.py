@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'chatnoir_frontend.apps.ChatnoirStaticFilesConfig',
     'corsheaders',
     'rest_framework',
-    'solo'
+    'solo',
+    'django_minify_html',
 ]
 
 MIDDLEWARE = [
@@ -62,7 +63,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_minify_html.middleware.MinifyHtmlMiddleware',
 ]
 
 REST_FRAMEWORK = {
