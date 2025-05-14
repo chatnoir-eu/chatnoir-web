@@ -22,7 +22,7 @@
            class="text-gray-800 visited:text-gray-800 text-sm">
             {{ abbreviateUrl(data.targetUri, 2).replace(/^https?:\/\//i, '') }}
         </a>
-        <h2 class="title leading-none m-0">
+        <h2 class="title font-normal leading-none m-0">
             <a :href="data.cacheUri" rel="nofollow" class="text-xl text-red-700" v-html="data.title"></a>
         </h2>
         <div class="text-sm text-gray-800 mt-0.5">
