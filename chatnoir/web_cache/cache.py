@@ -309,6 +309,14 @@ class CacheDocument:
             return ''
         return self._html_tree.title
 
+    def html_meta_viewport(self):
+        if not self._html_tree:
+            return None
+        el = self._html_tree.head.query_selector('meta[name="viewport"]')
+        if not el:
+            return None
+        return el.getattr('content')
+
     def _post_process_html(self, html_tree):
         """
         Post-process HTML by rewriting links in an HTML document and updating encoding information.

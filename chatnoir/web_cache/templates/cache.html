@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name=”robots” content=”noindex,nofollow”>
-    <meta name="viewport" content="initial-scale=1">
+    {% if cache.body_html and cache.meta_viewport %}
+        <meta name="viewport" content="{{ cache.meta_viewport }}">
+    {% elif not cache.body_html %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% endif %}
     <link rel="canonical" href="{{ cache.meta.warc_target_uri }}">
     <title>{% if cache.title %}{{ cache.title }} | {% endif %}{{ app_name }}</title>
     {% load static %}
@@ -20,6 +24,8 @@
             font-weight: normal !important;
             font-style: normal !important;
             line-height: 18px !important;
+            overflow-wrap: break-word !important;
+            word-break: break-all !important;
         }
         #{{ css_prefix }}header {
             background: #f5f5f5 !important;
@@ -46,11 +52,11 @@
         #{{ css_prefix }}header a:visited {
             color: rgb(85, 26, 139) !important;
         }
-        #{{ css_prefix }}meta, #{{ css_prefix }}meta * {
+        #{{ css_prefix }}meta, #{{ css_prefix }}meta *, #{{ css_prefix }}display a {
             font-size: 14px !important;
         }
         #{{ css_prefix }}meta {
-            margin: 12px 0 0 0 !important;
+            margin: 10px 0 0 0 !important;
             padding: 0 !important;
         }
         #{{ css_prefix }}meta dt {
@@ -64,11 +70,12 @@
             margin: 0 28px 0 5px !important;
         }
         #{{ css_prefix }}display {
-            margin-top: 22px !important;
+            margin-top: 5px !important;
         }
         #{{ css_prefix }}display a {
             display: inline-block !important;
             margin-right: 16px !important;
+            margin-top: 10px !important;
         }
         #{{ css_prefix }}display a[aria-current="page"] {
             font-weight: bold !important;
@@ -89,6 +96,28 @@
             text-align: center !important;
             margin: 40px !important;
         }
+        @media (max-width: 768px) {
+            #{{ css_prefix }}target_uri {
+                display: block !important;
+            }
+            #{{ css_prefix }}meta dd {
+                display: block !important;
+                margin: 0 0 0 20px !important;
+            }
+
+            #{{ css_prefix }}display {
+                font-size: 14px !important;
+                margin-top: 15px !important;
+            }
+
+            #{{ css_prefix }}header *, #{{ css_prefix }}header * * {
+                font-size: 14px !important;
+            }
+
+            #{{ css_prefix }}display a {
+                display: block !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -99,7 +128,7 @@
         <div>
             <div>This is ChatNoir's cached version of
                 {% if cache.meta.warc_target_uri %}
-                    <a href="{{ cache.meta.warc_target_uri }}" rel="nofollow">{{ cache.meta.warc_target_uri }}</a>
+                    <a id="{{ css_prefix }}target_uri" href="{{ cache.meta.warc_target_uri }}" rel="nofollow">{{ cache.meta.warc_target_uri }}</a>
                 {% else %}
                     <strong style="font-weight: bold !important;">“{{ cache.title }}”</strong>
                 {% endif %}
