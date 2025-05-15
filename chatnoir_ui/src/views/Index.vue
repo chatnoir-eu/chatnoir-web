@@ -16,8 +16,7 @@
 <template>
 <div class="max-w-full h-full flex flex-row items-center">
     <div class="block mx-auto max-w-full mb-[12svh] sm:mb-[27svh] text-center px-7">
-        <cat-logo ref="catLogoElement" class="block h-40" />
-
+        <cat-logo ref="catLogoElement" class="block text-center h-40" />
         <search-field ref="searchFieldRef" v-model="searchModel" focus
                       @submit="search()" @change="$refs.catLogoElement.purr()" />
 
@@ -32,7 +31,7 @@
 import { ref } from "vue"
 import { useRouter } from 'vue-router'
 
-import CatLogo from '@/components/CatLogo.vue'
+import CatLogo from "@/components/CatLogo.vue";
 import SearchField from '@/components/SearchField.vue'
 import { SearchModel } from '@/search-model.mjs'
 

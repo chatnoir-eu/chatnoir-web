@@ -1,54 +1,49 @@
-<!--
-    Copyright 2021 Janek Bevendorff
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
--->
-
 <template>
 <span aria-hidden="true" role="img">
-    <inline-svg class="inline-block h-full w-auto max-w-full" :src="logoChatNoir" alt=""
-                @loaded="logoElement = $event" />
+    <router-link v-if="$props.routerTarget" :to="$props.routerTarget">
+        <object ref="catLogoElement" class="inline-block h-full max-w-full" :data="logoChatNoir" type="image/svg+xml"></object>
+    </router-link>
+    <object v-else ref="catLogoElement" class="inline-block h-full max-w-full" :data="logoChatNoir" type="image/svg+xml"></object>
 </span>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import {onMounted, ref} from "vue";
 import logoChatNoir from '@/assets/img/chatnoir.svg'
+const catLogoElement = ref(null)
 
-const purrTimeout = ref(null)
-const logoElement = ref(null)
+import {useRouter} from 'vue-router'
 
-function purr() {
-    if (!logoElement.value) {
-        return
-    }
-    if (purrTimeout.value !== null) {
-        clearTimeout(purrTimeout.value)
-    }
-    const eyes = logoElement.value.querySelector('#Eyelids')
-    eyes.style.display = 'inline'
+const router = useRouter()
 
-    purrTimeout.value = setTimeout(() => {
-        eyes.style.removeProperty('display')
-        purrTimeout.value = null
-    }, 400)
-}
+const emit = defineEmits(['purr', 'load', 'click'])
 
-watch(logoElement, () => {
-    logoElement.value.querySelector('#Cat').addEventListener('mousemove', purr)
+const props = defineProps({
+    routerTarget: {type: String, default: null},
 })
 
 defineExpose({
-    purr
+    purr: () => {
+        if (!catLogoElement.value || !catLogoElement.value.contentDocument) {
+            return
+        }
+        catLogoElement.value.contentDocument.querySelector('#Cat').dispatchEvent(new Event('mousemove'));
+        emit('purr', catLogoElement.value.contentDocument)
+    }
+})
+
+onMounted(() => {
+    catLogoElement.value.addEventListener('load', (svg) => {
+        if (props.routerTarget) {
+            svg.target.contentDocument.firstChild.style.cursor = 'pointer';
+        }
+        svg.target.contentDocument.addEventListener('click', (e) => {
+            if (props.routerTarget) {
+                e.preventDefault()
+                router.push(props.routerTarget)
+            }
+            emit('click', e)
+        })
+    })
 })
 </script>

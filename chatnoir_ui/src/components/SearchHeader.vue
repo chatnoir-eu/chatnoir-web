@@ -19,18 +19,13 @@
 <template>
 <header class="border-b mb-5 pt-5 -mx-5">
     <div class="mx-5">
-        <div class="w-auto sm:hidden">
+        <div class="text-center sm:hidden">
             <router-link to="/">
-                <inline-svg class="inline-block h-10 max-w-full" :src="iconChatNoir" alt="" />
+                <inline-svg class="inline-block h-10" :src="iconChatNoir" alt="" />
             </router-link>
         </div>
         <div class="flex flex-row items-center max-w-3xl mx-auto h-24">
-            <div class="w-32 mr-6 hidden sm:block">
-                <router-link to="/">
-                    <cat-logo ref="catLogoElement" />
-                </router-link>
-            </div>
-
+            <cat-logo ref="catLogoElement" class="w-32 mr-6 hidden sm:block" router-target="/" />
             <search-field ref="searchFieldRef" v-model="searchFieldModel" :focus="focus"
                           @submit="submitSearch()" @change="$refs.catLogoElement.purr()" />
         </div>

@@ -28,31 +28,12 @@
 </head>
 <body>
     <main>
-        <object id="chatnoir-logo" data="{% static 'ui/img/chatnoir-cat-only.svg' %}" type="image/svg+xml"></object>
+        <object id="chatnoir-logo" data="{% static 'ui/img/chatnoir-cat-only.svg' %}" type="image/svg+xml" aria-hidden="true"></object>
         <div id="error-message">
             <h1>{{ title }}</h1>
             <p>{{ message }}</p>
             <p>(Error: {{ error }})</p>
         </div>
     </main>
-    <script>
-        const catLogo = document.querySelector('#chatnoir-logo')
-        let purrTimeout = null
-
-        catLogo.addEventListener('load', () => {
-            const eyes = catLogo.contentDocument.querySelector('#Eyelids')
-            const cat = catLogo.contentDocument.querySelector('#Cat')
-            cat.addEventListener('mousemove', () => {
-                if (purrTimeout !== null) {
-                    clearTimeout(purrTimeout)
-                }
-                eyes.style.display = 'inline'
-                purrTimeout = setTimeout(() => {
-                    eyes.style.removeProperty('display')
-                    purrTimeout = null
-                }, 400)
-            })
-        })
-    </script>
 </body>
 </html>
