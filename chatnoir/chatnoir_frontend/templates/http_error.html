@@ -5,35 +5,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     {% load static %}
+    {% load chatnoir_tags %}
     {% include 'include/favicon_head.html' %}
-    <style>
-        main {
-            color: black;
-            font-family: ui-sans-serif, system-ui, sans-serif;
-            font-size: 16px;
-            max-width: 43rem;
-            margin: 20vh auto;
-            padding: 3rem;
-        }
-        #chatnoir-logo {
-            height: 15rem;
-            width: auto;
-            float: left;
-        }
-        #error-message {
-            margin-left: 12rem;
-            padding-top: 1rem;
-        }
-    </style>
+    {% frontend_css %}
 </head>
 <body>
-    <main>
-        <object id="chatnoir-logo" data="{% static 'ui/img/chatnoir-cat-only.svg' %}" type="image/svg+xml" aria-hidden="true"></object>
-        <div id="error-message">
-            <h1>{{ title }}</h1>
+<main class="h-screen flex flex-row items-center mx-auto max-w-140">
+    <div class="mb-[27vh] p-5 flex flex-row flex-grow items-center">
+        <object data="{% static 'ui/img/chatnoir-cat-only.svg' %}" type="image/svg+xml" aria-hidden="true"
+                class="h-48"></object>
+        <div class="ml-3 sm:ml-5 mb-3">
+            <h1 class="m-0">{{ title }}</h1>
             <p>{{ message }}</p>
             <p>(Error: {{ error }})</p>
+            <p><a href="{% url 'chatnoir_frontend:index' %}">Take me back&hellip;</a></p>
         </div>
-    </main>
+    </div>
+</main>
 </body>
 </html>

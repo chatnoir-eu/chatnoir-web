@@ -34,8 +34,7 @@ def app_name():
     return settings.APPLICATION_NAME
 
 
-@register.simple_tag
-def frontend_scripts():
+def _get_index_js_css():
     static_root = Path(settings.STATIC_ROOT).resolve()
     assets_dir = static_root / 'ui' / 'assets'
     js = list(assets_dir.glob('index-*.js'))
@@ -45,8 +44,26 @@ def frontend_scripts():
         raise IOError('Static frontend asssets not found. Did you run "chatnoir-manage collectstatic --clear"?')
 
     assets_url = Path(settings.STATIC_URL)
+    return assets_url / js[0].relative_to(static_root), assets_url / css[0].relative_to(static_root)
+
+
+@register.simple_tag
+def frontend_scripts():
+    js, _ = _get_index_js_css()
     return mark_safe('\n'.join([
-        f'<link rel="stylesheet" href="{assets_url / css[0].relative_to(static_root)}">',
         f'<script type="module">window._APP_SETTINGS = {json.dumps(_get_frontend_settings())}</script>',
-        f'<script type="module" src="{assets_url / js[0].relative_to(static_root)}"></script>',
+        f'<script type="module" src="{js}"></script>',
     ]))
+
+
+@register.simple_tag
+def frontend_css():
+    _, css = _get_index_js_css()
+    return mark_safe('\n'.join([
+        f'<link rel="stylesheet" href="{css}">',
+    ]))
+
+
+@register.simple_tag
+def frontend_assets():
+    return mark_safe('\n'.join([frontend_css(), frontend_scripts()]))

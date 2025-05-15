@@ -35,8 +35,8 @@ def server_error(request, exception=None):
     return render(request, 'http_error.html', dict(
         error=_('500 – Internal Server Error'),
         title=_('Oops! This shouldn\'t happen!'),
-        message=_exc_message(exception, _('We experienced an internal error. Our server monkeys have been '
-                                          'notified and are working hard to fix it. Please try again later.'))
+        message=_exc_message(exception, _('We experienced an internal error. Our server kittens have been '
+                                          'notified and they are working hard to fix it. Please try again later.'))
     ), status=500)
 
 
