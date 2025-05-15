@@ -192,6 +192,7 @@ def docs(request):
             indices = _get_indices(request)
             context = {
                 'indices': indices,
+                'cache_frontend_url': settings.CACHE_FRONTEND_URL,
                 'default_indices_json': json.dumps([i['id'] for i in indices
                                                     if settings.SEARCH_INDICES[i['id']].get('default', False)])
             }
