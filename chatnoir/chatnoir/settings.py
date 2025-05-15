@@ -34,6 +34,8 @@ LOGGING['loggers'].update({
     }
 })
 
+# Cache frontend URL (should be a different origin than the search frontend to avoid cookie leakage)
+CACHE_FRONTEND_URL = 'http://127.0.0.1:8001'
 
 # Template options
 TEMPLATES[0]['OPTIONS']['context_processors'].append('chatnoir_frontend.context_processors.global_vars')

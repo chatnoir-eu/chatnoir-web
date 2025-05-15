@@ -186,13 +186,6 @@ ELASTICSEARCH_PROPERTIES = {
     "api_key": ["apikey", "secret"]
 }
 
-# S3 backend settings (override me)
-S3_ENDPOINT_PROPERTIES = {
-    "endpoint_url": "http://localhost",
-    "aws_access_key_id": "access_key",
-    "aws_secret_access_key": "secret_key"
-}
-
 # Search index settings (override me)
 SEARCH_INDICES = {
     'index_shorthand': {                # Index shorthand for referencing it in ChatNoir
@@ -206,9 +199,6 @@ SEARCH_INDICES = {
         'default': True                 # Whether this is the default index (optional)
     }
 }
-
-# Cache frontend URL (should be a different origin to avoid cookie leakage)
-CACHE_FRONTEND_URL = 'http://127.0.0.2:8000'
 
 # Additional settings to pass to the JavaScript frontend (all settings in this are user-readable!)
 FRONTEND_ADDITIONAL_SETTINGS = {}

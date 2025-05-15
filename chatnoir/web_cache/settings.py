@@ -29,6 +29,16 @@ WSGI_APPLICATION = 'web_cache.wsgi.application'
 
 DATABASES = {}
 
+# S3 backend settings (override me)
+S3_ENDPOINT_PROPERTIES = {
+    "endpoint_url": "http://localhost",
+    "aws_access_key_id": "access_key",
+    "aws_secret_access_key": "secret_key"
+}
+
+# Public URL of search frontend
+SEARCH_FRONTEND_URL = None
+
 try:
     from chatnoir.local_settings import *
 except ImportError:

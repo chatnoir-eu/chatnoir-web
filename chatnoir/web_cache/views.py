@@ -83,7 +83,8 @@ def cache(request):
         raise Http404
 
     raw_mode = bool_param_set('raw', request.GET)
-    plaintext_mode = bool_param_set('plain', request.GET)
+    plain_mode = bool_param_set('plain', request.GET) and not raw_mode
+    minimal_mode = bool_param_set('minimal', request.GET) and not plain_mode
 
     cache_doc = CacheDocument()
     found = False
@@ -106,7 +107,7 @@ def cache(request):
 
                 return render(request, 'cache-redirect.html', {
                     'app_name': settings.APPLICATION_NAME,
-                    'uri': request.GET['url']
+                    'uri': request.GET['url'],
                 })
     except ValueError:
         pass
@@ -120,42 +121,55 @@ def cache(request):
         query=f'index={parse.quote(index_shorthand)}&uuid={parse.quote(doc_uuid)}')
     context = dict(
         app_name=settings.APPLICATION_NAME,
+        search_frontend_url=settings.SEARCH_FRONTEND_URL,
         cache=dict(
             meta=doc_meta,
             title=cache_doc.html_title(),
             crawl_date=getattr(doc_meta, 'http_date', None) or getattr(doc_meta, 'warc_date', None),
             index=search_index.display_name,
             cache_url=parse.urlunparse(cache_url),
-            is_plaintext_mode=plaintext_mode or cache_doc.is_text_plain(),
-            is_plaintext_doc=cache_doc.is_text_plain(),
-            is_html_doc=cache_doc.is_html()
+            is_text_doc=cache_doc.is_text(),
+            is_html_doc=cache_doc.is_html(),
+            is_html_fragment_doc=cache_doc.is_html_fragment(),
+            is_json_doc=cache_doc.is_json(),
+            is_xml_doc=cache_doc.is_xml(),
+            is_binary_doc=cache_doc.is_binary(),
         )
     )
 
-    if plaintext_mode or cache_doc.is_text_plain():
-        body = cache_doc.main_content()
+    body = None
+    if raw_mode or cache_doc.is_text() or cache_doc.is_binary():
+        body = cache_doc.bytes()
+    elif not cache_doc.is_binary() and (
+            plain_mode or minimal_mode or cache_doc.is_html_fragment() or cache_doc.is_xml()):
+        body = cache_doc.main_content(
+            minimal_html=((cache_doc.is_html() and minimal_mode) or cache_doc.is_html_fragment()) and not plain_mode)
     elif cache_doc.is_html():
         body = cache_doc.html(not raw_mode)
-    else:
-        raw_mode = True
-        body = cache_doc.bytes()
 
-    if plaintext_mode and raw_mode:
+    if cache_doc.is_text() and raw_mode:
         content_type = f'text/plain; charset={settings.DEFAULT_CHARSET}'
+    elif not raw_mode:
+        content_type = 'text/html; charset=utf-8'
     else:
-        content_type = iri_to_uri(doc_meta.http_content_type) if raw_mode else 'text/html'
-        charset = doc_meta.content_encoding if raw_mode and not plaintext_mode else settings.DEFAULT_CHARSET
+        content_type = iri_to_uri(cache_doc.raw_doc_content_type())
+        charset = doc_meta.content_encoding or settings.DEFAULT_CHARSET
         content_type = f'{content_type}; charset={charset}'
 
     if raw_mode:
         response = HttpResponse(body, content_type=content_type, status=200)
     else:
-        context['cache']['body'] = body
+        if not cache_doc.is_binary():
+            body_key = 'html' if (cache_doc.is_html() and not minimal_mode) else 'plainhtml'
+            if cache_doc.is_text() or plain_mode:
+                body_key = 'plaintext'
+            context['cache'][f'body_{body_key}'] = body
         response = render(request, 'cache.html', context=context, content_type=content_type)
 
     response['X-Robots-Tag'] = 'noindex,nofollow'
     response['Link'] = f'<{iri_to_uri(doc_meta.warc_target_uri)}>; rel="canonical"'
     return response
+
 
 @require_safe
 def term_vectors(request):

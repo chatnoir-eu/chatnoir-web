@@ -54,3 +54,7 @@ SEARCH_INDICES = {
       'default': True                   # Whether this is the default index (optional)
   }
 }
+
+# Frontend URLs
+SEARCH_FRONTEND_URL = 'http://127.0.0.1:8000'
+CACHE_FRONTEND_URL = 'http://127.0.0.1:8001'

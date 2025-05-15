@@ -20,6 +20,7 @@ import urllib.parse as urlparse
 import boto3
 from botocore.errorfactory import ClientError
 from django.conf import settings
+from django.utils .html import escape as html_escape
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import connections, Search
 from fastwarc import ArchiveIterator
@@ -42,6 +43,7 @@ class CacheDocument:
         self._html_tree = None
         self._is_clueweb09 = False   # ClueWeb09 quirks mode
         self._doc_found = False
+        self._raw_doc_content_type = 'application/octet-stream'
 
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
@@ -134,31 +136,39 @@ class CacheDocument:
             self._doc_bytes = json.dumps(response, indent=4).encode()
             self._doc_found = True
 
-            if 'docid' in response:
-                title = f'Document {response["docid"]}'
-            elif 'docno' in response:
-                title = f'Document {response["docno"]}'
-
+            title = None
             if 'title' in response:
                 title = response['title']
             elif 'original_document' in response and 'title' in response['original_document']:
                 title = response['original_document']['title']
-            
-            r = f'<html><head><title>{title}</title></head><body><h1>{title}</h1>'
+            elif 'docid' in response:
+                title = f'Document {response["docid"]}'
+            elif 'docno' in response:
+                title = f'Document {response["docno"]}'
+
+            body = f'<h1>{html_escape(title)}</h1>'
 
             if 'headings' in response:
-                r += '<h3>Headings (automatically generated)</h3>:<p>{response["headings"]}</p>'
+                body += f'<h2>Headings:</h2><p>' + html_escape(response['headings']) + '</p>'
+
+            if 'original_document' in response and 'headings' in response['original_document']:
+                body += f'<h2>Headings:</h2><p>' + html_escape(response['original_document']['headings']) + '</p>'
 
             if 'segment' in response:
-                r += '<h3>Segment (from the page):</h3><p>' + response['segment'] + '</p>'
+                body += '<h2>Segment (from the page):</h2><p>' + html_escape(response['segment']) + '</p>'
 
             if 'body' in response:
-                r += '<h3>Body (from the page):</h3><p>' + response['body'] + '</p>'
+                body += '<h2>Body (from the page):</h2><p>' + html_escape(response['body']) + '</p>'
 
             if 'text' in response:
-                r += '<h3>Text:</h3><p>' + response['text'] + '</p>'
+                body += '<h2>Text:</h2><p>' + html_escape(response['text']) + '</p>'
 
-            self._html_tree = HTMLTree.parse(r.replace('\n', '<br>') + '</body>')
+            body = body.replace('\n', '<br>')
+            html = ''.join(['<html><head><title>', html_escape(title), '</title></head><body>', body, '</body></html>'])
+
+            self._html_tree = HTMLTree.parse(html)
+            self._raw_doc_content_type = 'application/json'
+
         except Exception as e:
             logger.error('Could not parse json record.', e)
             raise ValueError('Could not parse json record', e)
@@ -200,18 +210,24 @@ class CacheDocument:
             if self._meta_doc.http_content_type and self._meta_doc.http_content_type in (
                     'text/html', 'application/xhtml+xml'):
                 self._html_tree = HTMLTree.parse_from_bytes(self._doc_bytes, self._meta_doc.content_encoding)
+                self._raw_doc_content_type = 'text/html'
+            elif self._meta_doc.http_content_type and self._meta_doc.http_content_type.endswith('/json'):
+                self._meta_doc.http_content_type = 'application/json'
+            elif self._meta_doc.http_content_type:
+                self._raw_doc_content_type = self._meta_doc.http_content_type
 
         except StopIteration:
             logger.error('End of WARC reached when trying to read position %s.', start_offset)
         except ClientError as e:
             logger.exception(e)
 
-    def _read_warc_content(self, raw_html=False, main_content=False):
+    def _read_doc_content(self, raw_html=False, main_content=False, minimal_html=False):
         """
         Read and parse WARC content stream.
 
         :param raw_html: do not post-process HTML (i.e., do not rewrite links etc.)
-        :param main_content: return extracted main content as plaintext, not HTML
+        :param main_content: return only textual main content with minimal HTML formatting
+        :param minimal_html: use minimal HTML formatting for main content extraction
         :return: body as string or bytes
         """
         if not self._doc_found:
@@ -221,27 +237,47 @@ class CacheDocument:
         body = self._doc_bytes
         if self._html_tree:
             if main_content:
-                body = extract_plain_text(self._html_tree,
-                                          preserve_formatting=True, main_content=True, alt_texts=True)
+                body = extract_plain_text(self._html_tree, preserve_formatting='minimal_html' if minimal_html else True,
+                                          main_content=True, alt_texts=True)
             elif not raw_html:
                 body = self._post_process_html(self._html_tree)
 
             # ClueWeb09 messed up the encoding of many pages, so strip Unicode replacement characters
             if self._is_clueweb09:
-                body = body.replace('\ufffd', '') if type(body) is str else body.replace(b'\xef\xbf\xbd', b'')
+                body = (body.replace('\ufffd', '')
+                        if type(body) is str else body.replace(b'\xef\xbf\xbd', b''))
 
             return body
 
-        if self._meta_doc.http_content_type and self._meta_doc.http_content_type.startswith('text/plain'):
-            return bytes_to_str(body, self._meta_doc.content_encoding)
+        return bytes_to_str(body, self._meta_doc.content_encoding)
 
-        return body
+    def raw_doc_content_type(self):
+        return self._raw_doc_content_type
 
-    def is_text_plain(self):
-        return self._meta_doc and self._meta_doc.http_content_type.startswith('text/') and not self.is_html()
+    def is_text(self):
+        """Document is a plaintext document."""
+        return self._meta_doc and not self.is_html() and self._raw_doc_content_type.startswith('text/')
 
     def is_html(self):
-        return self._html_tree is not None
+        """Document is a full HTML web page."""
+        return self._meta_doc and self._raw_doc_content_type == 'text/html'
+
+    def is_html_fragment(self):
+        """Document is an HTML fragment (MS MARCO etc.)."""
+        return not self.is_html() and self._html_tree
+
+    def is_json(self):
+        """Document is JSON."""
+        return self._meta_doc and self._raw_doc_content_type == 'application/json'
+
+    def is_xml(self):
+        """Document is XML."""
+        return self._meta_doc and (self._raw_doc_content_type == 'text/xml' or
+                                   self._raw_doc_content_type.startswith('application/xml'))
+
+    def is_binary(self):
+        """Document is not a text document."""
+        return not self.is_text() and not self.is_html() and not self.is_json() and not self.is_xml()
 
     def doc_meta(self):
         """
@@ -254,7 +290,7 @@ class CacheDocument:
         :param post_process: post-process HTML, i.e., rewrite links etc.
         :return: body as HTML string or bytes (if document is not an HTML document)
         """
-        return self._read_warc_content(raw_html=not post_process)
+        return self._read_doc_content(raw_html=not post_process)
 
     def bytes(self):
         """
@@ -262,11 +298,11 @@ class CacheDocument:
         """
         return self._doc_bytes or b''
 
-    def main_content(self):
+    def main_content(self, minimal_html=False):
         """
         :return: extracted main content as string or bytes (if document is not an HTML document)
         """
-        return self._read_warc_content(main_content=True)
+        return self._read_doc_content(main_content=True, minimal_html=minimal_html)
 
     def html_title(self):
         if not self._html_tree:

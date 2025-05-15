@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name=”robots” content=”noindex,nofollow”>
+    <meta name="viewport" content="initial-scale=1">
     <link rel="canonical" href="{{ cache.meta.warc_target_uri }}">
     <title>{% if cache.title %}{{ cache.title }} | {% endif %}{{ app_name }}</title>
     {% load static %}
@@ -17,18 +18,25 @@
             font-family: ui-sans-serif, system-ui, sans-serif !important;
             font-size: 16px !important;
             font-weight: normal !important;
+            font-style: normal !important;
             line-height: 18px !important;
         }
         #{{ css_prefix }}header {
-            background: #f5f5f5 url({% static 'ui/img/chatnoir-icon.svg' %}) no-repeat 14px 24px !important;
-            background-size: 60px 60px !important;
-            padding: 28px 32px 28px 86px !important;
+            background: #f5f5f5 !important;
+            border-bottom: 1px solid #ddd !important;
+            padding: 28px 32px !important;
             text-align: left !important;
             width: 100% !important;
             left: 0 !important;
             top: 0 !important;
             position: relative !important;
             z-index: 100000000 !important;
+        }
+        #{{ css_prefix }}header > .{{ css_prefix }}logo {
+            float: left !important;
+        }
+        #{{ css_prefix }}header > div {
+            padding-left: 86px !important;
         }
         #{{ css_prefix }}header a {
             color: rgb(0, 0, 238) !important;
@@ -67,18 +75,17 @@
             color: #444 !important;
             text-decoration: none !important;
         }
-        #{{ css_prefix }}plaintext {
+        #{{ css_prefix }}body-plaintext, #{{ css_prefix }}body-plainhtml {
             font-size: 16px !important;
-            white-space: pre-wrap !important;
             padding: 32px !important;
             max-width: 1024px !important;
-            {% if cache.is_plaintext_doc %}
-            font-family: ui-monospace, monospace !important;
-            {% else %}
             font-family: ui-sans-serif, system-ui, sans-serif !important;
-            {% endif %}
         }
-        #{{ css_prefix }}no-text {
+        #{{ css_prefix }}body-plaintext {
+            font-family: ui-monospace, monospace !important;
+            white-space: pre-wrap !important;
+        }
+        #{{ css_prefix }}body-binary {
             text-align: center !important;
             margin: 40px !important;
         }
@@ -86,43 +93,67 @@
 </head>
 <body>
     <div id="{{ css_prefix }}header">
+        {% if search_frontend_url %}<a href="{{ search_frontend_url }}" class="{{ css_prefix }}logo">{% endif %}
+        <img src="{% static 'ui/img/chatnoir-icon.svg' %}" class="{{ css_prefix }}logo" width="60" alt="">
+        {% if search_frontend_url %}</a>{% endif %}
         <div>
-            <div>This is ChatNoir's cached version of <a href="{{ cache.meta.warc_target_uri }}" rel="nofollow">{{ cache.meta.warc_target_uri }}</a></div>
+            <div>This is ChatNoir's cached version of
+                {% if cache.meta.warc_target_uri %}
+                    <a href="{{ cache.meta.warc_target_uri }}" rel="nofollow">{{ cache.meta.warc_target_uri }}</a>
+                {% else %}
+                    <strong style="font-weight: bold !important;">“{{ cache.title }}”</strong>
+                {% endif %}
+            </div>
             <dl id="{{ css_prefix }}meta">
                 <dt>Index:</dt><dd>{{ cache.index }}</dd>
                 <dt>Document ID:</dt><dd>{{ cache.meta.uuid }}</dd>
                 {% if cache.meta.warc_trec_id %}<dt>TREC ID:</dt><dd>{{ cache.meta.warc_trec_id }}</dd>{% endif %}
-                <dt>Crawl Date:</dt><dd>{{ cache.crawl_date | date:"M d, Y" }}</dd>
+                {% if cache.crawl_date %}<dt>Crawl Date:</dt><dd>{{ cache.crawl_date | date:"M d, Y" }}</dd>{% endif %}
             </dl>
-            {% if cache.is_html_doc or cache.is_plaintext_doc %}
+            {% if not cache.is_binary_doc %}
                 <div id="{{ css_prefix }}display">
                     {% if cache.is_html_doc %}
                         <a href="{{ cache.cache_url }}"
-                           {% if not cache.is_plaintext_mode %}aria-current="page"{% endif %} rel="nofollow">Full Website</a>
+                           {% if cache.body_html %}aria-current="page"{% endif %} rel="nofollow">Full HTML</a>
+                    {% endif %}
+                    {% if cache.is_html_doc or cache.is_html_fragment_doc %}
+                        <a href="{{ cache.cache_url }}&amp;minimal"
+                            {% if cache.body_plainhtml %}aria-current="page"{% endif %} rel="nofollow">Minimal HTML</a>
                     {% endif %}
 
                     <a href="{{ cache.cache_url }}&amp;plain"
-                        {% if cache.is_plaintext_mode %}aria-current="page"{% endif %} rel="nofollow">Plain Text</a>
+                        {% if cache.body_plaintext %}aria-current="page"{% endif %} rel="nofollow">Plain Text</a>
 
                      <a href="{{ cache.cache_url }}&amp;raw"
-                        rel="nofollow" target="_blank">Original {% if cache.is_html_doc %}HTML{% else %}Text{% endif %}</a>
+                        rel="nofollow" target="_blank">Original
+                         {% if cache.is_html_doc %}
+                             HTML
+                         {% elif cache.is_json_doc %}
+                             JSON
+                         {% elif cache.is_xml_doc %}
+                             XML
+                         {% else %}Text{% endif %}</a>
 
-                    <a href="{{ cache.meta.warc_target_uri }}" rel="nofollow" target="_blank">Current Website (external)</a>
+                    {% if cache.meta.warc_target_uri %}
+                        <a href="{{ cache.meta.warc_target_uri }}" rel="nofollow" target="_blank">Current Website (external)</a>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
     </div>
-    {% if not cache.is_html_doc and not cache.is_plaintext_doc %}
-        <div id="{{ css_prefix }}no-text">
+    {% if cache.is_binary_doc %}
+        <div id="{{ css_prefix }}body-binary">
             <p>The requested document does not appear to be a text document.</p>
             <p>
                 <a href="{{ cache.cache_url }}&amp;raw" rel="nofollow">Click to view or download the raw document.</a>
             </p>
         </div>
-    {% elif cache.is_plaintext_mode %}
-        <div id="{{ css_prefix }}plaintext">{{ cache.body }}</div>
+    {% elif cache.body_plaintext %}
+        <div id="{{ css_prefix }}body-plaintext">{{ cache.body_plaintext }}</div>
+    {% elif cache.body_plainhtml %}
+        <div id="{{ css_prefix }}body-plainhtml">{{ cache.body_plainhtml | safe }}</div>
     {% else %}
-        <div id="{{ css_prefix }}root" style="position: relative">{{ cache.body | safe }}</div>
+        <div id="{{ css_prefix }}body-html" style="position: relative">{{ cache.body_html | safe }}</div>
     {% endif %}
 {% endwith %}</body>
 </html>
