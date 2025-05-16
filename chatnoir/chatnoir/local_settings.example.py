@@ -1,6 +1,9 @@
 SECRET_KEY = 'RANDOM STRING'
 
 DEBUG = True
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+
 
 # Allow cross-site requests from dev web frontend for debugging purposes
 if DEBUG:
