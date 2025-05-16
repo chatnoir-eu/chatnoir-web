@@ -30,6 +30,7 @@ from chatnoir_api.authentication import ApiKeyAuthentication
 from chatnoir_api.forms import KeyRequestForm
 from chatnoir_api.models import ApiPendingUser, SEND_MAIL_EXECUTOR
 from chatnoir_search.search import SimpleSearch
+from .context_processors import _get_frontend_settings
 
 
 # -----------------------
@@ -77,15 +78,6 @@ def _init_frontend_session(request):
         'csrfToken': get_token(request),
         'indices': _get_indices(request)
     })
-
-
-def _get_frontend_settings():
-    s = {
-        'app_name': settings.APPLICATION_NAME,
-        'app_module': settings._wrapped.SETTINGS_MODULE.replace('.settings', ''),
-    }
-    s.update(settings.FRONTEND_ADDITIONAL_SETTINGS)
-    return s
 
 
 def _get_indices(request):

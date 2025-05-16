@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from django.conf import settings
 from chatnoir_search.search import SimpleSearch
 
 
@@ -24,8 +25,20 @@ def _get_indices(request):
             for k, v in search.allowed_indices.items()]
 
 
+def _get_frontend_settings():
+    s = {
+        'app_name': settings.APPLICATION_NAME,
+        'app_module': settings._wrapped.SETTINGS_MODULE.replace('.settings', ''),
+        'search_frontend_url': settings.SEARCH_FRONTEND_URL or '/',
+    }
+    s.update(settings.FRONTEND_ADDITIONAL_SETTINGS)
+    return s
+
+
 def global_vars(request):
     """Set global template variables."""
+
     return {
-        'indices': _get_indices(request)
+        'indices': _get_indices(request),
+        'settings': _get_frontend_settings()
     }

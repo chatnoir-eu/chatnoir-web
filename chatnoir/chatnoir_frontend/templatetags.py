@@ -19,9 +19,9 @@ from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
 
-register = template.Library()
+from .context_processors import _get_frontend_settings
 
-from .views import _get_frontend_settings
+register = template.Library()
 
 
 @register.filter(name='json')

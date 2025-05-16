@@ -18,7 +18,7 @@
             <h1 class="m-0">{{ title }}</h1>
             <p>{{ message }}</p>
             <p>(Error: {{ error }})</p>
-            <p><a href="{% url 'chatnoir_frontend:index' %}">Take me back&hellip;</a></p>
+            <p><a href="{{ settings.search_frontend_url }}">Take me back&hellip;</a></p>
         </div>
     </div>
 </main>

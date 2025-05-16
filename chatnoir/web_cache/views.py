@@ -76,7 +76,6 @@ def normalize_doc_id_str(doc_id):
 @require_safe
 def cache(request):
     """Cache view."""
-
     index_shorthand = request.GET.get('index')
     search_index = get_index(index_shorthand)
     if not search_index:

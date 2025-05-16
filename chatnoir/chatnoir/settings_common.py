@@ -202,3 +202,9 @@ SEARCH_INDICES = {
 
 # Additional settings to pass to the JavaScript frontend (all settings in this are user-readable!)
 FRONTEND_ADDITIONAL_SETTINGS = {}
+
+# Template options
+TEMPLATES[0]['OPTIONS']['context_processors'].append('chatnoir_frontend.context_processors.global_vars')
+TEMPLATES[0]['OPTIONS']['libraries'].update({
+    'chatnoir_tags': 'chatnoir_frontend.templatetags'
+})
