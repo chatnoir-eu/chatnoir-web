@@ -50,7 +50,7 @@ defineProps({
     additionalLinks: {
         type: Array,
         default: () => [],
-        validator: (p) => p.every(e => typeof e.href === 'string' && typeof e.anchor === 'string')
+        validator: (p) => p.every(e => e.href !== undefined && typeof e.anchor === 'string')
     }
 })
 </script>
