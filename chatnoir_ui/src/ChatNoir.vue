@@ -8,7 +8,6 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import WebisFooter from '@/components/WebisFooter.vue'
 
@@ -28,9 +27,4 @@ function getFooterLinks() {
     }
     return links
 }
-
-onMounted(() => {
-    // Hide browser address bar
-    setTimeout(() => window.scrollTo(0, 1), 0)
-})
 </script>

@@ -95,4 +95,9 @@ defineExpose({
     focus: (options = {}) => searchFieldRef.value.focus(options),
     blur: () => searchFieldRef.value.blur()
 })
+
+onMounted(() => {
+    // Hide browser address bar
+    setTimeout(() => window.scrollTo(0, 1), 0)
+})
 </script>
