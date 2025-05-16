@@ -121,15 +121,16 @@ export class SearchModel {
         this.indices = indices
         this.response = null
         if (init) {
-            this.initState()
+            this.init()
         }
     }
 
-    async initState() {
+    async init() {
         this.indices = (await refreshGlobalState()).indices
     }
 
     async search(requestOptions) {
+        await refreshGlobalState()
         ++GLOBAL_STATE.counter
         const response = await xhr(Object.assign({
             method: 'POST',
@@ -186,7 +187,7 @@ export class SearchModel {
         
         this.page = Math.floor(this.response.meta.resultsFrom / this.response.meta.pageSize) + 1
         this.pageSize = this.response.meta.pageSize
-        this.indices = IndexDesc.fromJSON(this.response.meta.indices)
+        // this.indices = IndexDesc.fromJSON(this.response.meta.indices)
     }
 
     /**
@@ -194,13 +195,16 @@ export class SearchModel {
      *
      * @param queryString query string Object
      */
-    updateFromQueryString(queryString) {
+    async updateFromQueryString(queryString) {
         let queryIndices = queryString.index || []
         if (typeof queryIndices === 'string') {
             queryIndices = [queryIndices]
         }
 
         this.query = queryString.q || ''
+        if (this.indices.length === 0 && queryIndices.length > 0) {
+            await this.init()
+        }
         this.indices = this.indices.map((i) => Object.assign(
             {}, i, {selected: !queryIndices.length ? i.selected : queryIndices.includes(i.id)}))
         this.page = Math.max(1, parseInt(queryString.p) || 1)

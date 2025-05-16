@@ -16,9 +16,9 @@
 
 <template>
 <div class="search-page">
-    <search-header ref="searchHeaderRef" v-model="searchModel" :progress="requestProgress" @submit="search()" />
+    <search-header ref="searchHeaderRef" v-model="searchModel" :progress="requestProgress" @submit="search()" @ready="search()" />
 
-    <div ref="resultsElement" class="search-page-body mt-0">
+    <div cl ref="resultsElement">
         <div v-if="!error && searchModel.response && searchModel.response.results.length" key="search-results" class="max-w-3xl mx-auto">
             <div class="sm:flex -mb-3 text-sm pb-2">
                 <div class="sm:flex-grow">

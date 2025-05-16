@@ -37,7 +37,7 @@
             @close="showOptions = false"
         />
 
-        <button type="submit" class="btn-submit mr-6" aria-label="Submit search">
+        <button type="submit" class="btn-submit mr-6"  aria-label="Submit search">
             <inline-svg class="h-full mx-auto align-middle icon-search" :src="iconSearch" alt="Search" />
         </button>
     </form>
@@ -52,6 +52,7 @@ export default {
 
 <script setup>
 import { onMounted, ref, reactive, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { SearchModel } from '@/search-model.mjs'
 import OptionsDropDown from '@/components/OptionsDropDown.vue'
@@ -60,7 +61,7 @@ import iconSettings from '@/assets/icons/settings.svg'
 import iconSearch from '@/assets/icons/search.svg'
 
 const optionsButton = ref(null)
-const emit = defineEmits(['update:modelValue', 'submit', 'change', 'option-change', 'keyup'])
+const emit = defineEmits(['update:modelValue', 'ready', 'submit', 'change', 'option-change', 'keyup'])
 const props = defineProps({
     action: {type: String, default: ''},
     method: {type: String, default: 'GET'},
@@ -71,6 +72,7 @@ const props = defineProps({
     focus: {type: Boolean, default: false}
 })
 
+const route = useRoute()
 const searchInput = ref(null)
 const showOptions = ref(false)
 const searchModel = reactive(new SearchModel())
@@ -115,11 +117,14 @@ defineExpose({
     focus
 })
 
-onMounted(() => {
+onMounted(async () => {
     if (props.focus) {
         setFocus()
     }
-    searchModel.initState()
+    await searchModel.init()
+    await searchModel.updateFromQueryString(route.query)
+    emitModelUpdate(false)
+    // emit('ready')
 })
 </script>
 

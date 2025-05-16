@@ -27,7 +27,7 @@
         <div class="flex flex-row items-center max-w-3xl mx-auto h-24">
             <cat-logo ref="catLogoElement" class="w-32 mr-6 hidden sm:block" router-target="/" />
             <search-field ref="searchFieldRef" v-model="searchFieldModel" :focus="focus"
-                          @submit="submitSearch()" @change="$refs.catLogoElement.purr()" />
+                          @submit="submitSearch()" @change="$refs.catLogoElement.purr()" @ready="emit('ready')" />
         </div>
     </div>
 
@@ -48,7 +48,7 @@ import iconChatNoir from '@/assets/icons/chatnoir.svg'
 const route = useRoute()
 const router = useRouter()
 
-const emit = defineEmits(['update:modelValue', 'submit'])
+const emit = defineEmits(['ready', 'update:modelValue', 'submit'])
 const props = defineProps({
     action: {type: String, default:''},
     method: {type: String, default: "GET"},
@@ -72,10 +72,10 @@ async function submitSearch() {
     emit('submit', searchFieldModel.value)
 }
 
-onMounted(() => {
+onMounted(async () => {
     searchFieldModel.value = props.modelValue
     if (!searchFieldModel.value.query) {
-        searchFieldModel.value.updateFromQueryString(route.query)
+        await searchFieldModel.value.updateFromQueryString(route.query)
     }
 })
 
