@@ -8,7 +8,7 @@ from chatnoir.settings import *
 APPLICATION_NAME = 'IR Anthology Search'
 
 INSTALLED_APPS = [
-    'ir_anthology_web.apps.IRAnthologyWebConfig',
+    'ir_anthology_frontend.apps.IRAnthologyWebConfig',
     'ir_anthology_api.apps.IRAnthologyApiConfig',
 ] + INSTALLED_APPS
 

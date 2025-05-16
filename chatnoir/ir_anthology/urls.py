@@ -17,7 +17,7 @@ from django.urls import include, path
 app_name = 'ir_anthology'
 
 urlpatterns = [
-    path(r'', include('ir_anthology_web.urls', namespace='ir_anthology')),
+    path(r'', include('ir_anthology_frontend.urls', namespace='ir_anthology')),
     path(r'', include('ir_anthology_api.urls', namespace='chatnoir_api'))
 ]
 
