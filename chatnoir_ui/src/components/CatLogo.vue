@@ -38,8 +38,8 @@ onMounted(() => {
             svg.target.contentDocument.firstChild.style.cursor = 'pointer';
         }
         svg.target.contentDocument.addEventListener('click', (e) => {
+            e.preventDefault()
             if (props.routerTarget) {
-                e.preventDefault()
                 router.push(props.routerTarget)
             }
             emit('click', e)
