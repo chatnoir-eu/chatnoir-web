@@ -37,7 +37,7 @@
             @close="showOptions = false"
         />
 
-        <button type="submit" class="btn-submit mr-6"  aria-label="Submit search">
+        <button type="submit" class="btn-submit mr-6" aria-label="Submit search">
             <inline-svg class="h-full mx-auto align-middle icon-search" :src="iconSearch" alt="Search" />
         </button>
     </form>
