@@ -6,31 +6,17 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#ffffff">
     <meta name=”robots” content=”noindex,nofollow”>
-    <meta http-equiv="refresh" content="5; url={{ uri }}">
+    <meta http-equiv="refresh" content="7; url={{ uri }}">
     {% include 'include/favicon_head.html' %}
-    <style>
-        #redirect-message {
-            font-family: Carlito, ui-sans-serif, system-ui, sans-serif;
-            font-size: 1.2rem;
-            margin: 3.5rem auto;
-            padding: 0 2rem;
-            text-align: center;
-            max-width: 80rem;
-        }
-        h1 {
-            font-size: 2.4rem;
-            font-weight: bold;
-        }
-        h1, p {
-            margin: 1rem 0;
-        }
-    </style>
+    {% load chatnoir_tags %}{% load static %}
+    {% frontend_css %}
 </head>
 <body>
-    <div id="redirect-message">
-        <h1>You are leaving us! ;-(</h1>
-        <p>Unfortunately, we have no cached version of the requested page.<p>
-        <p>Redirecting you to the <em>InterWebz™</em> at <a href="{{ uri }}" rel="nofollow">{{ uri }}</a> in <span id="timer">5</span> seconds&hellip;</p>
+    <div class="text-center mt-[8vh] mb-10 px-5 mx-auto max-w-[30rem]">
+        <img src="{% static 'ui/img/chatnoir-icon.svg' %}" class="block mx-auto w-12" width="64" aria-hidden="true" alt="">
+        <h1 class="text-2xl my-1">You are leaving us! <span class="text-xl align-middle">😿</span></h1>
+        <p class="my-1">Unfortunately, we have no cached version of the requested page.<p>
+        <p class="my-6">Redirecting you to the <em>InterWebz™</em> at <a href="{{ uri }}" rel="nofollow" class="block break-all">{{ uri }}</a> in <span id="timer">7</span> seconds&hellip;</p>
     </div>
     <script>
         const timer = document.getElementById('timer')
