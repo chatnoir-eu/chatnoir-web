@@ -38,11 +38,15 @@ export function buildQueryString(params) {
  *
  * @param route route for which to generate a query URL
  * @param query search query to add to query URL
+ * @param additive add given query as additional terms instead of replacing entire query
  * @param index search index (set undefined for current, null for none)
  * @returns {string} query URL
  */
-export function getQueryUrl(route, query, index = undefined) {
+export function getQueryUrl({route, query, index = undefined, additive = false}) {
     const qs = Object.assign({}, route.query)
+    if (additive) {
+        query = query + ' ' + qs.q
+    }
     qs.q = query
     if (index) {
         qs.index = index

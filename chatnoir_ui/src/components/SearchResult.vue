@@ -27,24 +27,24 @@
         </h2>
         <div class="text-sm text-gray-800 mt-0.5">
             <span v-if="data.authors && data.authors.length > 0" class="meta-link">
-                <a :href="getAuthorUrl(data.authors[0])">{{ getLastName(data.authors[0]) }}</a>
+                <a :href="getAuthorUrl({author: data.authors[0], additive: true})">{{ getLastName(data.authors[0]) }}</a>
                 <span v-if="data.authors.length === 2"> and </span>
                 <a v-if="data.authors.length === 2" :href="getAuthorUrl(data.authors[1])">{{ getLastName(data.authors[1]) }}</a>
                 <span v-if="data.authors.length > 2"> et al.</span>
             </span>
 
             <span v-if="data.index && data.warcId" class="meta-link">
-                <a :href="getQueryUrl(route, `index:${data.index} ${meta.queryString.replace(RegExp(`index:${data.index}\\s+`), '')}`, null)">
+                <a :href="getIndexUrl({index: data.index})">
                     {{ getFullIndexName() }}
                 </a>
             </span>
 
             <span v-if="data.venue" class="meta-link">
-                <a :href="getQueryUrl(route, `venue:${data.venue}`)">{{ data.venue }}</a>
+                <a :href="getQueryUrl({route, query: `venue:${data.venue}`, additive: true})">{{ data.venue }}</a>
             </span>
 
             <span v-if="data.year" class="meta-link">
-                <a :href="getQueryUrl(route, `year:${data.year}`)">{{ data.year }}</a>
+                <a :href="getQueryUrl({route, query: `year:${data.year}`, additive: true})">{{ data.year }}</a>
             </span>
 
             <span v-if="!data.year && data.crawlDate" class="meta-link">
@@ -157,8 +157,16 @@ const props = defineProps({
 })
 const route = useRoute()
 
-function getAuthorUrl(author) {
-    return getQueryUrl(route, `author:"${author}"`)
+function getIndexUrl({index}) {
+    return getQueryUrl({
+        route,
+        query: `index:${index} ${route.query.q.replace(/index:(?:"[^"]*"|\S*)\s*/g, '')}`,
+        additive: false
+    })
+}
+
+function getAuthorUrl({author, additive = false}) {
+    return getQueryUrl({route, query: `author:"${author}"`, additive})
 }
 
 function getLastName(author) {
