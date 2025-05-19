@@ -12,7 +12,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 uwsgi = "^2.0.29"
-boto3 = "^1.38.11"
+boto3 = "^1.38.19"
 django = ">=4.0,<6.0"
 django-cors-headers = "^4.7.0"
 djangorestframework = "^3.16.0"
