@@ -21,7 +21,7 @@
     <div class="mx-5">
         <div class="text-center sm:hidden">
             <router-link to="/">
-                <inline-svg class="inline-block h-10" :src="iconChatNoir" alt="" />
+                <inline-svg class="inline-block h-10 mt-1" :src="iconChatNoir" alt="" />
             </router-link>
         </div>
         <div class="flex flex-row items-center max-w-3xl mx-auto h-24">
