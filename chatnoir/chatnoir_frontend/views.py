@@ -122,7 +122,7 @@ def _apikey_request(request, passcode):
     instance = form.save(commit=False)
     activation_code = instance.generate_activation_code(save=True)
     instance.send_verification_mail(
-        request.build_absolute_uri(reverse('chatnoir_api:apikey_request_verify', args=[activation_code])))
+        request.build_absolute_uri(reverse('chatnoir_frontend:apikey_request_verify', args=[activation_code])))
 
     if passcode:
         return JsonResponse({
@@ -148,10 +148,10 @@ def apikey_request_verify(request, activation_code=None):
     user = ApiPendingUser.verify_email_by_activation_code(activation_code)
     if user is None:
         # Invalid code
-        return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?error=invalid+code')
+        return redirect(reverse('chatnoir_frontend:apikey_request_verify_index') + '?error=invalid+code')
     if user is False:
         # Already activated
-        return redirect(reverse('chatnoir_api:apikey_request_verify_index') + '?already_verified')
+        return redirect(reverse('chatnoir_frontend:apikey_request_verify_index') + '?already_verified')
 
     # Activate user instantly if they have a passcode, otherwise notify managers
     if user.passcode:
@@ -169,7 +169,7 @@ def apikey_request_verify(request, activation_code=None):
     query_string = f'?success'
     if user.passcode:
         query_string += '&passcode'
-    return redirect(reverse('chatnoir_api:apikey_request_verify_index') + query_string)
+    return redirect(reverse('chatnoir_frontend:apikey_request_verify_index') + query_string)
 
 
 # -----------------------
