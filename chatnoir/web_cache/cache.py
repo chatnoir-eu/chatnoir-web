@@ -28,6 +28,7 @@ from resiliparse.extract.html2text import extract_plain_text
 from resiliparse.parse.encoding import bytes_to_str
 from resiliparse.parse.html import HTMLTree
 import json
+import zlib
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,7 @@ class CacheDocument:
         :param doc: The document with source_file and source_offset
         :return: True on success, else an exception is thrown
         """
-        if doc.source_file.endswith('.json') or doc.source_file.endswith('.jsonl'):
+        if doc.source_file.endswith('.json') or doc.source_file.endswith('.jsonl') or doc.source_file.endswith('jsonl.gz'):
             self._read_jsonl_record(doc.source_file, doc.source_offset, doc.content_length)
         else:
             self._read_warc_record(doc.source_file, doc.source_offset)
@@ -117,7 +118,7 @@ class CacheDocument:
         if not jsonl_file_url.startswith('s3://'):
             raise ValueError('JSONL URL is not an S3 URL.')
 
-        if not jsonl_file_url.endswith('.json') and not jsonl_file_url.endswith('.jsonl'):
+        if not jsonl_file_url.endswith('.json') and not jsonl_file_url.endswith('.jsonl') and not jsonl_file_url.endswith('jsonl.gz'):
             raise ValueError('JSONL URL does not point to json file.')
 
         if not content_length or content_length < 10:
@@ -125,16 +126,24 @@ class CacheDocument:
 
         try:
             bucket_name, obj_name = jsonl_file_url[5:].split('/', 1)
+            obj_name = obj_name.replace("corpusjsonl.gz", "corpus.jsonl.gz")
             obj = self._S3_RESOURCE.Object(bucket_name, obj_name)
             start = start_offset
             end = start_offset + content_length
             stream = obj.get(Range=f'bytes={start}-{end}')['Body']
-            response = stream._raw_stream.read().decode()
-            response = response.split('\n')[0].strip()
+            response = stream._raw_stream.read()
+            if jsonl_file_url.endswith('.gz'):
+                d = zlib.decompressobj(wbits=16 + zlib.MAX_WBITS)
+                response = d.decompress(response)
+
+            response = response.decode().split('\n')[0].strip()
             response = json.loads(response)
             self._meta_doc.http_content_type = 'text/plain'
             self._doc_bytes = json.dumps(response, indent=4).encode()
             self._doc_found = True
+
+            if "warc_target_uri" not in self._meta_doc or not self._meta_doc["warc_target_uri"] and "original_document" in response and "url" in response["original_document"]:
+                self._meta_doc["warc_target_uri"] = response["original_document"]["url"]
 
             title = None
             if 'title' in response:
