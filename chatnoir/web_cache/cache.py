@@ -142,7 +142,7 @@ class CacheDocument:
             self._doc_bytes = json.dumps(response, indent=4).encode()
             self._doc_found = True
 
-            if "warc_target_uri" not in self._meta_doc or not self._meta_doc["warc_target_uri"] and "original_document" in response and "url" in response["original_document"]:
+            if ("warc_target_uri" not in self._meta_doc or not self._meta_doc["warc_target_uri"]) and "original_document" in response and "url" in response["original_document"]:
                 self._meta_doc["warc_target_uri"] = response["original_document"]["url"]
 
             title = None
@@ -179,6 +179,7 @@ class CacheDocument:
             self._raw_doc_content_type = 'application/json'
 
         except Exception as e:
+            logger.error(e)
             logger.error('Could not parse json record.', e)
             raise ValueError('Could not parse json record', e)
 
