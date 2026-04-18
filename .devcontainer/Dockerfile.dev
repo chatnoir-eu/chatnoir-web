@@ -1,0 +1,14 @@
+# docker build -t ghcr.io/chatnoir-eu/chatnoir-web:dev -f .devcontainer/Dockerfile.dev .
+FROM python:3.12
+LABEL org.opencontainers.image.source=https://github.com/chatnoir-eu/chatnoir-web
+LABEL org.opencontainers.image.description="ChatNoir Web Frontend"
+LABEL org.opencontainers.image.licenses=Apache-2.0
+
+# Force UTF-8 locale
+RUN set -x \
+    && apt update \
+    && apt install -y locales python3-poetry npm \
+    && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+    && dpkg-reconfigure --frontend=noninteractive locales \
+    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+

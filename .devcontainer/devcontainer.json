@@ -1,0 +1,14 @@
+{
+    "image": "ghcr.io/chatnoir-eu/chatnoir-web:dev",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.datawrangler",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    }
+}
