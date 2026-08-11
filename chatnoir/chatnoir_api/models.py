@@ -424,6 +424,7 @@ class ApiPendingUser(models.Model):
     issue_key = models.ForeignKey(ApiKey, verbose_name=_('Issue Key'), on_delete=models.CASCADE, null=True, blank=True)
     common_name = models.CharField(verbose_name=_('Common Name'), max_length=100)
     email = models.EmailField(verbose_name=_('Email Address'), max_length=200)
+    created_at = models.DateTimeField(verbose_name=_('Created at'), default=timezone.now)
     organization = models.CharField(verbose_name=_('Organization'), max_length=100, null=True, blank=True)
     address = models.CharField(verbose_name=_('Address'), max_length=200, null=True, blank=True)
     zip_code = models.CharField(verbose_name=_('ZIP Code'), max_length=50, null=True, blank=True)
