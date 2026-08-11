@@ -30,9 +30,8 @@ DATABASES = {
 
 # Configure Elasticsearch backend here
 ELASTICSEARCH_PROPERTIES = {
-    'hosts': ['ELASTICSEARCH_HOST:PORT'],
+    'hosts': ['https://ELASTICSEARCH_HOST:PORT'],
     'retry_on_timeout': True,
-    'use_ssl': True,
     'api_key': ['API_KEY_NAME', 'API_KEY_SECRET'],
     'timeout': 30
 }
