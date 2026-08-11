@@ -1,0 +1,19 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+    {{ block.super }}
+
+    <div class="app-chatnoir-admin module">
+        <table>
+            <caption>Other</caption>
+            <tbody>
+                <tr class="model-takwdown-action">
+                    <th scope="row">
+                        <a href="{% url 'takedowns' %}">URL Takedowns</a>
+                    </th>
+                    <td>Take down URLs from the web cache.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

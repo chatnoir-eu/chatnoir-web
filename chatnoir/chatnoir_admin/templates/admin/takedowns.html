@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; URL Takedowns
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <fieldset class="module">
+            {% if form.non_field_errors %}
+            <div class="form-row errors">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="form-row">
+                {{ form.urls.errors }}
+                <div>
+                    {{ form.urls.label_tag }}
+                </div>
+                <div style="margin-top: 8px;">
+                    {{ form.urls }}
+                </div>
+                {% if form.urls.help_text %}
+                <div class="help" style="margin-top: 8px;">
+                    {{ form.urls.help_text }}
+                </div>
+                {% endif %}
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" value="Process takedowns" class="default">
+        </div>
+    </form>
+
+    {% if taken_down or takedown_undone or not_found %}
+    {% if taken_down %}
+        <div class="form-row">
+            <h2>Cache URLs Taken Down:</h2>
+            {% for u in taken_down %}
+                <pre>{{ u }}</pre>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if takedown_undone %}
+        <div class="form-row">
+            <h2>Takedowns Undone:</h2>
+            {% for u in takedown_undone %}
+                <pre>{{ u }}</pre>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if not_found %}
+        <div class="form-row">
+            <h2>URLs not found:</h2>
+            {% for u in not_found %}
+                <pre>{{ u }}</pre>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

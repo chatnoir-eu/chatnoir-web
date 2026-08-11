@@ -8,14 +8,19 @@ APPLICATION_NAME = 'ChatNoir Web Cache'
 
 INSTALLED_APPS = [
     'web_cache.apps.ChatnoirWebCacheConfig',
+    'chatnoir_api.apps.ChatnoirApiConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.sessions',
     'django.contrib.staticfiles',
-    'corsheaders'
+    'corsheaders',
+    'rest_framework',
+    'solo',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware'

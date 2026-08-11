@@ -1,4 +1,12 @@
 {% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block userlinks %}
+    {{ block.super }}
+    /
+    <a href="{% url 'takedowns' %}">URL Takedowns</a>
+{% endblock %}
+
 {% block extrastyle %}
     {{ block.super }}
     <style>

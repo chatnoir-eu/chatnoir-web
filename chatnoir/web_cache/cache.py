@@ -295,6 +295,15 @@ class CacheDocument:
         """
         return self._meta_doc
 
+    def taken_down(self):
+        """
+        :return: True if document has been taken down (e.g., due to a copyright strike).
+        """
+        try:
+            return self._meta_doc['takedown']
+        except KeyError:
+            return False
+
     def html(self, post_process=True):
         """
         :param post_process: post-process HTML, i.e., rewrite links etc.

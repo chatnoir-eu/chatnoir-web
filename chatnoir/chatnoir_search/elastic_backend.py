@@ -53,6 +53,7 @@ class SearchIndex:
         warc_identified_payload_type = edsl.Keyword()
         warc_payload_digest = edsl.Keyword()
         warc_block_digest = edsl.Keyword()
+        takedown = edsl.Boolean()
 
     def __init__(self, shorthand):
         if shorthand not in settings.SEARCH_INDICES:

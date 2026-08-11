@@ -17,10 +17,13 @@ from django.conf import settings
 from django.urls import path
 from django.contrib import admin
 
+from .views import takedowns
+
 app_name = 'chatnoir_admin'
 
 urlpatterns = [
-    path(r'', admin.site.urls)
+    path('takedowns/', admin.site.admin_view(takedowns), name='takedowns'),
+    path(r'', admin.site.urls),
 ]
 
 admin.site.site_url = getattr(settings, 'SITE_URL', None)

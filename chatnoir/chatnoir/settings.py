@@ -37,14 +37,6 @@ LOGGING['loggers'].update({
 # Cache frontend URL (should be a different origin than the search frontend to avoid cookie leakage)
 CACHE_FRONTEND_URL = 'http://127.0.0.1:8001'
 
-# API roles
-API_ADMIN_ROLE = 'admin'
-API_KEYCREATE_ROLE = 'keycreate'
-API_NOLOG_ROLE = 'nolog'
-
-# Set to true if running behind a proxy
-API_TRUST_X_FORWARDED_FOR = False
-
 try:
     from .local_settings import *
 except ImportError:

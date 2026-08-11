@@ -18,10 +18,12 @@ from urllib import parse
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.http import require_safe
+from rest_framework import authentication as drf_authentication, exceptions as rest_exceptions
 
 from chatnoir_search.elastic_backend import get_index
 from elasticsearch_dsl import connections, Search
@@ -72,6 +74,31 @@ def normalize_doc_id_str(doc_id):
     raise ValueError('Not a valid document ID.')
 
 
+def authenticate_api_key(request, required_roles):
+    """
+    Authenticate an optional API key to allow access to restricted documents.
+
+    :param required_roles: required roles for access
+    :return: authentication result as (user info, apikey) tuple or None if unauthenticated
+    """
+    if not drf_authentication.get_authorization_header(request) and not request.GET.get('apikey'):
+        return None
+
+    if not hasattr(request, 'data'):
+        request.data = {}
+
+    from chatnoir_api.authentication import ApiKeyAuthentication
+
+    try:
+        user_info, api_key = ApiKeyAuthentication().authenticate(request)
+        for role in api_key.roles.values('role'):
+            if role['role'] in [*required_roles, settings.API_ADMIN_ROLE]:
+                return user_info, api_key
+    except rest_exceptions.APIException:
+        raise PermissionDenied
+    return None
+
+
 # noinspection PyProtectedMember
 @require_safe
 def cache(request):
@@ -114,10 +141,16 @@ def cache(request):
     if not found:
         raise Http404
 
+    doc_taken_down = cache_doc.taken_down() and authenticate_api_key(request, [settings.API_NOTAKEDOWN_ROLE]) is None
+    if raw_mode and doc_taken_down:
+        raise PermissionDenied
+
     doc_meta = cache_doc.doc_meta()
     doc_uuid = doc_meta['uuid']
-    cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)._replace(
-        query=f'index={parse.quote(index_shorthand)}&uuid={parse.quote(doc_uuid)}')
+    cache_url_query = f'index={parse.quote(index_shorthand)}&uuid={parse.quote(doc_uuid)}'
+    if request.GET.get('apikey'):
+        cache_url_query += f'&apikey={parse.quote(request.GET["apikey"])}'
+    cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)._replace(query=cache_url_query)
     context = dict(
         app_name=settings.APPLICATION_NAME,
         search_frontend_url=settings.SEARCH_FRONTEND_URL,
@@ -134,6 +167,7 @@ def cache(request):
             is_json_doc=cache_doc.is_json(),
             is_xml_doc=cache_doc.is_xml(),
             is_binary_doc=cache_doc.is_binary(),
+            taken_down=doc_taken_down,
         )
     )
 

@@ -39,6 +39,14 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_SUBJECT_PREFIX = ''
 MANAGERS = []
 
+# API roles
+API_ADMIN_ROLE = 'admin'
+API_KEYCREATE_ROLE = 'keycreate'
+API_NOLOG_ROLE = 'nolog'
+API_NOTAKEDOWN_ROLE = 'notakedown'
+
+# Set to true if running behind a proxy
+API_TRUST_X_FORWARDED_FOR = False
 
 # Application definition
 INSTALLED_APPS = [

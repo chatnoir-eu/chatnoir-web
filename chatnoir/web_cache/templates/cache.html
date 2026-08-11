@@ -75,8 +75,12 @@
             </div>
         </div>
     </div>
-    {% if cache.is_binary_doc %}
-        <div>
+    {% if cache.taken_down %}
+        <div class="m-6">
+            <p>The requested document has been taken down due to a copyright claim or other complaint.</p>
+        </div>
+    {% elif cache.is_binary_doc %}
+        <div class="m-6">
             <p>The requested document does not appear to be a text document.</p>
             <p>
                 <a href="{{ cache.cache_url }}&amp;raw" rel="nofollow">Click to view or download the raw document.</a>

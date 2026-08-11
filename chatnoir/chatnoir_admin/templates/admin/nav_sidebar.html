@@ -1,0 +1,19 @@
+{% load i18n static %}
+
+<button class="sticky toggle-nav-sidebar" id="toggle-nav-sidebar" aria-label="{% translate 'Toggle navigation' %}"></button>
+<nav class="sticky" id="nav-sidebar" aria-label="{% translate 'Sidebar' %}">
+    <input type="search" id="nav-filter" placeholder="{% translate 'Start typing to filter…' %}" aria-label="{% translate 'Filter navigation items' %}">
+    {% include 'admin/app_list.html' with app_list=available_apps show_changelinks=False %}
+    <div class="app-chatnoir-admin module">
+        <table>
+            <caption>Other</caption>
+            <tbody>
+                <tr class="model-takedowns">
+                    <th scope="row">
+                        <a href="{% url 'takedowns' %}">URL Takedowns</a>
+                    </th>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</nav>
