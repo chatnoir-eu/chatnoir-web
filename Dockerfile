@@ -2,7 +2,7 @@
 # docker tag ghcr.io/chatnoir-eu/chatnoir-web:0.0.3 ghcr.io/chatnoir-eu/chatnoir-web:latest
 # docker push ghcr.io/chatnoir-eu/chatnoir-web:0.0.3
 # docker push ghcr.io/chatnoir-eu/chatnoir-web:latest
-FROM node:24 as node_build
+FROM node:26 as node_build
 
 COPY package.* /work/
 COPY chatnoir/ /work/chatnoir/
