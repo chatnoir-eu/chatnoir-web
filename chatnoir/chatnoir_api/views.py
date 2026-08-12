@@ -156,13 +156,7 @@ class SimpleSearchViewSet(ApiViewSet):
                 'issuer': request.auth.issuer,
             }
 
-        page_size = params.validated_data['size']
-        page_from = params.validated_data['from']
-        fields['request'] = {
-            'query_string': request.META.get('QUERY_STRING', ''),
-            'page': (page_from // page_size) + 1,
-            'json_payload': params.validated_data,
-        }
+        fields['request_payload'] = params.validated_data
 
         search_obj.log_query(query, extra=fields)
 
