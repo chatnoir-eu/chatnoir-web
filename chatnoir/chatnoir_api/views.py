@@ -156,7 +156,10 @@ class SimpleSearchViewSet(ApiViewSet):
                 'issuer': request.auth.issuer,
             }
 
-        fields['request_payload'] = params.validated_data
+        payload = params.validated_data.copy()
+        if 'apikey' in payload:
+            payload['apikey'] = '<redacted>'
+        fields['request_payload'] = payload
 
         search_obj.log_query(query, extra=fields)
 
