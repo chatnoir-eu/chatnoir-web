@@ -14,12 +14,29 @@
 
 
 import json
+import logging
 import logging.handlers
 import os
 import socket
 import traceback
 
 from django.utils import timezone
+
+
+_DEFAULT_LOG_RECORD_FIELDS = frozenset(logging.makeLogRecord({}).__dict__.keys())
+
+
+def _get_extra_fields(record):
+    return {
+        key: value for key, value in record.__dict__.items()
+        if key not in _DEFAULT_LOG_RECORD_FIELDS
+        and key not in ('message', 'asctime')
+    }
+
+
+class QueryConsoleFormatter(logging.Formatter):
+    def format(self, record):
+        return str({'query': record.getMessage(), 'extra': _get_extra_fields(record)})
 
 
 class LogstashFormatter(logging.Formatter):
@@ -60,8 +77,9 @@ class LogstashFormatter(logging.Formatter):
                 'stack_trace':  ''.join(traceback.format_exception(*record.exc_info)),
             }
 
-        if hasattr(record, 'extra'):
-            fields.update(record.extra)
+        extra_fields = _get_extra_fields(record)
+        if extra_fields:
+            fields.update(extra_fields)
 
         return json.dumps(fields, default=str)
 

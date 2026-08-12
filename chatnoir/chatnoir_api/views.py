@@ -141,7 +141,7 @@ class SimpleSearchViewSet(ApiViewSet):
 
         return data
 
-    def _log_query(self, search_obj, request, query):
+    def _log_query(self, search_obj, request, query, params):
         """Log a search query using the configured query logging facility."""
 
         fields = {}
@@ -156,11 +156,19 @@ class SimpleSearchViewSet(ApiViewSet):
                 'issuer': request.auth.issuer,
             }
 
+        page_size = params.validated_data['size']
+        page_from = params.validated_data['from']
+        fields['request'] = {
+            'query_string': request.META.get('QUERY_STRING', ''),
+            'page': (page_from // page_size) + 1,
+            'json_payload': params.validated_data,
+        }
+
         search_obj.log_query(query, extra=fields)
 
     def _process_search(self, search_obj, request, params):
         """Run the search using the selected search class."""
-        self._log_query(search_obj, request, params.data['query'])
+        self._log_query(search_obj, request, params.data['query'], params)
         try:
             serp_ctx = search_obj.search(params.data['query'])
         except elasticsearch.ConnectionTimeout:

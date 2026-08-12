@@ -21,15 +21,24 @@ CACHES = {
 
 # Logging configuration (should be adjusted in local_settings.py)
 LOGGING['handlers'].update({
+    'query_console': {
+        'class': 'logging.StreamHandler',
+        'formatter': 'query.console',
+    },
     'logstash': {
         'class': 'chatnoir.logging.LogstashUDPHandler',
         'host': 'localhost',
         'port': 3334
     }
 })
+LOGGING['formatters'].update({
+    'query.console': {
+        '()': 'chatnoir.logging.QueryConsoleFormatter',
+    }
+})
 LOGGING['loggers'].update({
     'query_log': {
-        'handlers': ['logstash'],
+        'handlers': ['query_console', 'logstash'],
         'propagate': False,
     }
 })
