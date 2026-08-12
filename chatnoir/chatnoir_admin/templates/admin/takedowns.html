@@ -32,37 +32,78 @@
                 </div>
                 {% endif %}
             </div>
+
+            <div class="form-row" style="margin-top: 32px;">
+                {{ form.warc_target_uri_prefixes.errors }}
+                <div>
+                    {{ form.warc_target_uri_prefixes.label_tag }}
+                </div>
+                <div style="margin-top: 8px;">
+                    {{ form.warc_target_uri_prefixes }}
+                </div>
+                {% if form.warc_target_uri_prefixes.help_text %}
+                <div class="help" style="margin-top: 8px;">
+                    {{ form.warc_target_uri_prefixes.help_text }}
+                </div>
+                {% endif %}
+            </div>
         </fieldset>
         <div class="submit-row">
             <input type="submit" value="Process takedowns" class="default">
         </div>
     </form>
 
-    {% if taken_down or takedown_undone or not_found %}
-    {% if taken_down %}
-        <div class="form-row">
-            <h2>Cache URLs Taken Down:</h2>
-            {% for u in taken_down %}
-                <pre>{{ u }}</pre>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% if takedown_undone %}
-        <div class="form-row">
-            <h2>Takedowns Undone:</h2>
-            {% for u in takedown_undone %}
-                <pre>{{ u }}</pre>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% if not_found %}
-        <div class="form-row">
-            <h2>URLs not found:</h2>
-            {% for u in not_found %}
-                <pre>{{ u }}</pre>
-            {% endfor %}
-        </div>
-    {% endif %}
+    {% if result %}
+    <div  style="margin-top: 32px;">
+        {% if taken_down_uuid %}
+            <div class="form-row">
+                <h2>Cache URLs Taken Down:</h2>
+                {% for u in taken_down_uuid %}
+                    <pre>{{ u }}</pre>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if takedown_undone_uuid %}
+            <div class="form-row">
+                <h2>Cache URL Takedowns Undone:</h2>
+                {% for u in takedown_undone_uuid %}
+                    <pre>{{ u }}</pre>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if taken_down_prefix %}
+            <div class="form-row">
+                <h2>Target URI Prefixes Taken Down:</h2>
+                {% for prefix_result in taken_down_prefix %}
+                    <pre>{{ prefix_result.prefix }} ({{ prefix_result.count }} docs, {{ prefix_result.index_count }} indices)</pre>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if takedown_undone_prefix %}
+            <div class="form-row">
+                <h2>Target URI Prefix Takedowns Undone:</h2>
+                {% for prefix_result in takedown_undone_prefix %}
+                    <pre>{{ prefix_result.prefix }} ({{ prefix_result.count }} docs, {{ prefix_result.index_count }} indices)</pre>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if not_found_uuid %}
+            <div class="form-row">
+                <h2>Cache UUIDs not found:</h2>
+                {% for i, u in not_found_uuid %}
+                    <pre>Index: {{ i }}, UUID: {{ u }}</pre>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if not_found_prefix %}
+            <div class="form-row">
+                <h2>Target URI Prefixes Not Found:</h2>
+                {% for u in not_found_prefix %}
+                    <pre>{{ u }}</pre>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
     {% endif %}
 </div>
 {% endblock %}

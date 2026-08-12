@@ -10,6 +10,14 @@ class TakedownForm(forms.Form):
         label='Cache URLs to take down',
         widget=forms.Textarea(attrs={'rows': 30, 'cols': 120}),
         help_text='Enter one cache URL per line (with index and UUID). Empty lines are ignored. Prefix with - to undo takedown.',
+        required=False,
+    )
+    warc_target_uri_prefixes = forms.CharField(
+        label='WARC target URI prefixes to take down',
+        widget=forms.Textarea(attrs={'rows': 12, 'cols': 120}),
+        help_text='Enter one URI prefix per line. The prefix is matched against warc_target_uri across all configured indices.'
+                  'Prefix with - to undo takedown.',
+        required=False,
     )
 
     def clean_urls(self):
@@ -33,6 +41,7 @@ class TakedownForm(forms.Form):
             q = parse.parse_qs(parse.urlsplit(url_stripped).query)
             if not q.get('index') or not q.get('uuid'):
                 invalid_urls.append(url_stripped)
+                continue
 
             if url_stripped not in takedowns:
                 takedowns[url_stripped] = {
@@ -49,7 +58,47 @@ class TakedownForm(forms.Form):
                 )
             )
 
-        if not takedowns:
-            raise ValidationError('Please provide at least one valid URL.')
-
         return takedowns
+
+    def clean_warc_target_uri_prefixes(self):
+        validator = URLValidator()
+        prefixes = {}
+        invalid_prefixes = []
+
+        for line in self.cleaned_data['warc_target_uri_prefixes'].splitlines():
+            prefix = line.strip()
+            if not prefix:
+                continue
+
+            prefix_stripped = prefix if not prefix.startswith('-') else prefix[1:]
+            try:
+                validator(prefix_stripped)
+            except ValidationError:
+                invalid_prefixes.append(prefix_stripped)
+                continue
+
+            if prefix_stripped not in prefixes:
+                prefixes[prefix_stripped] = {
+                    'prefix': prefix_stripped,
+                    'takedown': not prefix.startswith('-'),
+                }
+
+        if invalid_prefixes:
+            raise ValidationError(
+                'Invalid URI prefix%s: %s' % (
+                    '' if len(invalid_prefixes) == 1 else 'es',
+                    ', '.join(invalid_prefixes[:5]) + (' …' if len(invalid_prefixes) > 5 else ''),
+                )
+            )
+
+        return prefixes
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.errors:
+            return cleaned_data
+
+        if not cleaned_data.get('urls') and not cleaned_data.get('warc_target_uri_prefixes'):
+            raise ValidationError('Please provide at least one cache URL or WARC target URI prefix.')
+
+        return cleaned_data
