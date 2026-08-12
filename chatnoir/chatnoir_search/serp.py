@@ -72,7 +72,7 @@ class SerpContext:
 
             body_field = FieldName('body')
             meta_desc_field = FieldName('meta_desc')
-            snippet = self.search.get_snippet(hit, [body_field.i18n(lang), meta_desc_field.i18n(lang)], 200)
+            snippet = self.search.get_snippet(hit, [body_field.i18n(lang), meta_desc_field.i18n(lang)], 100)
 
             title_field = FieldName('title')
             title = self.search.get_snippet(hit, [title_field.i18n(lang)], 60)

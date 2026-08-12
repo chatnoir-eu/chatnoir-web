@@ -237,7 +237,7 @@ class SimpleSearch(SearchBase):
         },
         {
             'name': FieldName('body'),
-            'fragment_size': 300,
+            'fragment_size': 100,
             'number_of_fragments': 1
         }
     ]
