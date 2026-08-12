@@ -19,10 +19,6 @@
         <cat-logo ref="catLogoElement" class="block text-center h-40" />
         <search-field ref="searchFieldRef" v-model="searchModel" focus
                       @submit="search()" @change="$refs.catLogoElement.purr()" />
-
-        <div v-if="getModuleName() === 'chatnoir'" class="text-xs my-1 text-right">
-            <a href="https://old.chatnoir.eu/" title="It's still there (for now&hellip;)">Looking for the old ChatNoir?</a>
-        </div>
     </div>
 </div>
 </template>
