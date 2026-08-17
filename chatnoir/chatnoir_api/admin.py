@@ -51,7 +51,7 @@ class ApiKeyAdminBaseMixin:
         '_is_root_key',
         'issuer',
     )
-    readonly_fields = ('issuer',)
+    readonly_fields = ('issuer', 'key_id')
 
 
 class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
@@ -203,6 +203,7 @@ class ApiKeyInlineAdmin(ApiKeyAdminBaseMixin, admin.StackedInline):
     model = ApiKey
     extra = 0
     form = AlwaysChangedModelForm
+    readonly_fields = ApiKeyAdminBaseMixin.readonly_fields + ('key_id',)
 
     # Unfortunately, Django passes the wrong object to inline admin forms, hence we cannot decide
     # on the read-only status of fields properly. We therefore make everything read-only if this is the root
