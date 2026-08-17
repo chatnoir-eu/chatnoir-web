@@ -28,9 +28,20 @@
             </li>
             <li v-for="(idx, pos) in modelValue" :key="idx.id" class="pb-0.5">
                 <input :id="idx.id" name="index" class="chk ml-0 pb-1" type="checkbox"
-                       :checked="idx.selected" :value="idx.id"
+                       :checked="idx.selected && !idx.restricted" :value="idx.id"
+                       :disabled="idx.restricted"
                        @click="toggleIndex(pos, $event.target.checked)">
-                <label :for="idx.id">{{ idx.name }}</label>
+                <label :for="idx.id">
+                  {{ idx.name }}
+                  <span v-if="idx.restricted"
+                        class="inline-block"
+                        title="Restricted Index: Contact us for access">
+                      <inline-svg
+                          :src="iconInfo"
+                          class="inline-block h-[1em] w-[1em] align-text-middle text-inherit fill-current stroke-current cursor-help"
+                      />
+                  </span>
+                </label>
             </li>
         </ul>
     </fieldset>
@@ -39,6 +50,7 @@
 
 <script setup>
 import ToolTipPopup from '@/components/ToolTipPopup.vue'
+import iconInfo from '@/assets/icons/info.svg'
 
 const emit = defineEmits(['update:modelValue'])
 const props = defineProps({

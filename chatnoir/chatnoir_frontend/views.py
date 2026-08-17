@@ -83,9 +83,14 @@ def _init_frontend_session(request):
 def _get_indices(request):
     """List of configured indices."""
     search = SimpleSearch(indices=request.GET.getlist('index'), user_auth_info=getattr(request, 'auth', None))
+    all_indices = search.allowed_indices | search.restricted_indices
     selected = search.selected_indices
-    return [{'id': k, 'name': v.get('display_name'), 'source_url': v.get('source_url'), 'selected': k in selected}
-            for k, v in search.allowed_indices.items()]
+    restricted = search.restricted_indices
+    return [{'id': k,
+             'name': v.get('display_name'),
+             'source_url': v.get('source_url'),
+             'selected': k in selected and k not in restricted,
+             'restricted': k in restricted} for k, v in all_indices.items()]
 
 
 # ----------------------------

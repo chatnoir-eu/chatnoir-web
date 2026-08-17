@@ -32,6 +32,11 @@
         @apply text-gray-800;
     }
 
+    &:disabled {
+        @apply border-gray-300;
+        @apply cursor-auto;
+    }
+
     @apply text-gray-800;
     @apply bg-gray-200;
     @apply border-gray-200;
@@ -47,6 +52,11 @@
     &:active {
         @apply shadow-inner;
         @apply border-gray-400;
+    }
+
+    &:disabled:active {
+        @apply shadow-xs;
+        @apply border-gray-300;
     }
 
     &.primary {
@@ -94,6 +104,11 @@
     &:focus {
         @apply border-red-100;
     }
+
+    &:disabled {
+        @apply border-gray-300;
+        @apply cursor-auto;
+    }
 }
 
 @utility chk {
@@ -126,6 +141,16 @@
     &:active {
         @apply shadow-inner;
         @apply border-red-700;
+    }
+
+    &:disabled {
+        @apply border-gray-300;
+        @apply cursor-auto;
+    }
+
+    &:disabled:active {
+        @apply shadow-xs;
+        @apply border-gray-300;
     }
 
     &:checked::before {
@@ -173,6 +198,11 @@
     &:active {
         @apply shadow-inner;
         @apply border-red-700;
+    }
+
+    &:disabled:active {
+        @apply shadow-xs;
+        @apply border-gray-300;
     }
 
     @apply rounded-full;
@@ -224,6 +254,11 @@
     &:focus {
         @apply border-red-100;
     }
+
+    &:disabled {
+        @apply border-gray-300;
+        @apply cursor-auto;
+    }
 }
 
 @utility input-lg {
@@ -240,6 +275,19 @@
     @apply block;
     @apply text-sm;
     @apply my-0.5;
+
+    &:has(:disabled) {
+        @apply text-gray-400;
+        @apply cursor-auto;
+    }
+}
+
+.chk:disabled + label,
+.radio:disabled + label,
+.text-field:disabled + label,
+.select:disabled + label {
+    @apply text-gray-400;
+    @apply cursor-auto;
 }
 
 @utility lbl-required {

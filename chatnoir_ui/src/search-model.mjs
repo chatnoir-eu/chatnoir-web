@@ -74,11 +74,12 @@ export class ApiToken {
  * Index meta descriptor.
  */
 export class IndexDesc {
-    constructor({id, name, selected, source_url}) {
+    constructor({id, name, selected, restricted, source_url}) {
         this.id = id
         this.name = name
         this.source_url = source_url
         this.selected = selected || false
+        this.restricted = restricted || false
     }
 
     static fromJSON(jsonData) {

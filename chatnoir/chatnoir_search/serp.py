@@ -190,10 +190,15 @@ class SerpContext:
     @serp_api_meta_extended
     def indices_(self):
         """List of dicts with index IDs, names, source URLs, and whether they were active for this search."""
-        all_indices = self.search.allowed_indices
+        all_indices = self.search.allowed_indices | self.search.restricted_indices
+        restricted_indices = self.search.restricted_indices
         selected_indices = self.search.selected_indices
-        return [dict(id=k, name=v.get('display_name'), source_url=v.get('source_url'), selected=k in selected_indices)
-                for k, v in all_indices.items()]
+        return [dict(
+            id=k,
+            name=v.get('display_name'),
+            source_url=v.get('source_url'),
+            selected=k in selected_indices and k not in restricted_indices,
+            restricted=k in restricted_indices) for k, v in all_indices.items()]
 
     @serp_api_meta_extended
     def query_string(self):
