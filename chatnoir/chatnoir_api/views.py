@@ -146,14 +146,13 @@ class SimpleSearchViewSet(ApiViewSet):
 
         fields = {}
         if request.auth:
-            auth_credential = getattr(request.auth, '_auth_credential', request.auth.api_key)
             for r in request.auth.roles.values('role'):
                 if r['role'] == settings.API_NOLOG_ROLE:
                     return
 
             fields['user'] = {
                 'name': request.auth.user.common_name if request.auth.user else '<anonymous>',
-                'hash': sha256(auth_credential.encode()).hexdigest(),
+                'key_id': request.auth.key_id,
                 'issuer': request.auth.issuer,
             }
 

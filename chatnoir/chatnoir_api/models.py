@@ -68,14 +68,14 @@ class ApiUser(models.Model):
     def str_plain(self):
         return str(self.common_name)
 
-    def api_keys_plain(self):
-        return ', '.join([str(a.api_key) for a in self.api_key.all()])
+    def api_key_ids_plain(self):
+        return ', '.join(a.key_id for a in self.api_key.all())
 
-    def api_keys_html(self):
-        return mark_safe('<br>'.join([str(a.api_key) for a in self.api_key.all()]))
+    def api_key_ids_html(self):
+        return mark_safe('<br>'.join(a.key_id for a in self.api_key.all()))
 
-    api_keys_plain.short_description = _('API Keys')
-    api_keys_html.short_description = _('API Keys')
+    api_key_ids_plain.short_description = _('API Key IDs')
+    api_key_ids_html.short_description = _('API Key IDs')
 
     @property
     def is_anonymous(self):
@@ -355,9 +355,9 @@ class ApiKey(models.Model):
 
     def __str__(self):
         if self.comments:
-            key = f'{self.comments} ({self.api_key})'
+            key = f'{self.comments} (Key ID: {self.key_id})'
         else:
-            key = self.api_key
+            key = f'Key ID: {self.key_id}'
         user = self.user.common_name if hasattr(self, 'user') and self.user else '<anonymous>'
         return f'{user}: {key}'
 
@@ -413,6 +413,9 @@ class PasscodeRedemption(models.Model):
     api_key = models.ForeignKey(ApiKey, on_delete=models.CASCADE)
     redemption_date = models.DateTimeField(default=timezone.now)
     passcode = models.ForeignKey(ApiKeyPasscode, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.passcode} (Key ID: {self.api_key.key_id})'
 
 
 SEND_MAIL_EXECUTOR = ThreadPoolExecutor(max_workers=20)

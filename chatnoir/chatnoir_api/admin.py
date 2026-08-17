@@ -17,6 +17,8 @@ import os
 from django.contrib import admin, messages
 from django.db.models import Q
 from django.forms import ModelForm, Textarea
+from django.urls import reverse
+from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext_lazy as _, ngettext
 from solo.admin import SingletonModelAdmin
 
@@ -35,10 +37,9 @@ admin.StackedInline.formfield_overrides = {
 
 class ApiKeyAdminBaseMixin:
     autocomplete_fields = ('parent', 'user', 'roles')
-    search_fields = ('api_key', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comments')
+    search_fields = ('key_id', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comments')
     fields = (
-        'key_id',
-        ('api_key', '_revoked'),
+        ('key_id', '_revoked'),
         'user',
         'parent',
         ('issue_date', '_expires'),
@@ -53,7 +54,7 @@ class ApiKeyAdminBaseMixin:
 
 
 class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
-    list_display = ('api_key', 'roles_str', 'expires', '_valid_bool', 'user', 'comments')
+    list_display = ('user_link', 'key_id_link', 'roles_str', 'expires', '_valid_bool', 'comments')
     list_filter = ('roles', )
     readonly_fields = ApiKeyAdminBaseMixin.readonly_fields + (
         '_valid_bool',
@@ -74,6 +75,24 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
 
     _valid_bool.boolean = True
     _valid_bool.short_description = ApiKey.valid.fget.short_description
+
+    def user_link(self, obj):
+        if not obj.user_id:
+            return '<anonymous>'
+        return mark_safe(
+            f'<a href="{escape(reverse("admin:chatnoir_api_apiuser_change", args=[obj.user_id]))}">'
+            f'{escape(obj.user.common_name)}</a>'
+        )
+
+    user_link.short_description = _('API User')
+
+    def key_id_link(self, obj):
+        return mark_safe(
+            f'<a href="{escape(reverse("admin:chatnoir_api_apikey_change", args=[obj.pk]))}">'
+            f'{escape(obj.key_id)}</a>'
+        )
+
+    key_id_link.short_description = _('API Key ID')
 
     def _revoked_bool(self, obj):
         return obj.revoked
@@ -189,7 +208,7 @@ class ApiKeyInlineAdmin(ApiKeyAdminBaseMixin, admin.StackedInline):
 
 
 class ApiUserAdmin(admin.ModelAdmin):
-    list_display = ('common_name', 'api_keys_html', 'email', 'organization', 'address', 'zip_code', 'state', 'country')
+    list_display = ('common_name', 'api_key_ids_html', 'email', 'organization', 'address', 'zip_code', 'state', 'country')
     list_filter = ('organization', 'zip_code', 'state', 'country')
     search_fields = ('common_name', 'api_key__api_key', 'email', 'organization', 'address',
                      'zip_code', 'state', 'country')
@@ -289,7 +308,12 @@ class ApiKeyPasscodeAdmin(admin.ModelAdmin):
 
 
 class ApiKeyPasscodeRedemptionAdmin(admin.ModelAdmin):
-    list_display = ('api_key', 'redemption_date', 'passcode')
+    list_display = ('key_id', 'redemption_date', 'passcode')
+
+    def key_id(self, obj):
+        return obj.api_key.key_id
+
+    key_id.short_description = _('API Key ID')
 
     def has_add_permission(self, request):
         return False
