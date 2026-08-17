@@ -1,16 +1,7 @@
-from django.db import migrations, models
-from django.utils.crypto import get_random_string
 import chatnoir_api.models
+from django.db import migrations, models
 
-
-ALLOWED_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-
-
-def _random_token(size=32):
-    return get_random_string(size, allowed_chars=ALLOWED_CHARS)
-
-
-def populate_apikey_fields(apps, schema_editor):
+def populate_apikey_fields(apps, _):
     ApiKey = apps.get_model('chatnoir_api', 'ApiKey')
 
     existing_ids = set(ApiKey.objects.exclude(key_id__isnull=True).exclude(key_id='').values_list('key_id', flat=True))
@@ -19,15 +10,15 @@ def populate_apikey_fields(apps, schema_editor):
         changed = False
 
         if not api_key.key_id:
-            key_id = _random_token()
+            key_id = chatnoir_api.models.generate_apikey_id()
             while key_id in existing_ids:
-                key_id = _random_token(16)
+                key_id = chatnoir_api.models.generate_apikey_id()
             api_key.key_id = key_id
             existing_ids.add(key_id)
             changed = True
 
         if not api_key.private_key:
-            api_key.private_key = _random_token()
+            api_key.private_key = chatnoir_api.models.generate_private_key()
             changed = True
 
         if changed:
