@@ -89,7 +89,7 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
 
     def key_id_link(self, obj):
         return mark_safe(
-            f'<a href="{escape(reverse("admin:chatnoir_api_apikey_change", args=[obj.pk]))}">'
+            f'<a href="{escape(reverse("admin:chatnoir_api_apikey_change", args=[obj.key_id]))}">'
             f'{escape(obj.key_id)}</a>'
         )
 
@@ -139,6 +139,15 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
             return False
         return True
 
+    def get_object(self, request, object_id, from_field=None):
+        obj = super().get_object(request, object_id, from_field)
+        if obj is not None or from_field:
+            return obj
+        try:
+            return self.get_queryset(request).get(key_id=object_id)
+        except self.model.DoesNotExist:
+            return None
+
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
 
@@ -151,7 +160,7 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
             # Prevent cycles through self-parenting
             if request.META.get('HTTP_REFERER') and '/apikey/' in request.META.get('HTTP_REFERER'):
                 p = os.path.basename(os.path.dirname(request.META.get('HTTP_REFERER').rstrip('/')))
-                queryset = queryset.exclude(api_key=p)
+                queryset = queryset.exclude(Q(api_key=p) | Q(key_id=p))
 
             queryset = [r for r in queryset if r.valid]
 
