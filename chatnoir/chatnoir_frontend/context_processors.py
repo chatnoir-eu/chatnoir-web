@@ -19,7 +19,7 @@ from chatnoir_search.search import SimpleSearch
 def _get_indices(request):
     """List of configured indices."""
 
-    search = SimpleSearch(indices=request.GET.getlist('index'))
+    search = SimpleSearch(indices=request.GET.getlist('index'), user_auth_info=getattr(request, 'auth', None))
     selected = search.selected_indices
     return [{'id': k, 'name': v.get('display_name'), 'selected': k in selected}
             for k, v in search.allowed_indices.items()]

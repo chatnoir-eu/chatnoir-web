@@ -31,7 +31,7 @@ class SearchBase(ABC):
 
     SEARCH_VERSION = None
 
-    def __init__(self, indices=None, search_from=0, num_results=10, explain=False):
+    def __init__(self, indices=None, search_from=0, num_results=10, explain=False, user_auth_info=None):
         """
         :param indices: list of indices to search (will be validated and replaced with defaults if necessary)
         :param search_from: start search at this result index
@@ -50,9 +50,14 @@ class SearchBase(ABC):
         self.search_from = max(0, min(search_from, 10000 - self.num_results))
         self.explain = explain
         self.minimal_response = False
+        self.user_auth_info = user_auth_info
+        self.user_roles = {r['role'] for r in self.user_auth_info.roles.values('role')} if user_auth_info else set()
 
         self.query_logger = logging.getLogger(f'query_log.{self.__class__.__name__}')
         self.query_logger.setLevel(logging.INFO)
+
+        self._allowed_indices = None
+        self._restricted_indices = None
 
         if 'default' not in connections.connections._conns:
             connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
@@ -60,11 +65,37 @@ class SearchBase(ABC):
     @property
     def allowed_indices(self):
         """Allowed and compatible indices."""
-        indices = {k: settings.SEARCH_INDICES[k] for k in settings.SEARCH_INDICES
-                   if self.SEARCH_VERSION in settings.SEARCH_INDICES[k]['compat_search_versions']}
-        if not indices:
+        if self._allowed_indices is not None:
+            return self._allowed_indices
+
+        allowed = {}
+        restricted = {}
+        for key, conf in settings.SEARCH_INDICES.items():
+            if self.SEARCH_VERSION not in conf['compat_search_versions']:
+                continue
+
+            required_roles = set(conf.get('roles_required', []))
+            if required_roles and settings.API_ADMIN_ROLE not in self.user_roles \
+                    and not required_roles.intersection(self.user_roles):
+                if conf.get('show_if_restricted', False):
+                    restricted[key] = conf
+            else:
+                allowed[key] = conf
+
+        if not allowed:
             raise RuntimeError('No indices configured for selected search version.')
-        return indices
+
+        self._allowed_indices = allowed
+        self._restricted_indices = restricted
+        return allowed
+
+    @property
+    def restricted_indices(self):
+        """Compatible but restricted indices."""
+        if self._restricted_indices is not None:
+            return self._restricted_indices
+        _ = self.allowed_indices
+        return self._restricted_indices
 
     @property
     def selected_indices(self):
@@ -278,8 +309,9 @@ class SimpleSearch(SearchBase):
     """Number of top documents to rescore."""
     RESCORE_WINDOW = 400
 
-    def __init__(self, indices=None, search_from=0, num_results=10, explain=False, search_method='default'):
-        super().__init__(indices, search_from, num_results, explain)
+    def __init__(self, indices=None, search_from=0, num_results=10, explain=False, search_method='default',
+                 user_auth_info=None):
+        super().__init__(indices, search_from, num_results, explain, user_auth_info=user_auth_info)
         if search_method not in self.SEARCH_METHODS:
             raise ValueError(f'Invalid search method "{search_method}"')
         self.search_method = search_method
@@ -537,8 +569,9 @@ class PhraseSearch(SimpleSearch):
     """Terminate search after this many results per node."""
     NODE_LIMIT = 4000
 
-    def __init__(self, indices=None, search_from=0, num_results=10, explain=False, slop=None):
-        super().__init__(indices, search_from, num_results, explain)
+    def __init__(self, indices=None, search_from=0, num_results=10, explain=False, slop=None,
+                 user_auth_info=None):
+        super().__init__(indices, search_from, num_results, explain, user_auth_info=user_auth_info)
         self.slop = slop or self.DEFAULT_SLOP
 
     def _build_pre_query(self, query):

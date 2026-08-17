@@ -186,7 +186,8 @@ class SimpleSearchViewSet(ApiViewSet):
                               validated['from'],
                               validated['size'],
                               validated['explain'],
-                              validated.get('search_method'))
+                              validated.get('search_method'),
+                              user_auth_info=request.auth)
         search.minimal_response = validated['minimal']
         return self._process_search(search, request, params)
 
@@ -204,7 +205,7 @@ class PhraseSearchViewSet(SimpleSearchViewSet):
         params.is_valid(raise_exception=True)
         validated = params.validated_data
         search = PhraseSearch(validated['index'], validated['from'], validated['size'],
-                              validated['explain'], validated['slop'])
+                              validated['explain'], validated['slop'], user_auth_info=request.auth)
         search.minimal_response = validated['minimal']
         return self._process_search(search, request, params)
 
