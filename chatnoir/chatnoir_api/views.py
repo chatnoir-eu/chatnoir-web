@@ -219,6 +219,12 @@ class ManageKeysViewSet(ApiViewSet):
     def get_view_name(self):
         return _('API Key Management')
 
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if getattr(request.auth, '_auth_via_signature', False):
+            raise rest_exceptions.PermissionDenied(_('API key tokens cannot access API key management endpoints.'),
+                                                   'token_not_allowed')
+
 
 class ManageKeysInfoViewSet(ManageKeysViewSet):
     __doc__ = ManageKeysViewSet.__doc__

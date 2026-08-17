@@ -63,7 +63,6 @@ class ApiModelSerializer(ApiSerializer, serializers.ModelSerializer):
 class AuthenticatedApiSerializer(ApiSerializer):
     apikey = serializers.CharField(
         required=False,
-        max_length=255,
         initial=_('<apikey>'),
         label=_('API Key'),
         help_text=_('API key')
@@ -231,7 +230,6 @@ class ApiKeySerializer(ApiSerializer):
     apikey = serializers.CharField(
         required=False,
         initial=_('<apikey>'),
-        max_length=255,
         label=_('API Key'),
         help_text=_('API key')
     )
@@ -302,7 +300,6 @@ class ApiKeyRevocationSerializer(ApiSerializer):
     apikey = serializers.CharField(
         required=False,
         initial=_('<apikey>'),
-        max_length=255,
         label=_('API Key'),
         help_text=_('API key')
     )
