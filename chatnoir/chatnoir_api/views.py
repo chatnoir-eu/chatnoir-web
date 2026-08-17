@@ -238,7 +238,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
             user = api_key.user
 
             return Response({
-                'apikey': getattr(api_key, '_auth_credential', api_key.api_key),
+                'key_id': api_key.key_id,
                 'expires': api_key.expires,
                 'revoked': api_key.revoked,
                 'user': {

@@ -26,8 +26,43 @@ const GLOBAL_STATE = {
     counter: -1,
     mutex: new Mutex()
 }
+const SIGNED_TOKEN_PREFIX = 'sig:'
 const LOCALSTORAGE_API_KEY = 'chatnoir.apiKey'
 const LOCALSTORAGE_API_USER_NAME = 'chatnoir.apiUserName'
+
+function decodeBase64Url(data) {
+    const padded = data + '='.repeat((4 - data.length % 4) % 4)
+    return atob(padded.replace(/-/g, '+').replace(/_/g, '/'))
+}
+
+function parseSignedApiKey(apiKey) {
+    if (!apiKey.startsWith(SIGNED_TOKEN_PREFIX)) {
+        return null
+    }
+
+    const payload = JSON.parse(decodeBase64Url(apiKey.slice(SIGNED_TOKEN_PREFIX.length)))
+    if (!payload.key_id || typeof payload.key_id !== 'string') {
+        throw new Error('Invalid API key token.')
+    }
+    if (!payload.valid_from || !payload.valid_until) {
+        throw new Error('Invalid API key token.')
+    }
+
+    const validFrom = Date.parse(payload.valid_from)
+    const validUntil = Date.parse(payload.valid_until)
+    const now = Date.now()
+    if (Number.isNaN(validFrom) || Number.isNaN(validUntil) || validUntil < validFrom) {
+        throw new Error('Invalid API key token.')
+    }
+    if (now < validFrom) {
+        throw new Error('API key token is not valid yet.')
+    }
+    if (now > validUntil) {
+        throw new Error('API key token has expired.')
+    }
+
+    return payload
+}
 
 /**
  * Request new temporary API tokens.
@@ -153,6 +188,14 @@ export function getStoredApiUserName() {
 }
 
 export async function storeApiKey(apiKey) {
+    const signedTokenPayload = parseSignedApiKey(apiKey)
+    if (signedTokenPayload) {
+        const userName = `sig:${signedTokenPayload.key_id}`
+        localStorage.setItem(LOCALSTORAGE_API_KEY, apiKey)
+        localStorage.setItem(LOCALSTORAGE_API_USER_NAME, userName)
+        return userName
+    }
+
     const response = await xhr({
         method: 'GET',
         url: import.meta.env.VITE_API_BACKEND_ADDRESS + '_manage_keys',

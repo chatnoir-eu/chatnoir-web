@@ -133,6 +133,7 @@ async function saveApiKey() {
         emit('update:modelValue', await refreshIndexOptions())
         apiKey.value = ''
     } catch {
+        clearStoredApiKey()
         apiKeyError.value = 'Invalid API key.'
     } finally {
         apiKeySaving.value = false
