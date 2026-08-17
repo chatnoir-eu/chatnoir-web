@@ -36,10 +36,10 @@ def takedowns(request):
         indices = {}
         for u, t in takedown_ids.items():
             if t['index'] not in indices:
-                i = get_index('cw22')
+                i = get_index(t['index'])
                 if not i:
                     continue
-                indices[t['index']] = get_index(t['index'])
+                indices[t['index']] = i
             takedowns_by_index.setdefault(t['index'], []).append((u, t))
 
         uuid_takedowns_by_index = {}
