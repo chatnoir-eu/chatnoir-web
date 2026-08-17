@@ -37,6 +37,7 @@ class ApiKeyAdminBaseMixin:
     autocomplete_fields = ('parent', 'user', 'roles')
     search_fields = ('api_key', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comments')
     fields = (
+        'key_id',
         ('api_key', '_revoked'),
         'user',
         'parent',
@@ -62,7 +63,8 @@ class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
         'limits_day',
         'limits_week',
         'limits_month',
-        '_is_root_key'
+        '_is_root_key',
+        'key_id',
     )
     actions = ('revoke_keys', 'unrevoke_keys')
 

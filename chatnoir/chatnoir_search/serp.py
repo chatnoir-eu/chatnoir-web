@@ -19,6 +19,7 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 from elasticsearch_dsl.response import Response
 
+from chatnoir_api.authentication import ApiKeyAuthentication
 from chatnoir_search.types import *
 
 
@@ -97,8 +98,13 @@ class SerpContext:
                 expl = hit.meta.explanation.to_dict()
 
             doc_id = getattr(hit, 'uuid', hit.meta.id)
+            cache_query = f'index={parse.quote(result_index)}&uuid={parse.quote(doc_id)}'
+            if self.search.user_auth_info:
+                signed_apikey = ApiKeyAuthentication.create_signed_apikey_token(self.search.user_auth_info, validity=7200)
+                if signed_apikey:
+                    cache_query += f'&apikey={parse.quote(signed_apikey)}'
             cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)._replace(
-                query=f'index={parse.quote(result_index)}&uuid={parse.quote(doc_id)}')
+                query=cache_query)
             result = {
                 'index': minimal(result_index),
                 'uuid': minimal(doc_id),

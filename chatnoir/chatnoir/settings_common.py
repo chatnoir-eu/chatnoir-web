@@ -45,6 +45,10 @@ API_KEYCREATE_ROLE = 'keycreate'
 API_NOLOG_ROLE = 'nolog'
 API_NOTAKEDOWN_ROLE = 'notakedown'
 
+# API key signatures
+API_KEY_TOKEN_MAX_AGE = 86400
+API_KEY_TOKEN_DEFAULT_AGE = 7200
+
 # Set to true if running behind a proxy
 API_TRUST_X_FORWARDED_FOR = False
 

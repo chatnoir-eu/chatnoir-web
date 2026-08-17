@@ -34,8 +34,16 @@ from solo.models import SingletonModel
 logger = logging.getLogger(__name__)
 
 
-def generate_apikey():
-    return get_random_string(32, allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+def generate_apikey(size=32):
+    return get_random_string(size, allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+
+
+def generate_apikey_id():
+    return generate_apikey(16)
+
+
+def generate_private_key():
+    return generate_apikey()
 
 
 class ApiUser(models.Model):
@@ -107,6 +115,8 @@ class ApiKey(models.Model):
         verbose_name_plural = _('API Keys')
 
     api_key = models.CharField(verbose_name=_('API Key'), max_length=255, primary_key=True, default=generate_apikey)
+    key_id = models.CharField(verbose_name=_('API Key ID'), max_length=255, unique=True, default=generate_apikey_id)
+    private_key = models.CharField(verbose_name=_('Private Key'), max_length=255, default=generate_private_key)
     user = models.ForeignKey(ApiUser, verbose_name=_('API User'), related_name='api_key',
                              null=True, on_delete=models.CASCADE)
     issue_date = models.DateTimeField(verbose_name=_('Issue Date'), default=timezone.now, null=True, blank=True)

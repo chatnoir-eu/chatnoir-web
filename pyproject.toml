@@ -28,6 +28,7 @@ tzdata = ">=2025.2"
 psycopg = ">=3.2.7"
 django-minify-html = ">=1.14.0"
 djangorestframework-stubs = "^3.17.1"
+cryptography = ">=45.0.0"
 
 [tool.poetry.scripts]
 chatnoir-manage = 'chatnoir_manage:main'

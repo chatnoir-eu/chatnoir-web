@@ -146,13 +146,14 @@ class SimpleSearchViewSet(ApiViewSet):
 
         fields = {}
         if request.auth:
+            auth_credential = getattr(request.auth, '_auth_credential', request.auth.api_key)
             for r in request.auth.roles.values('role'):
                 if r['role'] == settings.API_NOLOG_ROLE:
                     return
 
             fields['user'] = {
                 'name': request.auth.user.common_name if request.auth.user else '<anonymous>',
-                'hash': sha256(request.auth.api_key.encode()).hexdigest(),
+                'hash': sha256(auth_credential.encode()).hexdigest(),
                 'issuer': request.auth.issuer,
             }
 
@@ -227,11 +228,11 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
 
     def list(self, request, **kwargs):
         try:
-            api_key = ApiKey.objects.get(api_key=request.auth.api_key)
+            api_key = request.auth
             user = api_key.user
 
             return Response({
-                'apikey': api_key.api_key,
+                'apikey': getattr(api_key, '_auth_credential', api_key.api_key),
                 'expires': api_key.expires,
                 'revoked': api_key.revoked,
                 'user': {
@@ -253,7 +254,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
                 'comment': api_key.comments
             })
 
-        except ApiKey.DoesNotExist:
+        except (ApiKey.DoesNotExist, AttributeError):
             raise rest_exceptions.ValidationError({'apikey': _('Invalid API key.')}, 'invalid_key')
 
 

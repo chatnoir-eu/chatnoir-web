@@ -12,14 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime, timedelta
+import base64
+from datetime import datetime, timedelta, timezone as dt_timezone
 import ipaddress
+import json
 import pickle
+import secrets
+from hashlib import sha256
 
 from django.conf import settings
 from django.core import serializers
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from rest_framework import authentication, exceptions as rest_exceptions, permissions
 
 from .models import ApiKey
@@ -27,6 +33,105 @@ from .models import ApiKey
 
 class ApiKeyAuthentication(authentication.BaseAuthentication):
     SESSION_APIKEY_KEY = 'session_api_key'
+    SIGNED_TOKEN_PREFIX = 'sig:'
+
+    @staticmethod
+    def _b64decode(data):
+        if isinstance(data, str):
+            data = data.encode()
+        return base64.urlsafe_b64decode(data + b'=' * (-len(data) % 4))
+
+    @staticmethod
+    def _api_key_seed(private_key: str | bytes):
+        private_bytes = private_key.encode() if isinstance(private_key, str) else private_key
+        if len(private_bytes) == 32:
+            return private_bytes
+        return sha256(private_bytes).digest()
+
+    @classmethod
+    def _canonical_signed_token_payload(cls, payload):
+        signed_payload = {k: v for k, v in payload.items() if k != 'signature'}
+        return json.dumps(signed_payload, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode()
+
+    @staticmethod
+    def _b64encode(data):
+        if isinstance(data, str):
+            data = data.encode()
+        return base64.urlsafe_b64encode(data).decode().rstrip('=')
+
+    @staticmethod
+    def _isoformat_z(value):
+        return value.astimezone(dt_timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+
+    @classmethod
+    def _authenticate_signed_token(cls, api_key_token_str):
+        if not api_key_token_str.startswith(cls.SIGNED_TOKEN_PREFIX):
+            return None
+
+        try:
+            token_data = json.loads(cls._b64decode(api_key_token_str[len(cls.SIGNED_TOKEN_PREFIX):]).decode())
+            key_id = token_data['key_id']
+            valid_from = datetime.fromisoformat(token_data['valid_from'].replace('Z', '+00:00'))
+            valid_until = datetime.fromisoformat(token_data['valid_until'].replace('Z', '+00:00'))
+            nonce = token_data['nonce']
+            signature = cls._b64decode(token_data['signature'])
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+            raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+
+        if not isinstance(key_id, str) or not key_id or not isinstance(nonce, str) or not nonce:
+            raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+
+        if timezone.is_naive(valid_from) or timezone.is_naive(valid_until) or valid_until < valid_from:
+            raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+
+        now = timezone.now()
+        if now < valid_from:
+            raise rest_exceptions.AuthenticationFailed(_('API key token is not valid yet.'), 'not_yet_valid')
+        if now > valid_until:
+            raise rest_exceptions.AuthenticationFailed(_('API key token has expired.'), 'expired')
+
+        message = cls._canonical_signed_token_payload(token_data)
+        try:
+            api_key = ApiKey.objects.prefetch_related('roles').get(key_id=key_id)
+        except ApiKey.DoesNotExist:
+            raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+
+        public_key = Ed25519PrivateKey.from_private_bytes(cls._api_key_seed(api_key.private_key + nonce)).public_key()
+        try:
+            public_key.verify(signature, message)
+        except InvalidSignature:
+            raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+
+        api_key._auth_credential = api_key_token_str
+        api_key._auth_via_signature = True
+        return api_key
+
+    @classmethod
+    def create_signed_apikey_token(cls, api_key, validity=None):
+        """
+        Create a new signed API key token for the given API key.
+
+        :param api_key: API key model object
+        :param validity: validity period in seconds (default from settings if ``None``)
+        """
+        if not api_key.user_id:
+            return None
+        if not validity:
+            validity = min(settings.API_KEY_TOKEN_DEFAULT_AGE, settings.API_KEY_TOKEN_MAX_AGE)
+
+        valid_from = datetime.now(dt_timezone.utc)
+        valid_until = valid_from + timedelta(seconds=validity)
+        nonce = secrets.token_urlsafe(16)
+        payload = {
+            'key_id': api_key.key_id,
+            'valid_from': cls._isoformat_z(valid_from),
+            'valid_until': cls._isoformat_z(valid_until),
+            'nonce': nonce,
+        }
+        message = cls._canonical_signed_token_payload(payload)
+        signature = Ed25519PrivateKey.from_private_bytes(cls._api_key_seed(api_key.private_key + nonce)).sign(message)
+        payload['signature'] = cls._b64encode(signature)
+        return cls.SIGNED_TOKEN_PREFIX + cls._b64encode(json.dumps(payload, sort_keys=True, separators=(',', ':')))
 
     @staticmethod
     def validate_expiration(api_key):
@@ -139,15 +244,20 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         # Fall back to regular API keys if temporary session key is invalid or unset
         if not api_key:
-            try:
-                api_key = ApiKey.objects.get(api_key=api_key_str)
-            except ApiKey.DoesNotExist:
-                raise rest_exceptions.NotAuthenticated(_('Invalid API key.'))
+            api_key = self._authenticate_signed_token(api_key_str)
+            if not api_key:
+                try:
+                    api_key = ApiKey.objects.get(api_key=api_key_str)
+                except ApiKey.DoesNotExist:
+                    raise rest_exceptions.NotAuthenticated(_('Invalid API key.'))
 
         self.validate_expiration(api_key)
         self.validate_revocation(api_key)
         self.validate_remote_hosts(api_key, request)
         self.validate_api_limits(api_key)
+
+        if not hasattr(api_key, '_auth_credential'):
+            api_key._auth_credential = api_key.api_key
 
         if is_temporary_key:
             # Store updated API limits
