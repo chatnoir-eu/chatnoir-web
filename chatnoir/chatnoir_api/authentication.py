@@ -28,7 +28,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from rest_framework import authentication, exceptions as rest_exceptions, permissions
 
-from .models import ApiKey
+from .models import ApiConfiguration, ApiKey
 
 
 class ApiKeyAuthentication(authentication.BaseAuthentication):
@@ -64,7 +64,15 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         return value.astimezone(dt_timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 
     @classmethod
-    def _authenticate_signed_token(cls, api_key_token_str):
+    def _verify_signed_token_for_api_key(cls, api_key, nonce, signature, message, api_key_token_str):
+        public_key = Ed25519PrivateKey.from_private_bytes(cls._api_key_seed(api_key.private_key + nonce)).public_key()
+        public_key.verify(signature, message)
+        api_key._auth_credential = api_key_token_str
+        api_key._auth_via_signature = True
+        return api_key
+
+    @classmethod
+    def _authenticate_signed_token(cls, request, api_key_token_str):
         if not api_key_token_str.startswith(cls.SIGNED_TOKEN_PREFIX):
             return None
 
@@ -91,20 +99,21 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             raise rest_exceptions.AuthenticationFailed(_('API key token has expired.'), 'expired')
 
         message = cls._canonical_signed_token_payload(token_data)
-        try:
-            api_key = ApiKey.objects.prefetch_related('roles').get(key_id=key_id)
-        except ApiKey.DoesNotExist:
-            raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+        session_api_key = cls._get_session_apikey(request)
+        if session_api_key:
+            try:
+                return cls._verify_signed_token_for_api_key(session_api_key, nonce, signature, message, api_key_token_str)
+            except InvalidSignature:
+                pass
 
-        public_key = Ed25519PrivateKey.from_private_bytes(cls._api_key_seed(api_key.private_key + nonce)).public_key()
         try:
-            public_key.verify(signature, message)
+            try:
+                api_key = ApiKey.objects.prefetch_related('roles').get(key_id=key_id)
+            except ApiKey.DoesNotExist:
+                raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+            return cls._verify_signed_token_for_api_key(api_key, nonce, signature, message, api_key_token_str)
         except InvalidSignature:
             raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
-
-        api_key._auth_credential = api_key_token_str
-        api_key._auth_via_signature = True
-        return api_key
 
     @classmethod
     def create_signed_apikey_token(cls, api_key, validity=None):
@@ -113,10 +122,8 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         :param api_key: API key model object
         :param validity: validity period in seconds (default from settings if ``None``)
-        :returns: tuple of token and JSON payload or ``(None, None)``
+        :returns: tuple of token and JSON payload
         """
-        if not api_key.user_id:
-            return None, None
         if not validity:
             validity = min(settings.API_KEY_TOKEN_DEFAULT_AGE, settings.API_KEY_TOKEN_MAX_AGE)
 
@@ -247,7 +254,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         # Fall back to regular API keys if temporary session key is invalid or unset
         if not api_key:
-            api_key = self._authenticate_signed_token(api_key_str)
+            api_key = self._authenticate_signed_token(request, api_key_str)
             if not api_key:
                 try:
                     api_key = ApiKey.objects.get(api_key=api_key_str)
@@ -282,6 +289,11 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         :param user: user which to attach the key to (default: anonymous)
         :return: temporary API key
         """
+        if parent is None:
+            parent = ApiConfiguration.objects.get().default_issue_key
+        if user is None:
+            user = parent.user
+
         api_key = ApiKey(
             parent=parent,
             issuer=issuer,
@@ -289,9 +301,10 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             expires=timezone.now() + timedelta(seconds=validity),
             limits_day=request_limit,
             limits_week=request_limit,
-            limits_month=request_limit
+            limits_month=request_limit,
+            comments=_('Temporary session key')
         )
-        api_key.save = lambda *_, **__: None
+        api_key.save()
         cls._save_session_apikey(request, api_key)
         return api_key
 
