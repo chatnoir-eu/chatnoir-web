@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { SearchModel } from '@/search-model.mjs'
@@ -141,7 +141,4 @@ function numFormat(num, opts) {
     return num.toLocaleString('en-US', opts)
 }
 
-onMounted(() => {
-    search()
-})
 </script>

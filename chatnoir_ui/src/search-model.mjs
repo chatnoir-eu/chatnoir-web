@@ -26,12 +26,19 @@ const GLOBAL_STATE = {
     counter: -1,
     mutex: new Mutex()
 }
+const LOCALSTORAGE_API_KEY = 'chatnoir.apiKey'
+const LOCALSTORAGE_API_USER_NAME = 'chatnoir.apiUserName'
 
 /**
  * Request new temporary API tokens.
  */
 export async function refreshGlobalState() {
     await GLOBAL_STATE.mutex.runExclusive(async () => {
+        const storedApiKey = getStoredApiKey()
+        if (storedApiKey && GLOBAL_STATE.indices.length > 0) {
+            return
+        }
+
         if (GLOBAL_STATE.apiToken !== null
             && Date.now() / 1000 - GLOBAL_STATE.apiToken.timestamp < GLOBAL_STATE.apiToken.maxAge - 20
             && GLOBAL_STATE.counter < GLOBAL_STATE.apiToken.quota) {
@@ -43,6 +50,9 @@ export async function refreshGlobalState() {
             url: import.meta.env.VITE_BACKEND_ADDRESS + '?init',
             withCredentials: true,
             withXSRFToken: true,
+            headers: storedApiKey ? {
+                'Authorization': `Bearer ${storedApiKey}`
+            } : {},
         }).catch((e) => {
             throw new Error('Invalid state returned. ' + e)
         })
@@ -52,6 +62,29 @@ export async function refreshGlobalState() {
         GLOBAL_STATE.counter = 0
     })
     return GLOBAL_STATE
+}
+
+export async function refreshAvailableIndices(selectedIndices = []) {
+    const storedApiKey = getStoredApiKey()
+    const response = await xhr({
+        method: 'POST',
+        url: import.meta.env.VITE_BACKEND_ADDRESS + '?init',
+        withCredentials: true,
+        withXSRFToken: true,
+        headers: storedApiKey ? {
+            'Authorization': `Bearer ${storedApiKey}`
+        } : {},
+        params: {
+            index: selectedIndices
+        }
+    }).catch((e) => {
+        throw new Error('Invalid state returned. ' + e)
+    })
+
+    GLOBAL_STATE.apiToken = ApiToken.fromJSON(response.data.token)
+    GLOBAL_STATE.indices = IndexDesc.fromJSON(response.data.indices)
+    GLOBAL_STATE.counter = 0
+    return GLOBAL_STATE.indices
 }
 
 /**
@@ -94,6 +127,10 @@ export class IndexDesc {
  * @returns {ApiToken} token
  */
 export async function getApiToken() {
+    const storedApiKey = getStoredApiKey()
+    if (storedApiKey) {
+        return {token: storedApiKey}
+    }
     return (await refreshGlobalState()).apiToken
 }
 
@@ -105,6 +142,34 @@ export async function getApiToken() {
  */
 export async function getAvailableIndices() {
     return (await refreshGlobalState()).indices
+}
+
+export function getStoredApiKey() {
+    return localStorage.getItem(LOCALSTORAGE_API_KEY)
+}
+
+export function getStoredApiUserName() {
+    return localStorage.getItem(LOCALSTORAGE_API_USER_NAME)
+}
+
+export async function storeApiKey(apiKey) {
+    const response = await xhr({
+        method: 'GET',
+        url: import.meta.env.VITE_API_BACKEND_ADDRESS + '_manage_keys',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`
+        }
+    })
+
+    const userName = response.data.user.common_name
+    localStorage.setItem(LOCALSTORAGE_API_KEY, apiKey)
+    localStorage.setItem(LOCALSTORAGE_API_USER_NAME, userName)
+    return userName
+}
+
+export function clearStoredApiKey() {
+    localStorage.removeItem(LOCALSTORAGE_API_KEY)
+    localStorage.removeItem(LOCALSTORAGE_API_USER_NAME)
 }
 
 export class SearchResponse {
@@ -131,14 +196,22 @@ export class SearchModel {
     }
 
     async search(requestOptions) {
-        await refreshGlobalState()
-        ++GLOBAL_STATE.counter
+        const storedApiKey = getStoredApiKey()
+        let token
+        if (storedApiKey) {
+            token = storedApiKey
+        } else {
+            await refreshGlobalState()
+            ++GLOBAL_STATE.counter
+            token = (await getApiToken()).token
+        }
+
         const response = await xhr(Object.assign({
             method: 'POST',
             url: import.meta.env.VITE_API_BACKEND_ADDRESS +'_search',
             withCredentials: true,
             headers: {
-                'Authorization': 'Bearer ' + (await getApiToken()).token
+                'Authorization': 'Bearer ' + token
             },
             data: this.toApiRequestBody(),
             timeout: 30000,

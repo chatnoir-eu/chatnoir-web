@@ -124,7 +124,7 @@ onMounted(async () => {
     await searchModel.init()
     await searchModel.updateFromQueryString(route.query)
     emitModelUpdate(false)
-    // emit('ready')
+    emit('ready')
 })
 </script>
 

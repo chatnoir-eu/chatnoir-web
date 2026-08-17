@@ -241,7 +241,7 @@ class ManageKeysInfoViewSet(ManageKeysViewSet):
                     'address': user.address,
                     'zip_code': user.zip_code,
                     'state': user.state,
-                    'country': user.country.code,
+                    'country': user.country.code if user.country else None,
                 },
                 'roles': [r.role for r in api_key.roles.all()],
                 'remote_hosts': api_key.allowed_remote_hosts_list,

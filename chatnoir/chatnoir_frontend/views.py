@@ -66,18 +66,47 @@ def index(request):
 
 @csrf_protect
 def _init_frontend_session(request):
-    apikey = ApiKeyAuthentication.issue_temporary_session_apikey(request, issuer='web_frontend')
+    _authenticate_optional_api_key(request)
+    request_auth = getattr(request, 'auth', None)
+    if request_auth:
+        apikey = request_auth
+        token_timestamp = int(time.time())
+        token_max_age = 315360000
+        token_quota = apikey.limits_day or 2147483647
+    else:
+        apikey = ApiKeyAuthentication.issue_temporary_session_apikey(request, issuer='web_frontend')
+        token_timestamp = int(apikey.issue_date.timestamp())
+        token_max_age = int((apikey.expires - apikey.issue_date).total_seconds()) + 1
+        token_quota = apikey.limits_day
+
     return JsonResponse({
         'token': {
             'token': apikey.api_key,
-            'timestamp': int(apikey.issue_date.timestamp()),
-            'max_age': int((apikey.expires - apikey.issue_date).total_seconds()) + 1,
-            'quota': apikey.limits_day
+            'timestamp': token_timestamp,
+            'max_age': token_max_age,
+            'quota': token_quota
         },
         'timestamp': int(time.time()),
         'csrfToken': get_token(request),
         'indices': _get_indices(request)
     })
+
+
+def _authenticate_optional_api_key(request):
+    """Populate request.auth from an optional bearer API key."""
+    if not request.headers.get('Authorization') and not request.GET.get('apikey'):
+        return
+
+    if not hasattr(request, 'data'):
+        request.data = {}
+
+    try:
+        user, api_key = ApiKeyAuthentication().authenticate(request)
+        request.user = user
+        request.auth = api_key
+    except Exception:
+        request.user = None
+        request.auth = None
 
 
 def _get_indices(request):
