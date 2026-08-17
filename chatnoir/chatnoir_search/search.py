@@ -20,6 +20,7 @@ import logging
 from django.conf import settings
 from elasticsearch_dsl import Q, Search, connections
 
+from chatnoir_search.elastic_backend import filter_restricted_indices
 from chatnoir_search.serp import SerpContext
 from chatnoir_search.types import FieldName, FieldValue
 
@@ -51,7 +52,6 @@ class SearchBase(ABC):
         self.explain = explain
         self.minimal_response = False
         self.user_auth_info = user_auth_info
-        self.user_roles = {r['role'] for r in self.user_auth_info.roles.values('role')} if user_auth_info else set()
 
         self.query_logger = logging.getLogger(f'query_log.{self.__class__.__name__}')
         self.query_logger.setLevel(logging.INFO)
@@ -68,19 +68,7 @@ class SearchBase(ABC):
         if self._allowed_indices is not None:
             return self._allowed_indices
 
-        allowed = {}
-        restricted = {}
-        for key, conf in settings.SEARCH_INDICES.items():
-            if self.SEARCH_VERSION not in conf['compat_search_versions']:
-                continue
-
-            required_roles = set(conf.get('roles_required', []))
-            if required_roles and settings.API_ADMIN_ROLE not in self.user_roles \
-                    and not required_roles.intersection(self.user_roles):
-                if conf.get('show_if_restricted', False):
-                    restricted[key] = conf
-            else:
-                allowed[key] = conf
+        allowed, restricted = filter_restricted_indices(self.SEARCH_VERSION, self.user_auth_info)
 
         if not allowed:
             raise RuntimeError('No indices configured for selected search version.')

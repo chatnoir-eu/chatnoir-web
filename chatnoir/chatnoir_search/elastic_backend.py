@@ -19,15 +19,45 @@ from elasticsearch.exceptions import NotFoundError
 _INDICES = {}
 
 
-def get_index(shorthand):
+def _get_user_roles(user_auth_info):
+    if not user_auth_info:
+        return set()
+    return {r['role'] for r in user_auth_info.roles.values('role')}
+
+
+def filter_restricted_indices(search_version=None, user_auth_info=None):
+    """
+    Filter available indices into unrestricted and restricted based on the supplied user's roles.
+    """
+    user_roles = _get_user_roles(user_auth_info)
+    allowed = {}
+    restricted = {}
+
+    for key, conf in settings.SEARCH_INDICES.items():
+        if search_version is not None and search_version not in conf['compat_search_versions']:
+            continue
+
+        required_roles = set(conf.get('roles_required', []))
+        if required_roles and settings.API_ADMIN_ROLE not in user_roles \
+                and not required_roles.intersection(user_roles):
+            if conf.get('show_if_restricted', False):
+                restricted[key] = conf
+        else:
+            allowed[key] = conf
+
+    return allowed, restricted
+
+
+def get_index(shorthand, user_auth_info=None):
     if not shorthand:
         return None
 
     if not _INDICES:
         _INDICES.update({k: SearchIndex(k) for k in settings.SEARCH_INDICES})
 
+    if shorthand not in filter_restricted_indices(user_auth_info=user_auth_info)[0]:
+        return None
     return _INDICES.get(shorthand)
-
 
 class SearchIndex:
     class WarcMetaDocBase(edsl.Document):

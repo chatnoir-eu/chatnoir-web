@@ -74,11 +74,11 @@ def normalize_doc_id_str(doc_id):
     raise ValueError('Not a valid document ID.')
 
 
-def authenticate_api_key(request, required_roles):
+def authenticate_api_key(request, required_roles=None):
     """
     Authenticate an optional API key to allow access to restricted documents.
 
-    :param required_roles: required roles for access
+    :param required_roles: required roles for access, or ``None`` to accept any valid API key
     :return: authentication result as (user info, apikey) tuple or None if unauthenticated
     """
     if not drf_authentication.get_authorization_header(request) and not request.GET.get('apikey'):
@@ -91,6 +91,8 @@ def authenticate_api_key(request, required_roles):
 
     try:
         user_info, api_key = ApiKeyAuthentication().authenticate(request)
+        if required_roles is None:
+            return user_info, api_key
         for role in api_key.roles.values('role'):
             if role['role'] in [*required_roles, settings.API_ADMIN_ROLE]:
                 return user_info, api_key
@@ -104,7 +106,8 @@ def authenticate_api_key(request, required_roles):
 def cache(request):
     """Cache view."""
     index_shorthand = request.GET.get('index')
-    search_index = get_index(index_shorthand)
+    auth_info = authenticate_api_key(request, None)
+    search_index = get_index(index_shorthand, auth_info[1] if auth_info else None)
     if not search_index:
         raise Http404
 
@@ -213,7 +216,8 @@ def term_vectors(request):
         connections.configure(default=settings.ELASTICSEARCH_PROPERTIES)
 
     index_shorthand = request.GET.get('index')
-    search_index = get_index(index_shorthand)
+    auth_info = authenticate_api_key(request, None)
+    search_index = get_index(index_shorthand, auth_info[1] if auth_info else None)
     if not search_index:
         raise Http404
 
