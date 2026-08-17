@@ -28,7 +28,7 @@
             the <code>POST</code> body parameter takes precedence. A list of values can be specified in a <code>GET</code> query
             string by separating values with commas.</p>
 
-        <p>Save a few exceptions, all requests must be authenticated with an API key (<a href="{% url 'chatnoir_frontend:apikey_request_index' %}">request one here</a>).
+        <p>Save a few exceptions, all requests must be authenticated with an API key (<a href="{% url 'chatnoir_frontend:apikey_request_index' %}">request one here</a>) or a temporary <a href="{% url "chatnoir_frontend:docs_api_advanced_management" %}#create-a-temporary-api-key-token">API key token</a>.
             This can be done in one of two ways:</p>
 
         <ul class="list-disc ml-8 my-4">
@@ -244,21 +244,19 @@ Welcome to the home page for our book: &lt;em&gt;Hello&lt;/em&gt; &lt;em&gt;Worl
         <h2 id="retrieving-full-documents"><a href="#retrieving-full-documents" class="anchor-link">Retrieving Full Documents</a></h2>
         <p>The full HTML contents of a search result can be retrieved from</p>
 
-        <pre class="code-block"><code><span class="text-green-600 font-bold">GET</span> <span class="text-gray-600">/cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw</span></code></pre>
+        <pre class="code-block"><code><span class="text-green-600 font-bold">GET</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw</span></code></pre>
 
         <p>where <code><strong>$UUID</strong></code> is the document's UUID as returned by the search API and <code><strong>$INDEX</strong></code>
-            is the index name this document is from.</p>
-
-        <p><em>No API key is required for full-document retrieval.</em></p>
+            is the document's index name.</p>
 
         <p>By default, the returned HTML contents are post-processed to rewrite links, stylesheet URLs, meta tags, etc.
             If you want the original, unaltered HTML body, add the <code>no-rewrite[=true]</code> parameter to the URL:</p>
 
-        <pre class="code-block"><code><span class="text-green-600 font-bold">GET</span> <span class="text-gray-600">/cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw&amp;no-rewrite</span></code></pre>
+        <pre class="code-block"><code><span class="text-green-600 font-bold">GET</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw&amp;no-rewrite</span></code></pre>
 
         <p>A plain text rendering with basic HTML-subset formatting can be retrieved by adding the <code>plain</code> parameter.</p>
 
-        <pre class="code-block"><code><span class="text-green-600 font-bold">GET</span> <span class="text-gray-600">/cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw&amp;plain</span></code></pre>
+        <pre class="code-block"><code><span class="text-green-600 font-bold">GET</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/cache?uuid=<strong>$UUID</strong>&amp;index=<strong>$INDEX</strong>&amp;raw&amp;plain</span></code></pre>
 
         <h3>Document UUIDs</h3>
 

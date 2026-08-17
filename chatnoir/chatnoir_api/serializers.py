@@ -306,3 +306,13 @@ class ApiKeyRevocationSerializer(ApiSerializer):
         label=_('API Key'),
         help_text=_('API key')
     )
+
+
+class ApiKeyTokenRequestSerializer(AuthenticatedApiSerializer):
+    validity = serializers.IntegerField(
+        required=False,
+        min_value=1,
+        default=settings.API_KEY_TOKEN_DEFAULT_AGE,
+        initial=settings.API_KEY_TOKEN_DEFAULT_AGE,
+        help_text=_('Requested validity in seconds')
+    )

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 from hashlib import sha256
 
 from django.utils.translation import gettext_lazy as _
@@ -276,6 +277,52 @@ class ManageKeysCreateViewSet(ManageKeysViewSet):
         return Response({
             'message': _('API key created.'),
             'apikey': api_key.api_key
+        })
+
+
+class CreateApiKeyTokenViewSet(ManageKeysViewSet):
+    __doc__ = ManageKeysViewSet.__doc__
+
+    serializer_class = ApiKeyTokenRequestSerializer
+    allowed_methods = ('GET', 'POST', 'OPTIONS')
+
+    def get_view_name(self):
+        return _('API Key Token')
+
+    @staticmethod
+    def _get_request_params(request):
+        data = request.data
+        if isinstance(data, QueryDict):
+            data = data.dict()
+        return data
+
+    def list(self, request, **kwargs):
+        request.data.update(request.GET.dict())
+        return self.post(request, **kwargs)
+
+    def post(self, request, **kwargs):
+        params = ApiKeyTokenRequestSerializer(data=self._get_request_params(request))
+        params.is_valid(raise_exception=True)
+        validity = params.validated_data['validity']
+
+        if validity > settings.API_KEY_TOKEN_MAX_AGE:
+            raise rest_exceptions.ValidationError(
+                {'validity': _('Requested validity exceeds maximum of %(max_age)s seconds.')
+                             % {'max_age': settings.API_KEY_TOKEN_MAX_AGE}},
+                'invalid_validity'
+            )
+
+        token, payload = ApiKeyAuthentication.create_signed_apikey_token(request.auth, validity)
+        if token is None:
+            raise rest_exceptions.ValidationError(
+                {'apikey': _('API key cannot be used to issue a temporary token.')},
+                'invalid_key'
+            )
+
+        return Response({
+            'message': _('Temporary API key token created.'),
+            'token': token,
+            'token_info': payload,
         })
 
 

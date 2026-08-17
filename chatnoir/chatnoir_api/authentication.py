@@ -67,6 +67,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
     def _authenticate_signed_token(cls, api_key_token_str):
         if not api_key_token_str.startswith(cls.SIGNED_TOKEN_PREFIX):
             return None
+        print('dsfsdfdsf')
 
         try:
             token_data = json.loads(cls._b64decode(api_key_token_str[len(cls.SIGNED_TOKEN_PREFIX):]).decode())
@@ -89,6 +90,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             raise rest_exceptions.AuthenticationFailed(_('API key token is not valid yet.'), 'not_yet_valid')
         if now > valid_until:
             raise rest_exceptions.AuthenticationFailed(_('API key token has expired.'), 'expired')
+        print(valid_from, valid_until, now)
 
         message = cls._canonical_signed_token_payload(token_data)
         try:
@@ -113,6 +115,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         :param api_key: API key model object
         :param validity: validity period in seconds (default from settings if ``None``)
+        :returns: tuple of token and JSON payload
         """
         if not api_key.user_id:
             return None
@@ -131,7 +134,9 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         message = cls._canonical_signed_token_payload(payload)
         signature = Ed25519PrivateKey.from_private_bytes(cls._api_key_seed(api_key.private_key + nonce)).sign(message)
         payload['signature'] = cls._b64encode(signature)
-        return cls.SIGNED_TOKEN_PREFIX + cls._b64encode(json.dumps(payload, sort_keys=True, separators=(',', ':')))
+        return (
+            cls.SIGNED_TOKEN_PREFIX + cls._b64encode(json.dumps(payload, sort_keys=True, separators=(',', ':'))),
+            payload)
 
     @staticmethod
     def validate_expiration(api_key):

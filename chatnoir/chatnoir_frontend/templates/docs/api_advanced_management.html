@@ -174,6 +174,64 @@
 }</code></pre>
 
 
+        <h2 id="create-a-temporary-api-key-token"><a href="#create-a-temporary-api-key-token" class="anchor-link">Create a Temporary API Key Token</a></h2>
+        <p>By sending an authenticated request to the <code>/token</code> action of the management endpoint, you can create
+            a temporary signed key token derived from your current API key. API key tokens can be used just like API keys for a
+            limited time. Use them to share access with others temporarily.</p>
+
+        <p>The requested validity is specified in seconds. If no validity is specified, the server default is used. The requested
+            validity period cannot exceed the server's configured maximum.</p>
+
+        <h3 class="mt-3">Endpoint Action:</h3>
+        <p class="ml-4"><code>/token</code></p>
+
+        <h3 class="mt-3">Required Roles:</h3>
+        <p class="ml-4"><em>None</em></p>
+
+        <h3 class="mt-3">Allowed Methods:</h3>
+        <p class="ml-4"><code>GET</code>, <code>POST</code></p>
+
+        <h3 class="mt-3">Parameters:</h3>
+        <ul class="my-3 ml-4">
+            <li><code class="font-bold">validity</code>: optional requested validity in seconds</li>
+        </ul>
+
+        <h3 class="mt-3">Response Data:</h3>
+        <ul class="my-3 ml-4">
+            <li><code class="font-bold">message</code>: human-readable status message</li>
+            <li><code class="font-bold">token</code>: signed temporary API key token</li>
+            <li><code class="font-bold">token_info</code>:
+                <ul class="ml-4">
+                    <li><code class="font-bold">key_id</code>: API key identifier to which token is found</li>
+                    <li><code class="font-bold">valid_from</code>: UTC start time as ISO datetime</li>
+                    <li><code class="font-bold">valid_until</code>: UTC expiration time as ISO datetime</li>
+                    <li><code class="font-bold">nonce</code>: random nonce used in signature</li>
+                    <li><code class="font-bold">signature</code>: token signature</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 class="mt-3">Example:</h3>
+        <h4>Request:</h4>
+        <pre class="code-block"><code><span class="text-green-600 font-bold">POST</span> -H <span class="text-red-400">"Authorization: Bearer <strong>$APIKEY</strong>"</span> <span class="text-gray-600">/api/v1/_manage_keys/token?pretty</span>
+{
+  <span class="text-violet-500">"validity"</span>: <span class="text-teal-600">7200</span>
+}</code></pre>
+
+        <h4>Response:</h4>
+        <pre class="code-block"><code>{
+  <span class="text-violet-500">"message"</span>: <span class="text-red-400">"Temporary API key token created."</span>,
+  <span class="text-violet-500">"token"</span>: <span class="text-red-400">"<strong>$TOKEN</strong>"</span>,
+  <span class="text-violet-500">"token_info"</span>: {
+    <span class="text-violet-500">"key_id"</span>: <span class="text-red-400">"&lt;key id&gt;"</span>,
+    <span class="text-violet-500">"valid_from"</span>: <span class="text-red-400">"2026-08-17T12:00:00Z"</span>,
+    <span class="text-violet-500">"valid_until"</span>: <span class="text-red-400">"2026-08-17T14:00:00Z"</span>,
+    <span class="text-violet-500">"nonce"</span>: <span class="text-red-400">"&lt;random-nonce&gt;"</span>,
+    <span class="text-violet-500">"signature"</span>: <span class="text-red-400">"&lt;token-signature-base64&gt;"</span>
+  }
+}</code></pre>
+
+
         <h2 id="update-api-key-user-information"><a href="#update-api-key-user-information" class="anchor-link">Update API Key User Information</a></h2>
         <p>By sending a <code>PUT</code> request to the <code>/update</code> action of the management endpoint, you can update an existing API key.</p>
 
