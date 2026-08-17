@@ -18,13 +18,13 @@ from urllib import parse
 import uuid
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.http import require_safe
 from rest_framework import authentication as drf_authentication, exceptions as rest_exceptions
 
+from chatnoir_frontend.error_views import permission_denied
 from chatnoir_search.elastic_backend import get_index
 from elasticsearch_dsl import connections, Search
 from .cache import CacheDocument
@@ -93,12 +93,21 @@ def authenticate_api_key(request, required_roles=None):
         user_info, api_key = ApiKeyAuthentication().authenticate(request)
         if required_roles is None:
             return user_info, api_key
-        for role in api_key.roles.values('role'):
-            if role['role'] in [*required_roles, settings.API_ADMIN_ROLE]:
-                return user_info, api_key
+        if api_key_has_required_roles(api_key, required_roles):
+            return user_info, api_key
     except rest_exceptions.APIException:
-        raise PermissionDenied
+        pass
     return None
+
+
+def api_key_has_required_roles(api_key, required_roles):
+    if required_roles is None:
+        return True
+
+    for role in api_key.roles.values('role'):
+        if role['role'] in [*required_roles, settings.API_ADMIN_ROLE]:
+            return True
+    return False
 
 
 # noinspection PyProtectedMember
@@ -107,7 +116,9 @@ def cache(request):
     """Cache view."""
     index_shorthand = request.GET.get('index')
     auth_info = authenticate_api_key(request, None)
-    search_index = get_index(index_shorthand, auth_info[1] if auth_info else None)
+    if auth_info is None:
+        return permission_denied(request)
+    search_index = get_index(index_shorthand, auth_info[1])
     if not search_index:
         raise Http404
 
@@ -115,7 +126,8 @@ def cache(request):
     plain_mode = bool_param_set('plain', request.GET) and not raw_mode
     minimal_mode = bool_param_set('minimal', request.GET) and not plain_mode
 
-    cache_doc = CacheDocument()
+    auth_credential = getattr(auth_info[1], '_auth_credential', None)
+    cache_doc = CacheDocument(auth_credential)
     found = False
     try:
         if request.GET.get('uuid'):
@@ -143,16 +155,17 @@ def cache(request):
 
     if not found:
         raise Http404
-
-    doc_taken_down = cache_doc.taken_down() and authenticate_api_key(request, [settings.API_NOTAKEDOWN_ROLE]) is None
+    doc_taken_down = cache_doc.taken_down() and not (
+        auth_info and api_key_has_required_roles(auth_info[1], [settings.API_NOTAKEDOWN_ROLE])
+    )
     if raw_mode and doc_taken_down:
-        raise PermissionDenied
+        return permission_denied(request)
 
     doc_meta = cache_doc.doc_meta()
     doc_uuid = doc_meta['uuid']
     cache_url_query = f'index={parse.quote(index_shorthand)}&uuid={parse.quote(doc_uuid)}'
-    if request.GET.get('apikey'):
-        cache_url_query += f'&apikey={parse.quote(request.GET["apikey"])}'
+    if auth_credential:
+        cache_url_query += f'&apikey={parse.quote(auth_credential)}'
     cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)._replace(query=cache_url_query)
     context = dict(
         app_name=settings.APPLICATION_NAME,
@@ -217,7 +230,9 @@ def term_vectors(request):
 
     index_shorthand = request.GET.get('index')
     auth_info = authenticate_api_key(request, None)
-    search_index = get_index(index_shorthand, auth_info[1] if auth_info else None)
+    if not auth_info:
+        return permission_denied(request)
+    search_index = get_index(index_shorthand, auth_info[1])
     if not search_index:
         raise Http404
 

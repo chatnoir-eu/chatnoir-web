@@ -36,12 +36,18 @@ logger = logging.getLogger(__name__)
 class CacheDocument:
     _S3_RESOURCE = None
 
-    def __init__(self):
+    def __init__(self, rewrite_auth_credential=None):
+        """
+        Create a new cache document.
+        
+        :param rewrite_auth_credential: optional API key auth credential object to add the rewritten links
+        """
         self._warc_record = None
         self._meta_doc = None
         self._doc_index = None
         self._doc_bytes = None
         self._html_tree = None
+        self._rewrite_auth_credential = rewrite_auth_credential
         self._is_clueweb09 = False   # ClueWeb09 quirks mode
         self._doc_found = False
         self._raw_doc_content_type = 'application/octet-stream'
@@ -431,6 +437,8 @@ class CacheDocument:
 
         new_url = urlparse.urlunparse(target_url_parts._replace(**repl))
         new_url = f'{settings.CACHE_FRONTEND_URL}?index={self._doc_index.shorthand_name}&url={urlparse.quote(new_url)}'
+        if self._rewrite_auth_credential:
+            new_url += f'&apikey={urlparse.quote(self._rewrite_auth_credential)}'
         if raw:
             new_url += '&raw'
         return new_url

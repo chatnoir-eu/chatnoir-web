@@ -67,7 +67,6 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
     def _authenticate_signed_token(cls, api_key_token_str):
         if not api_key_token_str.startswith(cls.SIGNED_TOKEN_PREFIX):
             return None
-        print('dsfsdfdsf')
 
         try:
             token_data = json.loads(cls._b64decode(api_key_token_str[len(cls.SIGNED_TOKEN_PREFIX):]).decode())
@@ -90,7 +89,6 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             raise rest_exceptions.AuthenticationFailed(_('API key token is not valid yet.'), 'not_yet_valid')
         if now > valid_until:
             raise rest_exceptions.AuthenticationFailed(_('API key token has expired.'), 'expired')
-        print(valid_from, valid_until, now)
 
         message = cls._canonical_signed_token_payload(token_data)
         try:
