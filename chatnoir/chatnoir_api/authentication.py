@@ -113,10 +113,10 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         :param api_key: API key model object
         :param validity: validity period in seconds (default from settings if ``None``)
-        :returns: tuple of token and JSON payload
+        :returns: tuple of token and JSON payload or ``(None, None)``
         """
         if not api_key.user_id:
-            return None
+            return None, None
         if not validity:
             validity = min(settings.API_KEY_TOKEN_DEFAULT_AGE, settings.API_KEY_TOKEN_MAX_AGE)
 
