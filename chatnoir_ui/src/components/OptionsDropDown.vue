@@ -63,7 +63,7 @@
                 autocomplete="off"
                 @keyup.enter="saveApiKey"
             >
-            <div class="flex items-center gap-2 mt-1">
+            <div class="flex items-center gap-2 mt-2">
                 <button type="button" class="btn" :disabled="apiKeySaving || !apiKey.trim()" @click="saveApiKey">
                     Log in
                 </button>
