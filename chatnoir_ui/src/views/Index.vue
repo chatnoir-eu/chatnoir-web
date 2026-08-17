@@ -40,8 +40,4 @@ function search() {
         router.push({name: 'IndexSearch', query: searchModel.value.toQueryStringObj()})
     }
 }
-
-function getModuleName() {
-    return window._APP_SETTINGS.app_module
-}
 </script>

@@ -32,15 +32,15 @@
                        :disabled="idx.restricted"
                        @click="toggleIndex(pos, $event.target.checked)">
                 <label :for="idx.id">
-                  {{ idx.name }}
-                  <span v-if="idx.restricted"
-                        class="inline-block"
-                        title="Restricted Index: Enter API key or contact us for access">
-                      <inline-svg
-                          :src="iconInfo"
-                          class="inline-block h-[1em] w-[1em] align-text-middle text-inherit fill-current stroke-current cursor-help"
-                      />
-                  </span>
+                    {{ idx.name }}
+                    <span v-if="idx.restricted"
+                          class="inline-block"
+                          title="Restricted Index: Enter API key or contact us for access">
+                        <inline-svg
+                            :src="iconInfo"
+                            class="inline-block h-[1em] w-[1em] align-text-middle text-inherit fill-current stroke-current cursor-help"
+                        />
+                    </span>
                 </label>
             </li>
         </ul>
