@@ -57,6 +57,7 @@ class ApiKeyAdminBaseMixin:
 class ApiKeyAdmin(ApiKeyAdminBaseMixin, admin.ModelAdmin):
     list_display = ('user_link', 'key_id_link', 'roles_str', 'expires', '_valid_bool', 'comments')
     list_filter = ('roles', )
+    list_per_page = 10
     readonly_fields = ApiKeyAdminBaseMixin.readonly_fields + (
         '_valid_bool',
         'expires',
@@ -222,6 +223,7 @@ class ApiUserAdmin(admin.ModelAdmin):
     list_filter = ('organization', 'zip_code', 'state', 'country')
     search_fields = ('common_name', 'api_key__api_key', 'email', 'organization', 'address',
                      'zip_code', 'state', 'country')
+    list_per_page = 10
     inlines = (ApiKeyInlineAdmin,)
 
     def has_delete_permission(self, request, obj=None):
