@@ -24,6 +24,7 @@ from django.utils.encoding import iri_to_uri
 from django.views.decorators.http import require_safe
 from rest_framework import authentication as drf_authentication, exceptions as rest_exceptions
 
+from chatnoir_api.authentication import ApiKeyAuthentication
 from chatnoir_frontend.error_views import permission_denied
 from chatnoir_search.elastic_backend import get_index
 from elasticsearch_dsl import connections, Search
@@ -126,7 +127,12 @@ def cache(request):
     plain_mode = bool_param_set('plain', request.GET) and not raw_mode
     minimal_mode = bool_param_set('minimal', request.GET) and not plain_mode
 
+    # Reuse existing token credential if available, otherwise mint new token
     auth_credential = getattr(auth_info[1], '_auth_credential', None)
+    if not getattr(auth_info[1], '_auth_via_signature', False):
+        signed_apikey, _ = ApiKeyAuthentication.create_signed_apikey_token(auth_info[1], validity=7200)
+        if signed_apikey:
+            auth_credential = signed_apikey
     cache_doc = CacheDocument(auth_credential)
     found = False
     try:

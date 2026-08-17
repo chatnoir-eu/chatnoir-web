@@ -100,9 +100,13 @@ class SerpContext:
             doc_id = getattr(hit, 'uuid', hit.meta.id)
             cache_query = f'index={parse.quote(result_index)}&uuid={parse.quote(doc_id)}'
             if self.search.user_auth_info:
-                signed_apikey, _ = ApiKeyAuthentication.create_signed_apikey_token(self.search.user_auth_info, validity=7200)
-                if signed_apikey:
-                    cache_query += f'&apikey={parse.quote(signed_apikey)}'
+                auth_credential = getattr(self.search.user_auth_info, '_auth_credential', None)
+                if getattr(self.search.user_auth_info, '_auth_via_signature', False) and auth_credential:
+                    cache_query += f'&apikey={parse.quote(auth_credential)}'
+                else:
+                    signed_apikey, _ = ApiKeyAuthentication.create_signed_apikey_token(self.search.user_auth_info)
+                    if signed_apikey:
+                        cache_query += f'&apikey={parse.quote(signed_apikey)}'
             cache_url = parse.urlparse(settings.CACHE_FRONTEND_URL)._replace(
                 query=cache_query)
             result = {
