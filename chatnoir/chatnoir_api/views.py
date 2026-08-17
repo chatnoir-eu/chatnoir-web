@@ -311,10 +311,10 @@ class CreateApiKeyTokenViewSet(ManageKeysViewSet):
         params.is_valid(raise_exception=True)
         validity = params.validated_data['validity']
 
-        if validity > settings.API_KEY_TOKEN_MAX_AGE:
+        if validity > settings.API_KEY_TOKEN_MAX_VALIDITY:
             raise rest_exceptions.ValidationError(
                 {'validity': _('Requested validity exceeds maximum of %(max_age)s seconds.')
-                             % {'max_age': settings.API_KEY_TOKEN_MAX_AGE}},
+                             % {'max_age': settings.API_KEY_TOKEN_MAX_VALIDITY}},
                 'invalid_validity'
             )
 

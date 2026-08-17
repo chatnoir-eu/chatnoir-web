@@ -135,7 +135,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         :returns: tuple of token and JSON payload
         """
         if not validity:
-            validity = min(settings.API_KEY_TOKEN_DEFAULT_AGE, settings.API_KEY_TOKEN_MAX_AGE)
+            validity = min(settings.API_KEY_TOKEN_DEFAULT_VALIDITY, settings.API_KEY_TOKEN_MAX_VALIDITY)
 
         valid_from = datetime.now(dt_timezone.utc)
         valid_until = valid_from + timedelta(seconds=validity)

@@ -75,7 +75,8 @@ def _init_frontend_session(request):
         token_max_age = 315360000
         token_quota = apikey.limits_day or 2147483647
     else:
-        token, payload = ApiKeyAuthentication.create_temporary_frontend_token(issuer='web_frontend')
+        token, payload = ApiKeyAuthentication.create_temporary_frontend_token(
+            validity=settings.API_KEY_TOKEN_FRONTEND_VALIDITY, issuer='web_frontend')
         valid_from = datetime.fromisoformat(payload['valid_from'].replace('Z', '+00:00'))
         valid_until = datetime.fromisoformat(payload['valid_until'].replace('Z', '+00:00'))
         token_timestamp = int(valid_from.timestamp())
