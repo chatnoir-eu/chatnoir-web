@@ -37,9 +37,10 @@ admin.StackedInline.formfield_overrides = {
 
 class ApiKeyAdminBaseMixin:
     autocomplete_fields = ('parent', 'user', 'roles')
-    search_fields = ('key_id', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comments')
+    search_fields = ('api_key', 'key_id', 'parent__api_key', 'roles__role', 'user__common_name', 'user__email', 'comments')
     fields = (
         ('key_id', '_revoked'),
+        'api_key',
         'user',
         'parent',
         ('issue_date', '_expires'),
