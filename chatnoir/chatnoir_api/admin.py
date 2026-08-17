@@ -336,7 +336,7 @@ class ApiKeyPasscodeRedemptionAdmin(admin.ModelAdmin):
 
 
 class ApiConfigurationSettings(SingletonModelAdmin):
-    autocomplete_fields = ('default_issue_key',)
+    autocomplete_fields = ('default_issue_key', 'web_frontend_key')
 
 
 admin.site.register(ApiConfiguration, ApiConfigurationSettings)

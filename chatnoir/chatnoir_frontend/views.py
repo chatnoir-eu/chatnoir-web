@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import json
 import time
 
@@ -74,14 +75,16 @@ def _init_frontend_session(request):
         token_max_age = 315360000
         token_quota = apikey.limits_day or 2147483647
     else:
-        apikey = ApiKeyAuthentication.issue_temporary_session_apikey(request, issuer='web_frontend')
-        token_timestamp = int(apikey.issue_date.timestamp())
-        token_max_age = int((apikey.expires - apikey.issue_date).total_seconds()) + 1
-        token_quota = apikey.limits_day
+        token, payload = ApiKeyAuthentication.create_temporary_frontend_token(issuer='web_frontend')
+        valid_from = datetime.fromisoformat(payload['valid_from'].replace('Z', '+00:00'))
+        valid_until = datetime.fromisoformat(payload['valid_until'].replace('Z', '+00:00'))
+        token_timestamp = int(valid_from.timestamp())
+        token_max_age = int((valid_until - valid_from).total_seconds()) + 1
+        token_quota = None
 
     return JsonResponse({
         'token': {
-            'token': apikey.api_key,
+            'token': apikey.api_key if request_auth else token,
             'timestamp': token_timestamp,
             'max_age': token_max_age,
             'quota': token_quota

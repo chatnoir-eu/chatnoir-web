@@ -21,7 +21,6 @@ import secrets
 from hashlib import sha256
 
 from django.conf import settings
-from django.core import serializers
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from cryptography.exceptions import InvalidSignature
@@ -32,7 +31,6 @@ from .models import ApiConfiguration, ApiKey
 
 
 class ApiKeyAuthentication(authentication.BaseAuthentication):
-    SESSION_APIKEY_KEY = 'session_api_key'
     SIGNED_TOKEN_PREFIX = 'sig:'
 
     @staticmethod
@@ -72,6 +70,10 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         return api_key
 
     @classmethod
+    def _get_web_frontend_api_key(cls):
+        return ApiConfiguration.objects.get().web_frontend_key
+
+    @classmethod
     def _authenticate_signed_token(cls, request, api_key_token_str):
         if not api_key_token_str.startswith(cls.SIGNED_TOKEN_PREFIX):
             return None
@@ -99,12 +101,20 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             raise rest_exceptions.AuthenticationFailed(_('API key token has expired.'), 'expired')
 
         message = cls._canonical_signed_token_payload(token_data)
-        session_api_key = cls._get_session_apikey(request)
-        if session_api_key:
+        if token_data.get('temporary_session'):
+            if not isinstance(token_data.get('issuer'), str) or not token_data['issuer']:
+                raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+
+            web_frontend_api_key = cls._get_web_frontend_api_key()
+            if key_id != web_frontend_api_key.key_id:
+                raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
+
             try:
-                return cls._verify_signed_token_for_api_key(session_api_key, nonce, signature, message, api_key_token_str)
+                return cls._verify_signed_token_for_api_key(
+                    web_frontend_api_key, nonce, signature, message, api_key_token_str
+                )
             except InvalidSignature:
-                pass
+                raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
 
         try:
             try:
@@ -142,6 +152,26 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         return (
             cls.SIGNED_TOKEN_PREFIX + cls._b64encode(json.dumps(payload, sort_keys=True, separators=(',', ':'))),
             payload)
+
+    @classmethod
+    def create_temporary_frontend_token(cls, validity=300, issuer='web_frontend'):
+        web_frontend_api_key = cls._get_web_frontend_api_key()
+        valid_from = datetime.now(dt_timezone.utc)
+        valid_until = valid_from + timedelta(seconds=validity)
+        payload = {
+            'key_id': web_frontend_api_key.key_id,
+            'valid_from': cls._isoformat_z(valid_from),
+            'valid_until': cls._isoformat_z(valid_until),
+            'nonce': secrets.token_urlsafe(16),
+            'temporary_session': True,
+            'issuer': issuer,
+        }
+        message = cls._canonical_signed_token_payload(payload)
+        signature = Ed25519PrivateKey.from_private_bytes(
+            cls._api_key_seed(web_frontend_api_key.private_key + payload['nonce'])).sign(message)
+        payload['signature'] = cls._b64encode(signature)
+        token = cls.SIGNED_TOKEN_PREFIX + cls._b64encode(json.dumps(payload, sort_keys=True, separators=(',', ':')))
+        return token, payload
 
     @staticmethod
     def validate_expiration(api_key):
@@ -221,18 +251,6 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         if quota_exceeded:
             raise rest_exceptions.Throttled(None, _('API request limit exceeded.'), 'quota_exceeded')
 
-    @classmethod
-    def _save_session_apikey(cls, request, api_key):
-        """Store serialized API key in session."""
-        request.session[cls.SESSION_APIKEY_KEY] = serializers.serialize('json', [api_key])
-
-    @classmethod
-    def _get_session_apikey(cls, request):
-        """Retrieve API key from session or return ``None`` if no API key ist set."""
-        for serialized in serializers.deserialize('json', request.session.get(cls.SESSION_APIKEY_KEY, '[]')):
-            serialized.object.save = lambda *_, **__: None
-            return serialized.object
-
     def authenticate(self, request):
         if request.method == 'OPTIONS':
             return None
@@ -246,20 +264,12 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         if not api_key_str:
             raise rest_exceptions.NotAuthenticated(_('No API key supplied.'))
 
-        # Test for temporary session API keys first
-        api_key = self._get_session_apikey(request)
-        if api_key and (not hasattr(api_key, 'api_key') or api_key.api_key != api_key_str):
-            api_key = None
-        is_temporary_key = api_key is not None
-
-        # Fall back to regular API keys if temporary session key is invalid or unset
+        api_key = self._authenticate_signed_token(request, api_key_str)
         if not api_key:
-            api_key = self._authenticate_signed_token(request, api_key_str)
-            if not api_key:
-                try:
-                    api_key = ApiKey.objects.get(api_key=api_key_str)
-                except ApiKey.DoesNotExist:
-                    raise rest_exceptions.NotAuthenticated(_('Invalid API key.'))
+            try:
+                api_key = ApiKey.objects.get(api_key=api_key_str)
+            except ApiKey.DoesNotExist:
+                raise rest_exceptions.NotAuthenticated(_('Invalid API key.'))
 
         self.validate_expiration(api_key)
         self.validate_revocation(api_key)
@@ -269,45 +279,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
         if not hasattr(api_key, '_auth_credential'):
             api_key._auth_credential = api_key.api_key
 
-        if is_temporary_key:
-            # Store updated API limits
-            self._save_session_apikey(request, api_key)
-
         return api_key.user, api_key
-
-    @classmethod
-    def issue_temporary_session_apikey(cls, request, validity=300, request_limit=10,
-                                       issuer=None, parent=None, user=None):
-        """
-        Issue a temporary session API key. The key will be stored in the session automatically.
-
-        :param request: HTTP requests with initialized session object
-        :param validity: API key validity in seconds
-        :param request_limit: request quota for this API key
-        :param issuer: internal API key issuer identifier
-        :param parent: parent API key (default: unparented)
-        :param user: user which to attach the key to (default: anonymous)
-        :return: temporary API key
-        """
-        if parent is None:
-            parent = ApiConfiguration.objects.get().default_issue_key
-        if user is None:
-            user = parent.user
-
-        api_key = ApiKey(
-            parent=parent,
-            issuer=issuer,
-            user=user,
-            expires=timezone.now() + timedelta(seconds=validity),
-            limits_day=request_limit,
-            limits_week=request_limit,
-            limits_month=request_limit,
-            comments=_('Temporary session key')
-        )
-        api_key.save()
-        cls._save_session_apikey(request, api_key)
-        return api_key
-
 
 class HasKeyCreateRole(permissions.BasePermission):
     def has_permission(self, request, view):

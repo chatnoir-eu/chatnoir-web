@@ -625,6 +625,11 @@ class ApiConfiguration(SingletonModel):
                                           verbose_name=_('Default API Issue Key'),
                                           help_text=_('Default parent key for new keys'),
                                           on_delete=models.CASCADE)
+    web_frontend_key = models.ForeignKey(ApiKey,
+                                         verbose_name=_('Web Frontend API Key'),
+                                         help_text=_('Default key for anonymous web frontend token issuance'),
+                                         on_delete=models.CASCADE,
+                                         related_name='+')
 
     def __str__(self):
         return "Global Configuration"
