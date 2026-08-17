@@ -22,13 +22,25 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import SearchHeader from '@/components/SearchHeader.vue'
 import xhr from '@/xhr.mjs'
 
 const route = useRoute()
 const docComponent = ref(null)
+
+async function scrollToHash() {
+    if (!route.hash) {
+        return
+    }
+
+    await nextTick()
+    const element = document.querySelector(route.hash)
+    if (element) {
+        element.scrollIntoView()
+    }
+}
 
 onMounted(async () => {
     let docTemplate = document.querySelector('#doc')
@@ -40,5 +52,10 @@ onMounted(async () => {
     }
     docComponent.value.appendChild(docTemplate.content)
     docTemplate.remove()
+    await scrollToHash()
+})
+
+watch(() => route.hash, async () => {
+    await scrollToHash()
 })
 </script>
