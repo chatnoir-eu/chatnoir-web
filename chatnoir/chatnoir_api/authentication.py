@@ -118,7 +118,7 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
         try:
             try:
-                api_key = ApiKey.objects.prefetch_related('roles').get(key_id=key_id)
+                api_key = ApiKey.objects.get(key_id=key_id)
             except ApiKey.DoesNotExist:
                 raise rest_exceptions.NotAuthenticated(_('Invalid API key token.'))
             return cls._verify_signed_token_for_api_key(api_key, nonce, signature, message, api_key_token_str)
