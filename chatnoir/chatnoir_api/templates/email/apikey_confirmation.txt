@@ -7,6 +7,11 @@ Thanks again for signing up! This is your {{ app_name }} API key:
 To get started with the API, please check out our API documentation:
 https://www.chatnoir.eu/doc/
 
+Please note that for accessing the *ClueWeb* indices, you need a ClueWeb
+license from CMU. To obtain access, please send proof of your license to
+webis@listserv.uni-weimar.de. Licenses are free and can be obtained at:
+https://lemurproject.org/clueweb22/obtain.php
+
 If you have any further questions regarding the service, feel
 free to contact us.
 

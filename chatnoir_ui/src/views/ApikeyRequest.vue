@@ -53,6 +53,11 @@
                     If you do not qualify for a free API key or need a key for non-academic purposes, please contact us directly,
                     so we can assess your use case and potentially work out an agreement.
                 </p>
+                <p>
+                  <strong>Important note about ClueWeb access:</strong> For accessing the <strong>ClueWeb</strong> indices, you need a ClueWeb
+                  license from CMU. To obtain access, please send us proof of your license after requesting your API key.
+                  Licenses are free and can be obtained at <a href="https://lemurproject.org/clueweb22/obtain.php" target="_blank">lemurproject.org</a>.
+                </p>
             </div>
             <div v-else>
                 <p>
