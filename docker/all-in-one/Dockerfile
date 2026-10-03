@@ -47,7 +47,10 @@ RUN set -x \
     && echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list \
     && apt update \
     && apt install -y --no-install-recommends elasticsearch=${ELASTICSEARCH_VERSION} \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives \
+    # ChatNoir's index mappings use ICU (normalization/tokenizer) and
+    # Kuromoji (Japanese) analyzers, which aren't bundled with ES by default.
+    && /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch analysis-icu analysis-kuromoji analysis-smartcn
 
 # Elasticsearch config: single-node, no security/TLS, modest heap, and
 # mmap-less storage so it also runs in environments that can't raise the
@@ -65,6 +68,7 @@ RUN set -x \
         echo "xpack.security.transport.ssl.enabled: false"; \
         echo "node.store.allow_mmap: false"; \
         echo "network.host: 0.0.0.0"; \
+        echo "cluster.routing.allocation.disk.threshold_enabled: false"; \
     } >> /etc/elasticsearch/elasticsearch.yml \
     && mkdir -p /etc/elasticsearch/jvm.options.d \
     && { \
@@ -99,7 +103,10 @@ RUN set -x \
 
 COPY docker/all-in-one/local_settings.template.py /opt/chatnoir-web/local_settings.all-in-one.py
 COPY docker/all-in-one/start-chatnoir.sh /opt/chatnoir-web/start-chatnoir.sh
-RUN chmod +x /opt/chatnoir-web/start-chatnoir.sh \
+COPY docker/all-in-one/start-web-cache.sh /opt/chatnoir-web/start-web-cache.sh
+COPY docker/all-in-one/wsgi-web-cache.ini /opt/chatnoir-web/wsgi-web-cache.ini
+COPY docker/all-in-one/create-demo-apikey.py /opt/chatnoir-web/create-demo-apikey.py
+RUN chmod +x /opt/chatnoir-web/start-chatnoir.sh /opt/chatnoir-web/start-web-cache.sh \
     && cp /opt/chatnoir-web/local_settings.all-in-one.py /opt/chatnoir-web/chatnoir/chatnoir/local_settings.py
 
 RUN set -x \
@@ -116,7 +123,7 @@ ENV CHATNOIR_APP=chatnoir
 ENV MINIO_ROOT_USER=chatnoir
 ENV MINIO_ROOT_PASSWORD=chatnoirchatnoir
 
-EXPOSE 8000 9200 9000 9001
+EXPOSE 8000 8001 9200 9000 9001
 
 ENTRYPOINT ["/docker-entrypoint-all-in-one.sh"]
 CMD ["supervisord", "-n", "-c", "/etc/supervisord.conf"]

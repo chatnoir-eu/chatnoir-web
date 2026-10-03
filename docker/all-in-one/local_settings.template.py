@@ -51,7 +51,18 @@ S3_ENDPOINT_PROPERTIES = {
 
 # Configure search indices here. Add your own indices/buckets once you have
 # ingested data into the bundled Elasticsearch/MinIO instances.
-SEARCH_INDICES = {}
+SEARCH_INDICES = {
+    'cranfield': {
+        'index': 'chatnoir_data_cranfield',
+        'warc_index': 'chatnoir_meta_cranfield',
+        'warc_bucket': 'corpora-tirex-small',
+        'warc_uuid_prefix': 'cranfield',
+        'display_name': 'Cranfield (demo)',
+        'source_url': 'https://ir-datasets.com/cranfield.html',
+        'compat_search_versions': [1],
+        'default': True
+    }
+}
 
 # Frontend URLs
 SEARCH_FRONTEND_URL = 'http://127.0.0.1:8000/'
